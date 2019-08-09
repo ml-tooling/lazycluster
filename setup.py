@@ -13,8 +13,8 @@ from setuptools import find_packages, setup, Command
 # Package meta-data.
 NAME = 'lazycluster'
 MAIN_PACKAGE = 'lazycluster'  # Change if main package != NAME
-DESCRIPTION = 'TBD'
-URL = 'https://github.wdf.sap.corp/D059056/lazycluster.git'
+DESCRIPTION = 'Distributed machine learning made simple.'
+URL = 'https://github.com/ml-tooling/lazycluster.git'
 EMAIL = 'jan.kalkan@mailbox.org'
 AUTHOR = 'Jan Kalkan'
 REQUIRES_PYTHON = '>=3.6'
@@ -122,7 +122,7 @@ setup(
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: Apache 2.0',
         'Natural Language :: English',
         'Operating System :: OS Independent',
         # Not python 2 compatible right now
