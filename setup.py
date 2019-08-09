@@ -102,6 +102,7 @@ setup(
     name=NAME,
     version=about['__version__'],
     description=DESCRIPTION,
+    long_description_content_type="text/markdown",
     long_description="%s\n\nRequirements:\n%s" % (long_description, requirements),
     author=AUTHOR,
     author_email=EMAIL,
