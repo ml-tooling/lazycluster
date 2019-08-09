@@ -29,7 +29,7 @@ VERSION = None  # Only set version if you like to overwrite the version in __ver
 
 # Check if version is right
 if (sys.version_info[:1] == 3 and sys.version_info[:2] < (3, 5)):  # sys.version_info[:2] < (2, 7) or
-    raise Exception('This package needs Python 3.5 or later.')  # 2.7,
+    raise Exception('This package needs Python 3.6 or later.')  # 2.7,
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -93,10 +93,6 @@ class DeployCommand(Command):
 
         self.status('Uploading the package to PyPi via Twine…')
         os.system('twine upload dist/*')
-
-        self.status('Pushing git tags…')
-        os.system('git tag v{0}'.format(about['__version__']))
-        os.system('git push --tags')
 
         sys.exit()
 
