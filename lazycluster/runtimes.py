@@ -1057,6 +1057,11 @@ class Runtime(object):
 
 
 def get_localhost_info() -> dict:
+    """Get information about the specifications of localhost.
+
+    Returns:
+        dict: Current dict keys: 'os', 'cpu_cores', 'memory', 'python_version', 'workspace_version', 'gpus'.
+    """
     info = {
         'os': _get_os_on_localhost(),
         'cpu_cores': _get_cpu_count_on_localhost(),
@@ -1069,6 +1074,7 @@ def get_localhost_info() -> dict:
 
 
 def print_localhost_info():
+    """Prints the dictionary retrieved by `get_localhost_info()`."""
     json_str = json.dumps(get_localhost_info())
     print(json_str)
 
