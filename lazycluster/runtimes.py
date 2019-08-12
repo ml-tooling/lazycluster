@@ -117,10 +117,10 @@ class RuntimeTask(object):
     @property
     def function_returns(self) -> Generator[object, None, None]:
         """Get the return data produced by functions which were executed as a consequence of a `task.run_function()`
-           call. If the tasks was executed synchronously, then the execution blocks until the process finishes.
+        call.
 
        Internally, a function return is saved as a pickled file. This method unpickles each file one after
-       another and yields the data. Moreover, the return data will be yielded int the same order as the functions were
+       another and yields the data. Moreover, the return data will be yielded in the same order as the functions were
        executed.
 
         Yields:
@@ -374,14 +374,18 @@ class RuntimeTask(object):
 
 
 class Runtime(object):
-    """Abstract Runtime for executing `RuntimeTasks` in it or exposing ports from / to the local machine. 
+    """Runtime for executing `RuntimeTasks` in it or exposing ports from / to localhost.
     
-    Should only be used as an interface and not be instantiated directly. Preferably instantiate
-    RemoteRuntime objects. Passwordless ssh needs to be setup in advance.
+    Note: Passwordless ssh access should be be setup in advance. Otherwise the connection kwargs of fabric must be used
+          for setting up the ssh connection.
 
     Examples:
-        # Variant 2: Execute RuntimeTask via a Runtime (asynchronous execution is optionally possible in that way)
-        task =  Runtime('host').execute_task(my_task, execute_async=True)`
+        `# Execute a RuntimeTask synchronously
+        task =  Runtime('host-1').execute_task(my_task, execute_async=False)`
+
+        `# Expose a port from localhost to the remote host so that a service running from
+         # localhost is accessible on the remote host as well.
+        task =  Runtime('host-1').execute_task(my_task, execute_async=False)`
 
     """
 
@@ -394,19 +398,20 @@ class Runtime(object):
     _TASK_PROCESS_KEY_PREFIX = 'task'
 
     def __init__(self, host: str, root_dir: Optional[str] = None, **connection_kwargs):
-        """Constructor method. 
-        Since the runtime is an abstract class it should not be instantiated directly. All
-        child classes provide a create_instance method, which shall be used for the instantiation
-        of new objects. 
+        """Initialization method.
         
         Args: 
-            host (str): The host of the runtime.
-            root_dir (str, Optional): The directory which shall act as root one. Defaults to None.
-                                      Consequently, a temporary directory will be created and used as root.
-            **connection_kwargs: kwargs that will be passed on to the fabric connection in case of a remote runtime.
+            host (str): The host of the `Runtime`.
+            root_dir (Optional[str]): The directory which shall act as root one. Defaults to None.
+                                      Consequently, a temporary directory will be created and used as root directory. If
+                                      the root directory is a temporary one it will be cleaned up either `atexit` or
+                                      when calling `cleanup()` manually.
+
+            **connection_kwargs: kwargs that will be passed on to the fabric connection. Please check the fabric docs
+                                 for further details.
 
         Raises:
-            InvalidRuntimeError: If RemoteRuntime could not be instantiated successfully.
+            InvalidRuntimeError: If `Runtime` could not be instantiated successfully.
         """
 
         self._host = host
@@ -429,11 +434,11 @@ class Runtime(object):
         return "%s(%r)" % (self.__class__, self.__dict__)
 
     def __str__(self):
-        return self.type_str + ': ' + self.host
+        return self.class_name + ': ' + self.host
 
     @property
     def root_directory(self):
-        """The path of the root directory . """
+        """The path of the root directory that was set during object initialization. """
         self._create_root_dir_if_not_exists()
         return self._root_dir
 
@@ -452,10 +457,11 @@ class Runtime(object):
 
     @property
     def function_returns(self) -> Generator[object, None, None]:
-        """Get the return data produced by functions which were executed as a consequence of a `task.run_function()`
-           call.
+        """Get the return data produced by Python functions which were executed as a consequence of
+           `task.run_function()`. The call will be passed on to the `function_returns` property of the `RuntimeTask`.
+           The order is determined by the order in which the `RuntimeTasks` were executed in the `Runtime`.
 
-        Returns:
+        Yields:
             Generator[object, None, None]: Generator object yielding the return data of the functions executed during
                                            task execution.
         """
@@ -465,25 +471,26 @@ class Runtime(object):
 
     @classmethod
     def is_runtime_task_process(cls, process_key: str) -> bool:
-        """Checks if the process which belongs to the given `process_key` was started to exectue a `RuntimeTask`.
+        """Checks if the process which belongs to a given `process_key` was started to exectue a `RuntimeTask` based on
+        an internal naming scheme of the process keys.
 
         Args:
             process_key (str): The generated process identifier.
         Returns:
-            bool: True, if process executes a `RuntimeTask`
+            bool: True, if process was started to execute a `RuntimeTask`
         """
         key_splits = process_key.split(cls._PROCESS_KEY_DELIMITER)
         return True if key_splits[0] == cls._TASK_PROCESS_KEY_PREFIX else False
 
     @classmethod
     def is_port_exposure_process(cls, process_key: str) -> bool:
-        """Checks if the process which belongs to the given `process_key` is used
-        for exposing a port, i.e. keeping an ssh tunnel alive.
+        """Check if the process which belongs to the given `process_key` is used for exposing a port, i.e. keeping
+        an ssh tunnel alive.
 
         Args:
             process_key (str): The generated process identifier.
         Returns:
-            bool: True, if process is used for port exposure, i.e. ssh tunnels.
+            bool: True, if process is used for port exposure.
         """
         key_splits = process_key.split(cls._PROCESS_KEY_DELIMITER)
         return True if key_splits[0] == cls._PORT_FROM_RUNTIME or key_splits[0] == cls._PORT_TO_RUNTIME else False
@@ -502,7 +509,7 @@ class Runtime(object):
         """Get information about the runtime.
 
         Returns:
-            dict: Runtime information.  
+            dict: Runtime information.
         """
         if not self._info:
             self._info = self._read_info()
@@ -560,20 +567,25 @@ class Runtime(object):
         return self._info['python_version']
 
     @property
-    def gpus(self):
-        """Get a the GPU count.
+    def gpus(self) -> list:
+        """GPU information as list. Each list entry contains information for one GPU.
 
         Returns:
-            str: The GPU count.  
+            list: List with GPU information.
         """
         if not self._info:
             self._info = self._read_info()
         return self._info['gpus']
 
     @property
-    def type_str(self):
-        """Get the `Runtime's` class name  as string. """
-        return 'Runtime'
+    def gpu_count(self) -> int:
+        """The count of GPUs."""
+        return len(self.gpus)
+
+    @property
+    def class_name(self) -> str:
+        """Get the class name  as string. """
+        return self.__class__.__name__
 
     @property
     def alive_process_count(self):
@@ -582,7 +594,7 @@ class Runtime(object):
 
     @property
     def alive_task_process_count(self):
-        """Get the number of alive processes executing a `RuntimeTask`. """
+        """Get the number of alive processes which were started to execute a `RuntimeTask`. """
         return len(self.task_processes)
 
     def is_valid_runtime(self) -> bool:
@@ -635,20 +647,12 @@ class Runtime(object):
 
         raise NoPortsLeftError()
 
-    def execute_task(self, task: RuntimeTask, execute_async: Optional[bool] = True) -> RuntimeTask:
-        """Execute a given task in the runtime.
-
-        Note: The returned `RuntimeTask` is usually not the same object as the one originally passed into the method
-              call, as a consequence of the asynchronous task execution. Hence, it is strongly recommended to read the
-              logs, the function return data and so on from the returned object.
+    def execute_task(self, task: RuntimeTask, execute_async: Optional[bool] = True):
+        """Execute a given `RuntimeTask` in the `Runtime`.
 
         Args:
             task (RuntimeTask): The task to be executed.
             execute_async (bool, Optional): The execution will be done in a separate thread if True. Defaults to True.
-
-        Returns:
-            RuntimeTask:
-                RuntimeTask object which includes additional result data.
         """
         self._create_root_dir_if_not_exists()
         async_str = ' asynchronously ' if execute_async else ' synchronously '
@@ -673,10 +677,6 @@ class Runtime(object):
 
         self._tasks.append(task)
 
-        # By returning the executed task, we make sure that the `latest` object is actually returned. The problem was
-        # that the python object gets copied and we can not access logs etc. if the task was executed in a subprocess.
-        return task
-
     def _create_root_dir_if_not_exists(self):
         if not self._root_dir:
             self._root_dir = self.create_tempdir()
@@ -684,7 +684,7 @@ class Runtime(object):
             print('Temporary directory ' + self._root_dir + ' created on ' + self._host)
 
     def print_log(self):
-        """Print the execution logs of each `RuntimeTask` that were executed in the group. """
+        """Print the execution logs of each `RuntimeTask` that was executed in the `Runtime`. """
         for task in self._tasks:
             task.print_log()
 
@@ -695,21 +695,20 @@ class Runtime(object):
                            if not Runtime.is_runtime_task_process(key)}
 
     def expose_port_to_runtime(self, local_port: int, runtime_port: Optional[int] = None) -> str:
-        """Expose a port from the local machine to the runtime so that all traffic on the 
-        `runtime_port` in the runtime `self` is forwarded to the `local_port` on the local machine. 
+        """Expose a port from localhost to the `Runtime` so that all traffic on the `runtime_port` is forwarded to the
+        `local_port` on localhost.
         
         Args:
             local_port (int): The port on the local machine.
-            runtime_port (int, Optional): The port on the runtime. Defaults to `local_port`.
+            runtime_port (Optional[int]): The port on the runtime. Defaults to `local_port`.
 
         Returns:
-            str: Process key, which can be used for manually stopping the process running the port exposure.
+            str: Process key, which can be used for manually stopping the process running the port exposure for example.
         
         Examples:
-            A DB is running on the local machine on port `local_port` and the DB is only accessible 
-            from localhost. But you also want to access the service on the remote runtime on port 
-            `runtime_port`. Then you can use this method to expose the service which is running on the 
-            local machine to the remote machine.
+            A DB is running on localhost on port `local_port` and the DB is only accessible from localhost.
+            But you also want to access the service on the remote `Runtime` on port `runtime_port`. Then you can use
+            this method to expose the service which is running on localhost to the remote host.
         """
         if not runtime_port:
             runtime_port = local_port
@@ -730,23 +729,21 @@ class Runtime(object):
               str(runtime_port))
         return key
 
-    def expose_port_from_runtime(self, runtime_port: int, local_port: int = None) -> str:
-        """Expose a port from a `Runtime` to the local machine so that all traffic
-        to the `local_port` is forwarded to the `runtime_port` of the runtime. This corresponds
-        to local port forwarding in ssh tunneling terms.
+    def expose_port_from_runtime(self, runtime_port: int, local_port: Optional[int] = None) -> str:
+        """Expose a port from a `Runtime` to localhost so that all traffic to the `local_port` is forwarded to the
+        `runtime_port` of the `Runtime`. This corresponds to local port forwarding in ssh tunneling terms.
         
         Args:            
             runtime_port (int): The port on the runtime.
-            local_port (int, Optional): The port on the local machine. Defaults to `runtime_port`.
+            local_port (Optional[int]): The port on the local machine. Defaults to `runtime_port`.
 
         Returns:
             str: Process key, which can be used for manually stopping the process running the port exposure.
         
         Examples:
-            A DB is running on a remote machine on port `runtime_port` and the DB is only accessible 
-            from the remote machine. But you also want to access the service from the local machine 
-            on port `local_port`. Then you can use this method to expose the service which
-            is running on the remote machine to the local machine.
+            A DB is running on a remote host on port `runtime_port` and the DB is only accessible from the remote host.
+            But you also want to access the service from the local machine on port `local_port`. Then you can use this
+            method to expose the service which is running on the remote host to localhost.
 
         """
         if not local_port:
@@ -769,8 +766,7 @@ class Runtime(object):
         return key
 
     def get_process(self, key: str) -> Process:
-        """Get all managed processes or an individual process by process key. the process key as dictionary key 
-        or restrict the selection to only the process identified by key. 
+        """Get an individual process by process key.
         
         Args:
             key (str): The key identifying the process.
@@ -786,8 +782,8 @@ class Runtime(object):
         return self._processes[key]
 
     def get_processes(self, only_alive: bool = False) -> Dict[str, Process]:
-        """Get all managed processes or only the alive ones as dictionary with the process key as dict key.
-        An individual process can be retrieved by key via `get_process()`.
+        """Get all managed processes or only the alive ones as dictionary with the process key as dict key. An
+        individual process can be retrieved by key via `get_process()`.
         
         Args:
             only_alive (bool): True, if only alive processes shall be returned instead of all. Defaults to False.
@@ -840,7 +836,7 @@ class Runtime(object):
         """Print the Runtime info formatted as table."""
         info = self.info
         print('\n')
-        print('Information of `' + self.type_str + '` ' + self.host + ':')
+        print('Information of `' + self.class_name + '` ' + self.host + ':')
         for key, value in info.items():
             display_value = value if not key == 'memory' else str(self.memory_in_mb) + ' mb'
             print('{:<8} {:<8}'.format(key, display_value))
@@ -861,7 +857,8 @@ class Runtime(object):
             installed_executables (Union[str, List[str], None]): Possibility to check if an executable is
                                                                 installed. E.g. if the executable `ping` is installed.
             filter_commands (Union[str, List[str], None]): Shell commands that can be used for generic filtering.
-                                                           See examples and documentation for further details.
+                                                           See examples. A filter command must echo true to be evaluated
+                                                           to True, everythin else will be interpreted as False.
                                                            Defaults to None.
 
         Returns:
@@ -876,30 +873,30 @@ class Runtime(object):
         all_filters_checked = True
 
         if gpu_required and not self.gpus:
-            print(self.type_str + ' ' + self.host + 'does not have GPUs.')
+            print(self.class_name + ' ' + self.host + 'does not have GPUs.')
             all_filters_checked = False
 
         if min_memory and self.memory < min_memory:
-            print(self.type_str + ' ' + self.host + 'has only ' + str(self.memory) + ' instead of ' + str(min_memory) +
+            print(self.class_name + ' ' + self.host + 'has only ' + str(self.memory) + ' instead of ' + str(min_memory) +
                   ' as required')
             all_filters_checked = False
 
         if min_cpu_cores and self.cpu_cores < min_cpu_cores:
-            print(self.type_str + ' ' + self.host + 'has only ' + str(self.cpu_cores) + ' instead of ' + str(min_cpu_cores) +
+            print(self.class_name + ' ' + self.host + 'has only ' + str(self.cpu_cores) + ' instead of ' + str(min_cpu_cores) +
                   ' as required.')
             all_filters_checked = False
 
         if installed_executables:
             for executable_name in _utils.create_list_from_parameter_value(installed_executables):
                 if not self._has_executable_installed(str(executable_name)):
-                    print(self.type_str + ' ' + self.host + 'does not have executable ' + str(executable_name) +
+                    print(self.class_name + ' ' + self.host + 'does not have executable ' + str(executable_name) +
                           'installed.')
                     all_filters_checked = False
 
         if filter_commands:
             for filter_command in _utils.create_list_from_parameter_value(filter_commands):
                 if not self._filter_command_checked(str(filter_command)):
-                    print('Filter ' + filter_commands + ' could not be checked successfully on ' + self.type_str + ' ' +
+                    print('Filter ' + filter_commands + ' could not be checked successfully on ' + self.class_name + ' ' +
                           self.host + ' .')
                     all_filters_checked = False
 
