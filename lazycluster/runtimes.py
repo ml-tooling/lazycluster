@@ -1,9 +1,9 @@
 """Runtimes module.
 
-This module comprises classes for executing tasks in runtimes either via ssh or also locally.
-The RuntimeTask class is a container for defining a sequence of task steps. This task can then be executed
-either standalone of by passing it over to an instance of the runtime classes. It is is recommended to use the
-RemoteRuntime class also for local task execution. Passwordless ssh should be configured therefore.
+This module comprises classes for executing so called `RuntimeTasks` in `Runtimes` by leveraging the power of ssh.
+The `RuntimeTask` class is a container for defining a sequence of elegantly task steps. This `RuntimeTask` can then be
+executed either standalone of by passing it over to a `Runtime` instance. Passwordless ssh should be configured for all
+hosts that should act as a `Runtime` to be able to conveniently manage those entities.
 
 """
 import tempfile
@@ -33,38 +33,42 @@ import subprocess
 
 
 class RuntimeTask(object):
-    """This class provides the functionality for executing a sequence of task steps either locally or 
-    remotely via ssh. A task can consist of different steps like sending - / getting a __del__, executing 
-    shell commands or executing a python function which can be pickled via cloudpickle. 
+    """This class provides the functionality for executing a sequence of elementary operations over ssh. The `fabric`
+    library is used for handling ssh connections. A `RuntimeTask` can be composed from four different operations which
+    we call steps, namely adding a step for running a shell command via `run_command()`, sending a file to a host via
+    `send_file()`, retrieving a file from a host via `get_file()` or adding a step for executing a python function on a
+    host via `run_function()`. The current restriction for running functions is that these functions need to be
+    serializable via cloudpickle. To actually execute a `RuntimeTask`, i.e. the sequence of task steps, either a call
+    to `execute()` is necessary or a handover to the `execute_task()` method of the `Runtime` class is necessary.
+    Usually, a `RuntimeTask` will be executed in a `Runtime` or in a `RuntimeGroup`. See its documentation for further
+    details.
 
     Example:
+        `# 1. Create the task and optionally give it a name
         my_task = RuntimeTask('my-task')
+
+        # 2. Compose the RuntimeTask by using the elementary operations
         my_task.run_command('echo Hello World!')
         
         def print():
             print('Hello World!')
+
         my_task.run_function(print)
 
-        # Variant 1: Execute task remotely w/o Runtime 
-        my_task.execute_remote(fabric.Connection('remote-host-name'))
-        # Variant 2: Execute task remotely with Runtime
-        RemoteRuntime('remote-host-name').execute_task(my_task)
-        #Variant 3: Execute task locally w/o Runtime
-        my_task.execute_local()
-        #Variant 4: Execute task locally with RemoteRuntime (passwordless ssh required)
-        RemoteRuntime.create_instance('localhost', '/my_root_dir').execute_task(my_task)
-        #Variant 5 Execute task locally with RemoteRuntime (passwordless ssh required)
-        LocalRuntime.create_instance('/my_root_dir').execute_task(my_task)
-        #Variant 6: Execute task in all runtimes of a RuntimeGroup
-        runtime_group = RuntimeManager().create_group()
-        runtime_group.execute_task(my_task)
+        # 3. Execute the RuntimeTask standalone w/o Runtime by handing over a fabric ssh connection
+        task = my_task.execute(fabric.Connection('host'))
+
+        # 4. Check the logs of the RuntimeTask execution
+        task.print_log()
+        log = task.execution_log
     """
 
     def __init__(self, name: Optional[str] = None):
-        """Constructor method. 
+        """Init method.
         
         Args:
-            name (str, Optional): The name of the task. Defaults to None.
+            name (Optional[str]): The name of the task. Defaults to None and consequently a unique identifier is
+                                  generated via Python's id() function.
         """
         self._name = name
         if not self._name:
@@ -88,7 +92,7 @@ class RuntimeTask(object):
         return type(self).__name__ + ': ' + self.name
 
     def cleanup(self):
-        """Remove temporary used resources. """
+        """Remove temporary used resources, like temporary directories if created."""
         if self._temp_dir:
             shutil.rmtree(self._temp_dir)
             print('Temporary directory ' + self._temp_dir + ' of RuntimeTask ' + self.name + ' on localhost removed.')
@@ -104,15 +108,19 @@ class RuntimeTask(object):
 
     @property
     def execution_log(self) -> List[str]:
+        """Return the execution log as list. The list is empty as long as a task was not yet executed. Each log entry
+        corresponds to a single task step and the log index starts at 0. If th execution of an individual step does not
+        produce and outut the list entry will be empty.
+        """
         return self._execution_log
 
     @property
     def function_returns(self) -> Generator[object, None, None]:
         """Get the return data produced by functions which were executed as a consequence of a `task.run_function()`
-           call. If the tasks was executed asynchronously, then the execution blocks until the process finishes.
+           call. If the tasks was executed synchronously, then the execution blocks until the process finishes.
 
        Internally, a function return is saved as a pickled file. This method unpickles each file one after
-       another and yields this data. Moreover, the return data will be yielded int the same order the functions were
+       another and yields the data. Moreover, the return data will be yielded int the same order as the functions were
        executed.
 
         Yields:
@@ -139,7 +147,7 @@ class RuntimeTask(object):
         return self._process
 
     def send_file(self, local_path: str, remote_path: Optional[str] = None):
-        """Create a task step for sending either a single file or a folder from the local machine to the remote runtime. 
+        """Create a task step for sending either a single file or a folder from localhost to another host.
         
         Args:
             local_path (str): Path to file on local machine.
@@ -159,21 +167,19 @@ class RuntimeTask(object):
         return self
 
     def get_file(self, remote_path: str, local_path: Optional[str] = None):
-        """Create a task step for getting either a single file or a folder from the remote runtime. 
+        """Create a task step for getting either a single file or a folder from another host to localhost.
 
         Args:
-            remote_path (str): Path to file on remote machine. 
+            remote_path (str): Path to file on host.
             local_path (Optional[str]): Path to file on local machine. The remote file is downloaded 
                                         to the current working directory (as seen by os.getcwd) using 
-                                        its remote filename if None. This is the default behavior of fabric.
+                                        its remote filename if local_path is None. This is the default
+                                        behavior of fabric.
         Raises:
             ValueError: If remote path is emtpy.
         """
         if not remote_path:
             raise ValueError("Remote path must not be empty")
-
-        if not local_path:
-            local_path = remote_path
 
         self._task_steps.append(self._TaskStep(self._TaskStep.TYPE_GET_FILE, remote_path=remote_path,
                                                local_path=local_path))
@@ -196,12 +202,16 @@ class RuntimeTask(object):
         return self
 
     def run_function(self, function: callable, **func_kwargs):
-        """Create a task step for executing a given function on the remote runtime. The function 
-        will be transferred to the remote host via cloudpickle.
-        
+        """Create a task step for executing a given python function on a remote host. The function will be transferred
+        to the remote host via ssh and cloudpickle. The return data can be requested via the property `function_returns`
+
+        Note:
+            Hence, the function must be serializable via cloudpickle and all dependencies must be available in its
+            correct versions on the remote host for now. We are planning to improve the dependency handling.
+
         Args:
             function (callable): The function to be executed remotely.
-            **func_kwargs: kwargs which will be passed to the function func.
+            **func_kwargs: kwargs which will be passed to the function.
         
         Raises:
             ValueError: If function is empty.
@@ -273,34 +283,8 @@ class RuntimeTask(object):
 
         return self
 
-    def execute_local(self, root_dir: Optional[str] = None):
-        """Execute the task in a RemoteRuntime via Fabrics Connection. 
-        
-        Args:
-            root_dir (str, Optional): The directory, from where the task shall be executed. Defaults to None.
-
-        Raises:
-            ValueError: If root_dir is given and is not an ab absolute path.
-        """
-        if root_dir and root_dir[0:0] != '/':
-            raise ValueError('Root directory must be given by absolute path')
-
-        for task_step in self._task_steps:
-            if task_step.type == self._TaskStep.TYPE_RUN_COMMAND:
-                command = 'cd ' + root_dir + ' &&' + task_step.command if root_dir else task_step.command
-                os.system(command)
-                #self._execution_log.append(stdout)
-            elif task_step.type == self._TaskStep.TYPE_SEND_FILE:
-                # not supported since the task is executed locally anyways
-                warnings.warn('Sending a file is not supported when executing locally. Task step was skipped.')
-                continue
-            elif task_step.type == self._TaskStep.TYPE_GET_FILE:
-                # not supported since the task is executed locally anyways
-                warnings.warn('Getting a file is not supported when executing locally. Task step was skipped.')
-                continue
-
-    def execute_remote(self, connection: Connection):
-        """Execute the task on a remote host via Fabric Connection. 
+    def execute(self, connection: Connection):
+        """Execute the task on a remote host using a fabric connection.
         
         Args:
             connection (fabric.Connection): Fabric connection object managing the ssh connection to the remote host.
@@ -342,13 +326,12 @@ class RuntimeTask(object):
                 self._execution_log.append('Get file ' + task_step.local_path + ' to remote.')
 
     def join(self):
-        """Blocks until the `RuntimeTask` finished its asynchronous execution. """
+        """Block the execution until the `RuntimeTask` finished its asynchronous execution. """
         if self.process:
             self.process.join()
 
     def print_log(self):
-        """Print the execution. Each list entry will be separately
-        printed. A line number starting at one will be prepended. """
+        """Print the execution log. Each log entry will be printed separately. The log index will be prepended."""
         if not self.execution_log:
             print('The log of task ' + self.name + 'is empty!')
         else:
@@ -395,6 +378,10 @@ class Runtime(object):
     
     Should only be used as an interface and not be instantiated directly. Preferably instantiate
     RemoteRuntime objects. Passwordless ssh needs to be setup in advance.
+
+    Examples:
+        # Variant 2: Execute RuntimeTask via a Runtime (asynchronous execution is optionally possible in that way)
+        task =  Runtime('host').execute_task(my_task, execute_async=True)`
 
     """
 
@@ -671,7 +658,7 @@ class Runtime(object):
         def execute_remote_wrapper():
             cxn = self._fabric_connection
             with cxn.cd(self._root_dir):
-                task.execute_remote(cxn)
+                task.execute(cxn)
 
         if execute_async:
             # Initialize logs with managed list (multiprocessing)
