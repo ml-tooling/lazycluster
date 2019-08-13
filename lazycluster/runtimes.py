@@ -43,28 +43,25 @@ class RuntimeTask(object):
     Usually, a `RuntimeTask` will be executed in a `Runtime` or in a `RuntimeGroup`. See its documentation for further
     details.
 
-    Example:
-        `# 1. Create the task and optionally give it a name
-        my_task = RuntimeTask('my-task')
+    Examples:
+        >>> # 1. Define a function that should be executed remotely via a RuntimeTask
+        >>> def print():
+        ...     print('Hello World!')
 
-        # 2. Compose the RuntimeTask by using the elementary operations
-        my_task.run_command('echo Hello World!')
-        
-        def print():
-            print('Hello World!')
+        >>> # 2. Create & compose the RuntimeTask by using the elementary operations
+        >>> my_task = RuntimeTask('my-task').run_command('echo Hello World!').run_function(print)
 
-        my_task.run_function(print)
+        >>> # 3. Execute the RuntimeTask standalone w/o Runtime by handing over a fabric ssh connection
+        >>> from fabric import Connection
+        >>> task = my_task.execute(Connection('host'))
 
-        # 3. Execute the RuntimeTask standalone w/o Runtime by handing over a fabric ssh connection
-        task = my_task.execute(fabric.Connection('host'))
-
-        # 4. Check the logs of the RuntimeTask execution
-        task.print_log()
-        log = task.execution_log
+        >>> # 4. Check the logs of the RuntimeTask execution
+        >>> task.print_log()
+        >>> log = task.execution_log
     """
 
     def __init__(self, name: Optional[str] = None):
-        """Init method.
+        """Initialization method.
         
         Args:
             name (Optional[str]): The name of the task. Defaults to None and consequently a unique identifier is

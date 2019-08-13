@@ -1,11 +1,5 @@
-"""Runtime management module. This module contains convenient classes for working with `Runtimes`.
+"""Runtime management module. This module contains convenient classes for working with `Runtimes`. """
 
-The `RuntimeGroup` provides a simplified interface for executing tasks in multiple `Runtimes` or 
-exposing ports to multiple ones.
-
-The `RuntimeManager` can be used for a simplified resource management, since it aims to automatically 
-detect valid `RemoteRuntimes` based on the ssh configuration and possibly further filters.
-"""
 from typing import Optional, List, Dict, Generator, Union
 from storm import Storm
 from multiprocessing import Process
@@ -19,19 +13,59 @@ import lazycluster._utils as _utils
 
 
 class RuntimeGroup(object):
-    """A group of runtimes. """
+    """A group of logically related `Runtimes`.
+
+    The `RuntimeGroup` provides a simplified interface for executing tasks in multiple `Runtimes` or exposing ports
+    within a `RuntimeGroup`.
+
+    Examples:
+            Execute a `RuntimeTask in a `RuntimGroup`
+            >>> # Create instances
+            >>> group = RuntimeGroup([Runtime('host-1'), Runtime('host-2')])
+            >>> # group = RuntimeGroup(hosts=['host-1', 'host-2'])
+            >>> my_task = RuntimeTask('group-demo').run_command('echo Hello Group!')
+
+            >>> # Execute a RuntimeTask in a single Runtime
+            >>> single_task = group.execute_task(my_task)
+            >>> print(single_task.execution_log[0])
+
+            >>> # Execute a RuntimeTask in the whole RuntimGroup
+            >>> task_list = group.execute_task(my_task, broadcast=True)
+
+            >>> # Execute RuntimeTask via RuntimGroup either on a single Runtime
+            >>> my_task = RuntimeTask('group-demo').run_command('echo Hello Group!')
+            >>> task = group.execute_task(my_task)
+
+            A DB is running on localhost on port `local_port` and the DB is only accessible
+            from localhost. But you also want to access the service on the other `Runtimes` on port
+            `runtime_port`. Then you can use this method to expose the service which is running on the
+            local machine to the remote machines.
+            >>> # Expose a port to all Runtimes contained in the Runtime. If a port list is given the next free port is
+            >>> # chosen and returned.
+            >>> group_port = group.expose_port_to_runtimes(local_port=60000, runtime_port=list(range(60000,60010)))
+            >>> print('Local port 60000 is now exposed to port ' + str(group_port) + ' in the RuntimeGroup!')
+
+            A DB is running on a remote host on port `runtime_port` and the DB is only accessible from the remote
+            machine itself. But you also want to access the service to other `Runtimes` in the group. Then you can use
+            this method to expose the service which is running on one `Runtime` to the whole group.
+            >>> # Expose a port from a Runtime to all other ones in the RuntimeGroup. If a port list is given the next
+            >>> # free port is chosen and returned.
+            >>> group_port = group.expose_port_from_runtime_to_group(host='host-1', runtime_port=60000,
+            ...                                                      group_port=list(range(60000,60010)))
+            >>> print('Port 60000 of `host-1` is now exposed to port ' + str(group_port) + ' in the RuntimeGroup!')
+    """
 
     _INTERNAL_PORT_MIN = 5800
     _INTERNAL_PORT_MAX = 5999
     _internal_port_range = range(_INTERNAL_PORT_MIN, _INTERNAL_PORT_MAX)
 
     def __init__(self, runtimes: Optional[List[Runtime]] = None, hosts: Optional[List[str]] = None):
-        """ Constructor.
+        """ Initialization method.
         
         Args:
-            runtimes (List[Runtime]): Dictionary with runtime objects as values and respective
-                                      hosts as keys.
-            hosts (List[str]): List of hosts, which will be used to instantiate `Runtime` objects.
+            runtimes (Optional[List[Runtime]]): List of `Runtimes`. If not given, then `hosts` must be supplied.
+            hosts (Optional[List[str]]): List of hosts, which will be used to instantiate `Runtime` objects. If not
+                                         given, then `runtimes` must be supplied.
         Raises:
             ValueError: Either `runtimes` or `hosts` must be supplied. Not both or none.
             InvalidRuntimeError: If a runtime cannot be instantiated via host.
@@ -42,7 +76,7 @@ class RuntimeGroup(object):
         if runtimes:
             self._runtimes = {runtime.host: runtime for runtime in runtimes}
         elif hosts:
-            self._runtimes = {host: Runtime(host) for host in hosts}
+            self._runtimes = {host: Runtime(host) for host in hosts}  # Throws InvalidRuntimeError
         self._proc_keys = []
         self._tasks = []
         # Cleanup will be done atexit since usage of destructor may lead to exceptions
@@ -62,7 +96,7 @@ class RuntimeGroup(object):
 
     @property
     def hosts(self) -> List[str]:
-        """Get hosts of the group.
+        """Contained hosts in the group.
         
         Returns:
             List[str]: List with hosts of all `Runtimes`.
@@ -71,7 +105,7 @@ class RuntimeGroup(object):
 
     @property
     def runtimes(self) -> List[Runtime]:
-        """Get a list of all contained runtimes.
+        """Contained Runtimes in the group.
 
         Returns:
             List[Runtime]: List with all `Runtimes`.
@@ -80,12 +114,12 @@ class RuntimeGroup(object):
 
     @property
     def runtime_count(self) -> int:
-        """Get the count of runtimes. """
+        """Get the count of runtimes contained in the group. """
         return len(self.hosts)
 
     @property
     def task_processes(self) -> List[Process]:
-        """Get all processes from all contained `Runtimes` which were started to execute a `RuntimeTask`.
+        """Processes from all contained `Runtimes` which were started to execute a `RuntimeTask`.
 
         Returns:
              List[Process]: Process list.
@@ -95,7 +129,7 @@ class RuntimeGroup(object):
             processes.extend(runtime.task_processes)
         return processes
 
-    def print_hostnames(self):
+    def print_hosts(self):
         """Print the hosts of the group. """
         print('\n')
         if not self.hosts:
@@ -104,7 +138,7 @@ class RuntimeGroup(object):
         else:
             print('Runtimes contained in Group:')
         for hostname in self.hosts:
-            print(self.get_runtime(hostname).type_str + ': ' + hostname)
+            print(self.get_runtime(hostname).class_name + ': ' + hostname)
 
     def add_runtime(self, host: Optional[str] = None, runtime: Optional[Runtime] = None):
         """Add a `Runtime` to the group either by host or as a `Runtime` object.
@@ -130,7 +164,7 @@ class RuntimeGroup(object):
         else:
             rt = runtime
         self._runtimes[rt.host] = rt
-        print(rt.host + ' added as ' + rt.type_str + ' to the group.')
+        print(rt.host + ' added as ' + rt.class_name + ' to the group.')
 
     def remove_runtime(self, host: str):
         """Remove a runtime from the group by host.
@@ -145,10 +179,10 @@ class RuntimeGroup(object):
 
     def expose_port_to_runtimes(self, local_port: int, runtime_port: Union[int, List[int], None] = None,
                                 exclude_hosts: Optional[List[str]] = None) -> int:
-        """ Expose a port from the local machine to all runtimes beside Sad excluded ones so that all traffic
-        on the `runtime_port` is forwarded to the `local_port` on the local machine. This corresponds to remote
+        """ Expose a port from localhost to all Runtimes beside the excluded ones so that all traffic on the
+        `runtime_port` is forwarded to the `local_port` on the local machine. This corresponds to remote
         port forwarding in ssh tunneling terms. Additionally, all relevant runtimes will be checked if the port is
-        free. An exception will be thrown if the port is occupied on at least one runtime. 
+        actually free.
         
         Args:
             local_port (int): The port on the local machine.
@@ -156,22 +190,15 @@ class RuntimeGroup(object):
                                                         exposed to. May raise PortInUseError if a single port is given.
                                                         If a list is used to automatically find a free port then a
                                                         NoPortsLeftError may be raised. Defaults to `local_port`.
-            exclude_hosts (List[str]): List with hosts where the port should not be exposed to. Defaults to
-                                            empty a list. Consequently, all `Runtimes` will be considered.
+            exclude_hosts (Optional[List[str]]): List with hosts where the port should not be exposed to. Defaults to
+                                                 None. Consequently, all `Runtimes` will be considered.
 
         Returns:
             int: The port which was actually exposed to the `Runtimes`.
 
         Raises:
-            PortInUseError: If `runtime_port` is already in use on at least one runtime.
-            ValueError: Only hosts or excl_hostnames must be provided or Hostname is
-                        not contained in the group.
-
-        Examples:
-            A DB is running on the local machine on port `local_port` and the DB is only accessible 
-            from localhost. But you also want to access the service on the other `Runtimes` on port 
-            `runtime_port`. Then you can use this method to expose the service which is running on the 
-            local machine to the remote machines.
+            PortInUseError: If `runtime_port` is already in use on at least one Runtime.
+            ValueError: Only hosts or `exclude_hosts` must be provided or host is not contained in the group.
         """
 
         # 1. Determine a free runtime port
@@ -218,11 +245,6 @@ class RuntimeGroup(object):
             ValueError: If host is not contained.
             PortInUseError: If `group_port` is occupied on the local machine.
             NoPortsLeftError: If `group_ports` was given and none of the ports was free.
-
-        Examples:
-            A DB is running on a remote machine on port `runtime_port` and the DB is only accessible from the remote
-            machine itself. But you also want to access the service to other `Runtimes` in the group. Then you can use
-            this method to expose the service which is running on one `Runtime` to the whole group.
         """
         if not self.contains_runtime(host):
             raise ValueError('Runtime ' + host + ' is not contained in the group.')
@@ -238,6 +260,7 @@ class RuntimeGroup(object):
             group_port = self.get_free_port(group_port)
 
         # 2. Determine a free port on localhost, since all traffic is tunneled over the local machine
+        local_port = None
         if localhost_has_free_port(group_port):
             local_port = group_port
         else:
@@ -264,8 +287,8 @@ class RuntimeGroup(object):
 
         return group_port
 
-    def execute_task(self, task: RuntimeTask, host: Optional[str] = None, broadcast: bool = False, execute_async: bool = True) \
-            -> RuntimeTask or List[RuntimeTask]:
+    def execute_task(self, task: RuntimeTask, host: Optional[str] = None,
+                     broadcast: bool = False, execute_async: bool = True) -> RuntimeTask or List[RuntimeTask]:
         """Execute a `RuntimeTask` in the whole group or in a single `Runtime`. 
         
         Args:
@@ -286,7 +309,7 @@ class RuntimeGroup(object):
         if broadcast:
             tasks = []
             for runtime in self.get_runtimes().values():  # Raises ValueError
-                print('Start executing task ' + task.name + ' in ' + runtime.type_str + ' ' + runtime.host)
+                print('Start executing task ' + task.name + ' in ' + runtime.class_name + ' ' + runtime.host)
                 returned_task = runtime.execute_task(task, execute_async)
                 tasks.append(returned_task)
                 self._tasks.append(returned_task)
@@ -312,14 +335,13 @@ class RuntimeGroup(object):
             task.print_log()
 
     def get_free_port(self, ports: List[int], enforce_check_on_localhost: bool = False) -> int:
-        """Returns the first port from the list which is currently not in use in the whole group.
+        """Return the first port from the list which is currently not in use in the whole group.
 
         Args:
-             ports (List[int]): The list of ports that will be used to check if it is free in the group.
+             ports (List[int]): The list of ports that will be used to find a free port in the group.
              enforce_check_on_localhost (bool): If true the port check will be executed on localhost as well, although
                                                 localhost might not be a `Runtime` instance contained in the
                                                 `RuntimeGroup`.
-
 
         Returns:
             int: The first port from the list which is not yet used within the whole group.
@@ -342,14 +364,13 @@ class RuntimeGroup(object):
         raise NoPortsLeftError()
 
     def has_free_port(self, port: int, exclude_hosts: Union[List[str], str, None] = None) -> bool:
-        """Checks if a given port is free on `Runtimes` contained in the group. The check can be restricted to a
-        specific subset of contained `Runtimes`. Alternatively, specific ones can  be excluded. The forementioned
-        options are x  exclusive.
+        """Check if a given port is free on `Runtimes` contained in the group. The check can be restricted to a
+        specific subset of contained `Runtimes` by excluding some hosts.
 
         Args:
             port (int): The port to be checked in the group.
-            exclude_hosts: (List[str]): If supplied, the check will be omitted executed in these `Runtimes`.
-                                         Defaults to an empty list, i.e. not restricted.   
+            exclude_hosts: (Union[List[str], str, None]): If supplied, the check will be omitted in these `Runtimes`.
+                                                          Defaults to None, i.e. not restricted.
 
         Returns:
             bool: True if port is free on all `Runtimes`, else False.
@@ -362,19 +383,19 @@ class RuntimeGroup(object):
 
         for runtime in self.get_runtimes(exclude_hosts=exclude_hosts).values():  # Raises ValueError
             if not runtime.has_free_port(port):
-                print('The port ' + str(port) + ' is currently in use on ' + runtime.type_str + ' ' + runtime.host)
+                print('The port ' + str(port) + ' is currently in use on ' + runtime.class_name + ' ' + runtime.host)
                 is_free = False
 
         return is_free
 
     def contains_runtime(self, host: str) -> bool:
-        """Checks if the group contains the `Runtime`. 
-        
+        """Check if the group contains a `Runtime` identified by host.
+
         Args:
             host (str): The `Runtime` to be looked for.
 
         Returns:
-            bool: True if contained in the group, else False.
+            bool: True if runtime is contained in the group, else False.
         """
         return True if host in self.hosts else False
 
@@ -403,11 +424,11 @@ class RuntimeGroup(object):
         """Returns a runtime based on the host.
 
         Args:
-            host (str): The host, which identifies the runtime.
+            host (str): The host which identifies the runtime.
 
         Returns:
-            Runtime: Runtime objects identified by `host`. Defaults to the one with the fewest alive processes that
-                     execute a `RuntimeTask`.
+            Runtime: Runtime objects identified by `host`. Defaults to the least busy one, i.e. the one with the fewest
+            alive processes that execute a `RuntimeTask`.
 
         Raises:
             ValueError: Hostname is not contained in the group.
@@ -421,7 +442,7 @@ class RuntimeGroup(object):
 
     def get_runtimes(self, include_hosts: Union[str, List[str], None] = None,
                            exclude_hosts: Union[str, List[str], None] = None) -> Dict[str, Runtime]:
-        """Convenient methods for getting relevant runtimes contained in the group.
+        """Convenient methods for getting relevant `Runtimes` contained in the group.
 
         Args:
             include_hosts: (Union[str, List[str], None] = None): If supplied, only the specified `Runtimes` will be
@@ -430,8 +451,8 @@ class RuntimeGroup(object):
                                                                  ones will be returned. Defaults to an empty list, i.e.
                                                                  not restricted.
         Raises:
-            ValueError: Only single_runtime or hosts or excl_hostnames must be provided or Hostname is
-                        not contained in the group.     
+            ValueError: If include_hosts and exclude_hosts is provided or if a host from `include_host` is not contained
+                        in the group.
         """
         runtimes = {}
 
@@ -460,8 +481,8 @@ class RuntimeGroup(object):
         return runtimes
 
     def cleanup(self):
-        """Release all acquired resources and terminate all processes by
-        calling the cleanup method of all contained `Runtimes`. """
+        """Release all acquired resources and terminate all processes by calling the
+        cleanup method on all contained `Runtimes`. """
         for runtime in self.get_runtimes().values():
             runtime.cleanup()
 
@@ -478,8 +499,10 @@ class RuntimeGroup(object):
 
 
 class RuntimeManager(object):
-    """The `RuntimeManger` detects valid `Runtimes` based on ssh config and can be used to create a
-    `RuntimeGroup` based on the automatically detected instances. """
+    """The `RuntimeManager` can be used for a simplified resource management, since it aims to automatically detect
+    valid `Runtimes` based on the ssh configuration. It can be used to create a `RuntimeGroup` based on the
+    automatically detected instances and possibly based on further filters such as GPU availability.
+    """
 
     def __init__(self):
         """Constructor method.
