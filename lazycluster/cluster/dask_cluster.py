@@ -1,7 +1,7 @@
 """Module for conveniently managing a Dask cluster. http://distributed.dask.org """
 from distributed import Client
 import time
-from typing import List, Dict, Tuple, Union, Optional
+from typing import List, Union, Optional
 
 from subprocess import Popen
 
@@ -19,9 +19,10 @@ class LocalMasterLauncher(MasterLauncher):
         """Launch a master instance.
 
         Args:
-            ports (int): Port where the master should be started. If a list is given then the first port that is free in
-                         the `RuntimeGroup` will be used. The actual chosen port can requested via the property `port`.
-            timeout (int): Timeout (s) after which check will be executed if scheduler is started.
+            ports (Union[List[int], int]): Port where the master should be started. If a list is given then the
+                                                 first port that is free in the `RuntimeGroup` will be used. The actual
+                                                 chosen port can requested via the property `port`.
+            timeout (int): Timeout (s) after which an MasterStartError is raised if master instance not started yet.
 
         Returns:
             List[int]: In case a port list was given the updated port list will be returned. Otherwise an empty list.
@@ -29,6 +30,7 @@ class LocalMasterLauncher(MasterLauncher):
         Raises:
             PortInUseError: If a single port is given and it is not free in the `RuntimeGroup`.
             NoPortsLeftError: If a port list was given and none of the ports is actually free in the `RuntimeGroup`.
+            MasterStartError: If master was not started after the specified `timeout`.
         """
 
         if not isinstance(ports, list):
@@ -62,7 +64,7 @@ class RoundRobinLauncher(WorkerLauncher):
     """WorkerLauncher implementation for launching Dask workers in a RoundRobin strategy. """
 
     def __init__(self, runtime_group: RuntimeGroup):
-        """Constructor method.
+        """Initialization method.
 
         Args:
             runtime_group (RuntimeGroup): The group where the workers will be started.
@@ -71,20 +73,15 @@ class RoundRobinLauncher(WorkerLauncher):
         self._ports = None
 
     def start(self, worker_count: int, master_port: int, ports: List[int]) -> List[int]:
-        """Launches the worker instances in the RuntimeGroup and returns
-        the used ports per host.
+        """Launches the worker instances in the `RuntimeGroup`.
 
-        Args: 
-            worker_count (int): The number of worker instances to be started in the cluster.
+        Args:
+            worker_count (int): The number of worker instances to be started in the group.
+            master_port (int):  The port of the master instance.
             ports (List[int]): The ports to be used for starting the workers. Only ports from the list will be chosen
-                               that are actually free. Defaults to a list based on range(60000, 61000).
-            master_port (int): The port of the Dask scheduler. Defaults to 8786,  which is the default scheduler port
-                               defined by Dask.
-
+                               that are actually free.
         Returns:
-            Tuple[Dict[str, int], List[int]]:
-                Dict[str, int]: Hosts as key and the worker ports as values.
-                List[int]: The updated port list after starting the workers.
+            List[int]: The updated port list after starting the workers, i.e. the used ones were removed.
 
         Raises:
             NoPortsLeftError: If there are not enough free ports for starting all workers.
@@ -154,7 +151,7 @@ class DaskCluster(MasterWorkerCluster):
     def __init__(self, runtime_group: RuntimeGroup, ports: Optional[List[int]] = None,
                  master_launcher: Optional[MasterLauncher] = None,
                  worker_launcher: Optional[WorkerLauncher] = None):
-        """Initialize a Dask cluster instance.
+        """Initialization method.
         
         Args:
             runtime_group (RuntimeGroup): RuntimeGroup contains all Runtimes which can be used for starting the Dask

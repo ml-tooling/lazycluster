@@ -4,7 +4,7 @@ from typing import Optional
 
 
 class LazyclusterError(Exception):
-    """Basic exception class for `ml-runtime` library errors. """
+    """Basic exception class for `lazycluster` library errors. """
 
     def __init__(self, msg: str, predecessor_excp: Optional[Exception] = None):
         """Constructor method.
