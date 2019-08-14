@@ -3,7 +3,7 @@
 from typing import Optional
 
 
-class MlRuntimeError(Exception):
+class LazyclusterError(Exception):
     """Basic exception class for `ml-runtime` library errors. """
 
     def __init__(self, msg: str, predecessor_excp: Optional[Exception] = None):
@@ -23,8 +23,8 @@ class MlRuntimeError(Exception):
         return self.msg
 
 
-class InvalidRuntimeError(MlRuntimeError):
-    """Error indicating if a `Runtime` can not be instantiated properly. """
+class InvalidRuntimeError(LazyclusterError):
+    """Error indicating that a `Runtime` can not be instantiated properly. """
 
     def __init__(self, host: str):
         """Constructor method.
@@ -37,14 +37,14 @@ class InvalidRuntimeError(MlRuntimeError):
         super().__init__('No runtime could be instantiated for host :' + self.host)
 
 
-class NoRuntimesDetectedError(MlRuntimeError):
-
+class NoRuntimesDetectedError(LazyclusterError):
+    """Error indicating that no `Runtime` could be detcted automatically by a `RuntimeManager` for example. """
     def __init__(self, predecessor_excp: Optional[Exception] = None):
         super().__init__('No Runtimes automatically detected.', predecessor_excp)
 
 
-class PortInUseError(MlRuntimeError):
-    """Error indicating that a port is already in use in a RuntimeGroup or on the local machine. """
+class PortInUseError(LazyclusterError):
+    """Error indicating that a port is already in use in a `RuntimeGroup` or on the local machine. """
 
     def __init__(self, port: int, group: Optional['RuntimeGroup'] = None, runtime: Optional['Runtime'] = None):
         """Constructor method.
@@ -70,7 +70,7 @@ class PortInUseError(MlRuntimeError):
         super().__init__(msg)
 
 
-class NoPortsLeftError(MlRuntimeError):
+class NoPortsLeftError(LazyclusterError):
     """Error indicating that there are no more ports left from the given port list. """
 
     def __init__(self):

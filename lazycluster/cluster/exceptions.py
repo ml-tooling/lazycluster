@@ -1,12 +1,12 @@
-"""Exception module of the cluster classes based on ml-runtimes lib.
+"""Exception module for cluster classes.
 
-Note: The lazycluster.exception.MlRuntimeError will be the parent class of all defined exception classes here.
+Note: The lazycluster.exception.LazyclusterError will be the parent class of all defined exception classes here.
 """
 
-from lazycluster.exceptions import MlRuntimeError
+from lazycluster.exceptions import LazyclusterError
 
 
-class MasterStartError(MlRuntimeError):
+class MasterStartError(LazyclusterError):
     """Error indicating that the cluster master instance could not be started successfully. """
 
     def __init__(self, host: str, port: int):

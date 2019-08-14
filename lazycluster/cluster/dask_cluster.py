@@ -8,7 +8,7 @@ from subprocess import Popen
 from lazycluster import RuntimeTask, Runtime, RuntimeGroup, localhost_has_free_port
 from lazycluster.cluster import MasterWorkerCluster, MasterLauncher, WorkerLauncher
 from lazycluster import _utils
-from lazycluster.cluster.exception import MasterStartError
+from lazycluster.cluster.exceptions import MasterStartError
 from lazycluster.exceptions import PortInUseError
 
 
