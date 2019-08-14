@@ -1,6 +1,8 @@
 """Exception module for cluster classes.
 
-Note: The lazycluster.exception.LazyclusterError will be the parent class of all defined exception classes here.
+Note:
+    It is intended that the lazycluster.exception.LazyclusterError should be the parent class of all defined exception
+    classes here.
 """
 
 from lazycluster.exceptions import LazyclusterError
@@ -10,7 +12,7 @@ class MasterStartError(LazyclusterError):
     """Error indicating that the cluster master instance could not be started successfully. """
 
     def __init__(self, host: str, port: int):
-        """Constructor method.
+        """Initialization method.
 
         Args:
             host (str): The host where the cluster master instance should be started.
