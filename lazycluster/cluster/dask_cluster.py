@@ -1,4 +1,5 @@
-"""Module for conveniently managing a Dask cluster. http://distributed.dask.org """
+"""Module for conveniently managing a DASK cluster. http://distributed.dask.org """
+
 from distributed import Client
 import time
 from typing import List, Union, Optional
@@ -13,7 +14,10 @@ from lazycluster.exceptions import PortInUseError
 
 
 class LocalMasterLauncher(MasterLauncher):
-    """Class implementing the logic for launching a the DASK master (scheduler) instance"""
+    """Concrete implementation of the `MasterLauncher` interface.
+
+    This class implements the logic for starting a the DASK master instance (i.e. scheduler in DASK terms) on localhost.
+    """
 
     def start(self, ports: Union[List[int], int], timeout: int = 3) -> List[int]:
         """Launch a master instance.
@@ -61,7 +65,7 @@ class LocalMasterLauncher(MasterLauncher):
 
 
 class RoundRobinLauncher(WorkerLauncher):
-    """WorkerLauncher implementation for launching Dask workers in a RoundRobin strategy. """
+    """WorkerLauncher implementation for launching DASK workers in a round robin manner. """
 
     def __init__(self, runtime_group: RuntimeGroup):
         """Initialization method.
@@ -113,7 +117,7 @@ class RoundRobinLauncher(WorkerLauncher):
         return self._ports
 
     def _launch_single_worker(self, host: str, worker_index: int, master_port: int, root_directory: str):
-        """Launches a single worker instance in a RemoteRuntime in the RuntimeGroup by Index.
+        """Launch a single worker instance in a `Runtime` in the `RuntimeGroup`.
 
         Raises:
             NoPortsLeftError
@@ -130,19 +134,32 @@ class RoundRobinLauncher(WorkerLauncher):
 
     @classmethod
     def _get_launch_command(cls, master_port: int, worker_port: int, root_directory: str) -> str:
-        """Get the shell command for starting a worker instance. The worker 
-        node will be determined by the PortManager. """
+        """Get the shell command for starting a worker instance.
+
+        Returns:
+             str: The launch command.
+        """
         return 'dask-worker --worker-port=' + str(worker_port) + ' --local-directory=' + root_directory \
                + ' localhost:' + str(master_port)
 
 
 class DaskCluster(MasterWorkerCluster):
     """Convenient class for launching a Dask cluster in a `RuntimeGroup`. 
-    
-    The `DaskRuntimeCluster` makes internally use of the `utils.PortManager`. The port list is passed on  to it and
-    should be sufficiently large enough. Each port used in the Dask cluster must be available on every `Runtime`.
-    Nevertheless, the `PortManager` ensures that the port is actually available on all runtimes before using it for
-    launching a Dask worker node for instance.
+
+    Examples:
+        Create a DASK cluster with all `Runtimes` detected by the `RuntimeManager`. Each `Runtime` will host one DASK
+        worker and the DASK master (i.e. scheduler) will be started on localhost as implemented in
+        `LocalMasterLauncher`.
+        >>> from lazycluster import RuntimeManager
+        >>> cluster = DaskCluster(RuntimeManager().create_group())
+        >>> cluster.start()
+
+        Use different strategies for launching the master and the worker instance by providing custom implementation of
+        `MasterLauncher` and `WorkerLauncher`.
+        >>> cluster = DaskCluster(RuntimeManager().create_group(),
+        ...                       MyMasterLauncherImpl(),
+        ...                       MyWorkerLauncherImpl)
+        >>> cluster.start()
     """
 
     DEFAULT_MASTER_PORT = 8786
@@ -152,16 +169,21 @@ class DaskCluster(MasterWorkerCluster):
                  master_launcher: Optional[MasterLauncher] = None,
                  worker_launcher: Optional[WorkerLauncher] = None):
         """Initialization method.
-        
+
         Args:
-            runtime_group (RuntimeGroup): RuntimeGroup contains all Runtimes which can be used for starting the Dask
-                                          entities.
-            ports (List[int]): The list of ports which will be used in the cluster. Defaults to range(60000, 61000).
+            runtime_group (RuntimeGroup): The `RuntimeGroup` contains all `Runtimes` which can be used for starting the
+                                          DASK entities.
+            ports (Optional[List[int]]: The list of ports which will be used to instantiate a cluster. Defaults to
+                                        list(range(self.DEFAULT_PORT_RANGE_START,
+                                                   self.DEFAULT_PORT_RANGE_END)).
+            master_launcher (Optional[MasterLauncher]): Optionally, an instance implementing the `MasterLauncher`
+                                                        interface can be given, which implements the strategy for
+                                                        launching the master instances in the cluster. If None, then
+                                                        `LocalMasterLauncher` is used.
             worker_launcher (Optional[WorkerLauncher]): Optionally, an instance implementing the `WorkerLauncher`
                                                         interface can be given, which implements the strategy for
-                                                        launching DASK worker instances in the cluster. If None, the
-                                                        worker will be launched via a RoundRobin strategy as implemented
-                                                        in `RoundRobinLauncher`.
+                                                        launching the worker instances. If None, then
+                                                        `RoundRobinLauncher` is used.
         """
         super().__init__(runtime_group, ports)
 
@@ -172,8 +194,7 @@ class DaskCluster(MasterWorkerCluster):
         """Get a connected Dask client. 
         
         Args:
-            timeout (int): The timeout value passed on to the Dask `Client` constructor.
-                           Defaults to 2.
+            timeout (int): The timeout (s) value passed on to the Dask `Client` constructor. Defaults to 2.
 
         Raises:
             TimeoutError: If client connection `timeout` expires.

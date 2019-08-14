@@ -150,6 +150,19 @@ class MasterWorkerCluster(RuntimeCluster):
 
     Usually you want to inherit from this class and do not want to use it directly. It is recommended to treat this
     class as an abstract class or an interface.
+
+    Examples:
+        Create a cluster with all `Runtimes` detected by the `RuntimeManager`.
+        >>> from lazycluster import RuntimeManager
+        >>> cluster = MyMasterWorkerClusterImpl(RuntimeManager().create_group())
+        >>> cluster.start()
+
+        Use different strategies for launching the master and the worker instance as the default ones by providing
+        custom implementation of `MasterLauncher` and `WorkerLauncher`.
+        >>> cluster = MyMasterWorkerClusterImpl(RuntimeManager().create_group(),
+        ...                                     MyMasterLauncherImpl(),
+        ...                                     MyWorkerLauncherImpl)
+        >>> cluster.start()
     """
 
     DEFAULT_MASTER_PORT = 60000
@@ -163,17 +176,17 @@ class MasterWorkerCluster(RuntimeCluster):
 
         Args:
             runtime_group (RuntimeGroup): The `RuntimeGroup` contains all `Runtimes` which can be used for starting the
-                                          Dask entities.
+                                          cluster entities.
             ports (Optional[List[int]]: The list of ports which will be used to instantiate a cluster. Defaults to
-                                        range(self.DEFAULT_PORT_RANGE_START,
-                                              self.DEFAULT_PORT_RANGE_END).
+                                        list(range(self.DEFAULT_PORT_RANGE_START,
+                                                   self.DEFAULT_PORT_RANGE_END).)
             master_launcher (Optional[MasterLauncher]): Optionally, an instance implementing the `MasterLauncher`
                                                         interface can be given, which implements the strategy for
                                                         launching the master instances in the cluster. If None, then the
                                                         default of the concrete cluster implementation will be chosen.
             worker_launcher (Optional[WorkerLauncher]): Optionally, an instance implementing the `WorkerLauncher`
                                                         interface can be given, which implements the strategy for
-                                                        launching the worker instances. If None, the default of the
+                                                        launching the worker instances. If None, then the default of the
                                                         concrete cluster implementation will be chosen.
         """
         self._group = runtime_group
