@@ -1,4 +1,4 @@
-"""Runtime management module. This module contains convenient classes for working with `Runtimes`. """
+"""Runtime management module. This module contains convenient classes for working with `Runtimes` and `RuntimeTasks`."""
 
 from typing import Optional, List, Dict, Generator, Union
 from storm import Storm
@@ -505,7 +505,7 @@ class RuntimeManager(object):
     """
 
     def __init__(self):
-        """Constructor method.
+        """Initialization method.
 
         Raises:
             NoRuntimeDetectedError: If no `Runtime` could be automatically detected.
@@ -550,31 +550,32 @@ class RuntimeManager(object):
                      min_cpu_cores: Optional[int] = None,
                      installed_executables: Union[str, List[str], None] = None,
                      filter_commands: Union[str, List[str], None] = None) -> RuntimeGroup:
-        """Create a runtime group with either all available runtimes or with the ones specified via hosts.
+        """Create a runtime group with either all detected `Runtimes` or with a subset thereof.
         
         Args:
-            include_hosts (Optional[List[str]] = None): Only these hosts will be included in the `RuntimeGroup`.
-                                        Defaults to None, i.e. not restricted.
-            exclude_hosts: (Optional[List[str]] = None): If supplied, all `Runtimes` beside the here specified ones will
-                                                         be included in the group. Defaults to None, i.e. not
+            include_hosts (Union[str, List[str], None]): Only these hosts will be included in the `RuntimeGroup`.
+                                                         Defaults to None, i.e. not restricted.
+            exclude_hosts: (Optional[List[str]] = None): If supplied, all detected `Runtimes` beside the here specified
+                                                         ones will be included in the group. Defaults to None, i.e. not
                                                          restricted.
             gpu_required (bool): True, if gpu availability is required. Defaults to False.
             min_memory (Optional[int]): The minimal amount of memory in MB. Defaults to None, i.e. not restricted.
             min_cpu_cores (Optional[int]): The minimum number of cpu cores required. Defaults to None, i.e. not
                                            restricted.
-            installed_executables (Union[str, List[str], None]): Possibility to only include `Runtimes` if an executable
-                                                                 is installed. E.g. if the executable `ping` is
-                                                                 installed.
+            installed_executables (Union[str, List[str], None]): Possibility to only include `Runtimes` that have an
+                                                                 specific executables installed. See examples.
             filter_commands (Union[str, List[str], None]): Shell commands that can be used for generic filtering.
-                                                           See examples and documentation for `Runtimes.check_filter()`
-                                                           Defaults to None.
+
+        Note:
+            The filter criteria are passed through the `check_filter()` method of the `Runtime` class. See its
+            documentation for further details and examples.
 
         Returns:
-            RuntimeGroup: The created group.
+            RuntimeGroup: The created `RuntimeGroup`.
         
         Raises:
             ValueError: Only hosts or excluded_hosts must be provided or Hostname is not contained in the group.
-                        Furthermore, the group must at least contain one Runtime.
+            NoRuntimesError: If no `Runtime` matches the filter criteria.
         """
         runtimes_dict = self._group.get_runtimes(include_hosts, exclude_hosts)  # Raises ValueError
 
@@ -584,4 +585,9 @@ class RuntimeManager(object):
             if runtime.check_filter(gpu_required, min_memory, min_cpu_cores, installed_executables, filter_commands):
                 final_runtimes.append(runtime)
 
-        return RuntimeGroup(final_runtimes)  # Raises ValueError
+        try:
+            group = RuntimeGroup(final_runtimes)
+        except ValueError as e:
+            raise NoRuntimesDetectedError(e)
+
+        return group

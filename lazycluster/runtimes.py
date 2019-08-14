@@ -855,16 +855,21 @@ class Runtime(object):
                                                                 installed. E.g. if the executable `ping` is installed.
             filter_commands (Union[str, List[str], None]): Shell commands that can be used for generic filtering.
                                                            See examples. A filter command must echo true to be evaluated
-                                                           to True, everythin else will be interpreted as False.
+                                                           to True, everything else will be interpreted as False.
                                                            Defaults to None.
 
         Returns:
             bool: True, if all filters were successfully checked otherwise False.
 
         Examples:
-            Check if a variable `WORKSPACE_VERSION` is set on the `Runtime`:
-                => `filer_commands='[ ! -z "$WORKSPACE_VERSION" ] && echo "true" || echo "false"'`
+            >>> runtime = Runtime('host-1')
+            Check if the `Runtime` has a specific executable installed
+            such as `ping` the network administration software utility.
+            >>> check_passed = runtime.check_filter(installed_executables='ping')
 
+            Check if a variable `WORKSPACE_VERSION` is set on the `Runtime`
+            >>> filter_str = '[ ! -z "$WORKSPACE_VERSION" ] && echo "true" || echo "false"'
+            >>> check_passed = runtime.check_filter(filer_commands=filter_str)
         """
 
         all_filters_checked = True
