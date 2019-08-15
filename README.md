@@ -31,7 +31,7 @@ and convenient cluster setup with Python for various distributed machine learnin
 
 - **High-Level API for starting clusters:** 
     - <a href="#">DASK</a>
-    - <a href="#">PyTorch</a> *(work in progress)* 
+    - <a href="#">PyTorch</a> *(WIP)* 
     - *Further supported *lazyclusters* to come ...*
 - **Lower-level API for:**
     - Managing <a href="#">Runtimes</a> or <a href="#">RuntimeGroups</a> to:
@@ -55,16 +55,17 @@ from lazycluster import RuntimeTask, Runtime
 def hello(name:str):
     return 'Hello ' + name + '!'
 
-# Compose the task
+# Compose a `RuntimeTask`
 task = RuntimeTask('my-first_task').run_command('echo Hello World!') \
                                    .run_function(hello, name='World')
-# Execute it remotely in a `Runtime`                                   
+                                   
+# Actually execute it remotely in a `Runtime`                                   
 task = Runtime('host-1').execute_task(task, execute_async=False)
 
-# The stdout can be retrieved via the task's execution log
+# The stdout from from the executing `Runtime` can be accessed via the execution log of teh `RuntimeTask`
 task.print_log()
 
-# # Print the return of the `hello()` call
+# Print the return of the `hello()` call
 generator = task.function_returns
 print(next(generator))
 ```
