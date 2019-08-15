@@ -23,25 +23,55 @@
   <a href="#contribution">Contribution</a>
 </p>
 
-_WIP: Short Description (max. 4 lines)_
+**lazycluster** is a Python library intended to liberate data scientists and machine learning engineers by abstracting 
+away cluster management and configuration so that they are be able to focus on its actual tasks. Especially, the easy 
+and convenient cluster setup with Python for various distributed machine learning frameworks is emphasized.
 
 ## Highlights
 
-_WIP: Hightlights_
+- **High-Level API for starting clusters:** 
+    - <a href="#">DASK</a>
+    - <a href="#">PyTorch</a> *(work in progress)* 
+    - *Further supported *lazyclusters* to come ...*
+- **Lower-level API for:**
+    - Managing <a href="#">Runtimes</a> or <a href="#">RuntimeGroups</a> to:
+        - a-/synchronously execute <a href="#">RuntimeTasks</a> remotely by leveraging the power of ssh
+        - expose services (e.g. a DB) on remotely
 
 ## Getting Started
 
 ### Installation
 
-_WIP: pip installation and mention prerequisites if there are some_
+`pip install lazycluster` 
 
 ### Usage Example
 
-_WIP: Add usage example that can be easily copy-pasted to try out the library_
+Prerequisite: Passwordless ssh needs to be setup for the used hosts.
 
+```python
+from lazycluster import RuntimeTask, Runtime
+
+# Define a Python function which will be executed remotely
+def hello(name:str):
+    return 'Hello ' + name + '!'
+
+# Compose the task
+task = RuntimeTask('my-first_task').run_command('echo Hello World!') \
+                                   .run_function(hello, name='World')
+# Execute it remotely in a `Runtime`                                   
+task = Runtime('host-1').execute_task(task, execute_async=False)
+
+# The stdout can be retrieved via the task's execution log
+task.print_log()
+
+# # Print the return of the `hello()` call
+generator = task.function_returns
+print(next(generator))
+```
 ## Support
 
-The lazycluster project is maintained by [Jan Kalkan](https://www.linkedin.com/in/jan-kalkan-b5390284/). Please understand that we won't be able to provide individual support via email. We also believe that help is much more
+The **lazycluster** project is maintained by [Jan Kalkan](https://www.linkedin.com/in/jan-kalkan-b5390284/). Please 
+understand that we won't be able to provide individual support via email. We also believe that help is much more
 valuable if it's shared publicly so that more people can benefit from it.
 
 | Type                     | Channel                                              |
