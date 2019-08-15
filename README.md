@@ -36,7 +36,7 @@ and convenient cluster setup with Python for various distributed machine learnin
 - **Lower-level API for:**
     - Managing <a href="#">Runtimes</a> or <a href="#">RuntimeGroups</a> to:
         - a-/synchronously execute <a href="#">RuntimeTasks</a> remotely by leveraging the power of ssh
-        - expose services (e.g. a DB) on remotely
+        - expose services (e.g. a DB) from or to a <a href="#">Runtimes</a> or in a whole <a href="#">RuntimeGroup</a>
 
 ## Getting Started
 
