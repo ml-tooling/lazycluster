@@ -377,13 +377,16 @@ class Runtime(object):
           for setting up the ssh connection.
 
     Examples:
-        `# Execute a RuntimeTask synchronously
-        task =  Runtime('host-1').execute_task(my_task, execute_async=False)`
+        Execute a RuntimeTask synchronously
+        >>> Runtime('host-1').execute_task(my_task, execute_async=False)
 
-        `# Expose a port from localhost to the remote host so that a service running from
-         # localhost is accessible on the remote host as well.
-        task =  Runtime('host-1').execute_task(my_task, execute_async=False)`
+        Expose a port from localhost to the remote host so that a service running on localhost
+        is accessible from the remote host as well.
+        >>> Runtime('host-1').expose_port_to_runtime(8786)
 
+        Expose a port from a remote `Runtime` to to localhost so that a service running on the `Runtime`
+        is accessible from localhost as well.
+        >>> Runtime('host-1').expose_port_from_runtime(8787)
     """
 
     LOCALHOST = 'localhost'
@@ -605,8 +608,8 @@ class Runtime(object):
         task.run_command('python --version')
 
         try:
-            task = self.execute_task(task, execute_async=False)
-        except:
+            self.execute_task(task, execute_async=False)
+        except Exception:
             return False
 
         if not task.execution_log[0]:
@@ -1007,7 +1010,7 @@ class Runtime(object):
     def _filter_command_checked(self, shell_cmd: str) -> bool:
         task = RuntimeTask('_filter_command_checked')
         task.run_command(shell_cmd)
-        task = self.execute_task(task, execute_async=False)
+        self.execute_task(task, execute_async=False)
 
         # Check the last log entry for the string true
         result = str(task.execution_log[len(task.execution_log) - 1])

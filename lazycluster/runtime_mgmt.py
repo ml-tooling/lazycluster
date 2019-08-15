@@ -310,19 +310,19 @@ class RuntimeGroup(object):
             tasks = []
             for runtime in self.get_runtimes().values():  # Raises ValueError
                 print('Start executing task ' + task.name + ' in ' + runtime.class_name + ' ' + runtime.host)
-                returned_task = runtime.execute_task(task, execute_async)
-                tasks.append(returned_task)
-                self._tasks.append(returned_task)
+                runtime.execute_task(task, execute_async)
+                tasks.append(task)
+                self._tasks.append(task)
             return tasks
         else:
             if host:
                 if host not in self._runtimes:
                     raise ValueError('The host ' + host + ' is not a valid runtime.')
-                returned_task = self.get_runtime(host).execute_task(task, execute_async)
+                self.get_runtime(host).execute_task(task, execute_async)
             else:
-                returned_task = self._get_least_busy_runtime().execute_task(task, execute_async)
-            self._tasks.append(returned_task)
-            return returned_task
+                self._get_least_busy_runtime().execute_task(task, execute_async)
+            self._tasks.append(task)
+            return task
 
     def join(self):
         """Blocks until `RuntimeTasks` which were started via the `runtime.execute_task()` method terminated. """
