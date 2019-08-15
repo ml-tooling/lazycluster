@@ -9,7 +9,7 @@ def get_remaining_ports(ports: List[int], last_used_port: int) -> List[int]:
         last_used_port (int): The last port that was actually used. All ports up this one and including this one will
                               be removed.
     Returns:
-        List with remaning ports
+        List with remaining ports
     """
     skip = True
     final_port_list = []
