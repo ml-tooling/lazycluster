@@ -399,8 +399,8 @@ class Runtime(object):
 
     def __init__(self, host: str, root_dir: Optional[str] = None, **connection_kwargs):
         """Initialization method.
-        
-        Args: 
+
+        Args:
             host (str): The host of the `Runtime`.
             root_dir (Optional[str]): The directory which shall act as root one. Defaults to None.
                                       Consequently, a temporary directory will be created and used as root directory. If
