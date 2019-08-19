@@ -549,7 +549,8 @@ class RuntimeManager(object):
                      min_memory: Optional[int] = None,
                      min_cpu_cores: Optional[int] = None,
                      installed_executables: Union[str, List[str], None] = None,
-                     filter_commands: Union[str, List[str], None] = None) -> RuntimeGroup:
+                     filter_commands: Union[str, List[str], None] = None,
+                     root_dir: Optional[str] = None) -> RuntimeGroup:
         """Create a runtime group with either all detected `Runtimes` or with a subset thereof.
         
         Args:
@@ -565,6 +566,10 @@ class RuntimeManager(object):
             installed_executables (Union[str, List[str], None]): Possibility to only include `Runtimes` that have an
                                                                  specific executables installed. See examples.
             filter_commands (Union[str, List[str], None]): Shell commands that can be used for generic filtering.
+            root_dir (Optional[str]): The directory which shall act as root one. Defaults to None.
+                                      Consequently, a temporary directory will be created and used as root directory. If
+                                      the root directory is a temporary one it will be cleaned up either `atexit` or
+                                      when calling `cleanup()` manually.
 
         Note:
             The filter criteria are passed through the `check_filter()` method of the `Runtime` class. See its
@@ -583,6 +588,7 @@ class RuntimeManager(object):
 
         for runtime in runtimes_dict.values():
             if runtime.check_filter(gpu_required, min_memory, min_cpu_cores, installed_executables, filter_commands):
+                runtime._root_dir = root_dir
                 final_runtimes.append(runtime)
 
         try:
