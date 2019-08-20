@@ -845,7 +845,6 @@ class Runtime(object):
             else:
                 display_value = value
 
-            display_value = value if not key == 'memory' else str(self.memory_in_mb) + ' mb'
             print('{:<8} {:<8}'.format(key, display_value))
 
     def check_filter(self,
