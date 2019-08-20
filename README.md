@@ -17,7 +17,7 @@
   <a href="#getting-started">Getting Started</a> •
   <a href="#highlights">Highlights</a> •
   <a href="#features">Features</a> •
-  <a href="#api-docs">API Docs</a> •
+  <a href="./docs">API Docs</a> •
   <a href="#support">Support</a> •
   <a href="https://github.com/ml-tooling/ml-workspace/issues/new?labels=bug&template=01_bug-report.md">Report a Bug</a> •
   <a href="#contribution">Contribution</a>
@@ -169,13 +169,32 @@ for chunk in runtime_group.function_returns:
 ```
 
 
-### Easily launch a [DASK cluster](./docs/cluster.dask_cluster.md#daskcluster-class)
+### Easily Launch a [Dask Cluster](./docs/cluster.dask_cluster.md#daskcluster-class)
 ```python
 from lazycluster import RuntimeManager
 from lazycluster.cluster.dask_cluster import DaskCluster
 
 cluster = DaskCluster(RuntimeManager().create_group())
 cluster.start()
+```
+Test the cluster setup
+```python
+def square(x):
+            return x ** 2
+def neg(x):
+
+client = cluster.get_client()
+
+A = client.map(square, range(task_cnt))
+
+B = client.map(neg, A)
+
+total = client.submit(sum, B, )
+
+res = total.result()
+
+print('Result: ' + str(res))
+    return -x
 ```
 
 
