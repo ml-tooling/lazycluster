@@ -835,6 +835,16 @@ class Runtime(object):
         print('\n')
         print('Information of `' + self.class_name + '` ' + self.host + ':')
         for key, value in info.items():
+
+            if key == 'memory':
+                display_value = str(self.memory_in_mb) + ' mb'
+            elif isinstance(value, list):
+                display_value = ''
+                for gpu in value:
+                    display_value = '{}; {}'.format(display_value, gpu)
+            else:
+                display_value = value
+
             display_value = value if not key == 'memory' else str(self.memory_in_mb) + ' mb'
             print('{:<8} {:<8}'.format(key, display_value))
 
