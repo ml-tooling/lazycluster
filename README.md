@@ -31,7 +31,7 @@ and convenient cluster setup with Python for various distributed machine learnin
 
 - **High-Level API for starting clusters:** 
     - [DASK](./docs/cluster.dask_cluster.md#daskcluster-class)
-    - [PyTorch](#)PyTorch *(WIP)* 
+    - [PyTorch](#) *(WIP)* 
     - *Further supported *lazyclusters* to come ...*
 - **Lower-level API for:**
     - Managing [Runtimes](./docs/runtimes.md#runtime-class) or [RuntimeGroups](./docs/runtime_mgmt.md#runtimegroup-class) to:
@@ -170,6 +170,9 @@ for chunk in runtime_group.function_returns:
 
 
 ### Easily Launch a [Dask Cluster](./docs/cluster.dask_cluster.md#daskcluster-class)
+The [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) can automatically detect all available 
+[Runtimes](./docs/runtimes.md#runtime-class) based on your local ssh config and eventually create a necessary 
+[RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) for you.
 ```python
 from lazycluster import RuntimeManager
 from lazycluster.cluster.dask_cluster import DaskCluster
