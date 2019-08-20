@@ -35,11 +35,11 @@ class RuntimeGroup(object):
             >>> # Execute RuntimeTask via RuntimGroup either on a single Runtime
             >>> my_task = RuntimeTask('group-demo').run_command('echo Hello Group!')
             >>> task = group.execute_task(my_task)
-
             A DB is running on localhost on port `local_port` and the DB is only accessible
             from localhost. But you also want to access the service on the other `Runtimes` on port
             `runtime_port`. Then you can use this method to expose the service which is running on the
             local machine to the remote machines.
+
             >>> # Expose a port to all Runtimes contained in the Runtime. If a port list is given the next free port is
             >>> # chosen and returned.
             >>> group_port = group.expose_port_to_runtimes(local_port=60000, runtime_port=list(range(60000,60010)))
@@ -48,6 +48,7 @@ class RuntimeGroup(object):
             A DB is running on a remote host on port `runtime_port` and the DB is only accessible from the remote
             machine itself. But you also want to access the service to other `Runtimes` in the group. Then you can use
             this method to expose the service which is running on one `Runtime` to the whole group.
+
             >>> # Expose a port from a Runtime to all other ones in the RuntimeGroup. If a port list is given the next
             >>> # free port is chosen and returned.
             >>> group_port = group.expose_port_from_runtime_to_group(host='host-1', runtime_port=60000,
@@ -114,7 +115,7 @@ class RuntimeGroup(object):
 
     @property
     def runtime_count(self) -> int:
-        """Get the count of runtimes contained in the group. """
+        """The count of runtimes contained in the group. """
         return len(self.hosts)
 
     @property
@@ -128,6 +129,18 @@ class RuntimeGroup(object):
         for runtime in self._runtimes.values():
             processes.extend(runtime.task_processes)
         return processes
+
+    @property
+    def function_returns(self) -> Generator[object, None, None]:
+        """Function return data. Blocks thread until a `RuntimeTasks` finished executing and gives back the return data
+        of the remotely executed python functions. The data is returned in the same order as the Tasks were started.
+
+        Returns:
+            Generator[object, None, None]: The unpickled return data.
+        """
+        for task in self._tasks:
+            for return_data in task.function_returns:
+                yield return_data
 
     def print_hosts(self):
         """Print the hosts of the group. """
@@ -398,18 +411,6 @@ class RuntimeGroup(object):
             bool: True if runtime is contained in the group, else False.
         """
         return True if host in self.hosts else False
-
-    @property
-    def function_returns(self) -> Generator[object, None, None]:
-        """Blocks thread until a `RuntimeTasks` finished executing and gives back the return data of the remotely
-        executed python functions. The data is returned in the same order as the Tasks were started
-
-        Returns:
-            Generator[object, None, None]: The unpickled return data.
-        """
-        for task in self._tasks:
-            for return_data in task.function_returns:
-                yield return_data
 
     def clear_tasks(self):
         """Clears all internal state related to `RuntimeTasks`. """

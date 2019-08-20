@@ -125,8 +125,9 @@ class WorkerLauncher(object):
         """Set up ssh tunnel for workers such that all communication is routed over the
         local machine and all entities can talk to each other on localhost.
 
-        Note: This method needs to be called if the communication between the worker instances is necessary, e.g. in
-              case of DASK or Apache Flink, where data needs to be shuffled between the different entities.
+        Note:
+            This method needs to be called if the communication between the worker instances is necessary, e.g. in case
+            of DASK or Apache Flink, where data needs to be shuffled between the different entities.
         """
         for host, ports in self.ports_per_host.items():
             for worker_port in ports:

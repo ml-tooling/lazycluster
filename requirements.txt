@@ -1,5 +1,5 @@
 fabric >= 2.2
 stormssh
-cloudpickle
+cloudpickle >= 1.0.0
 distributed
 psutil

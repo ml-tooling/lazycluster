@@ -1,68 +1,5 @@
 
-Runtimes module.
-
-This module comprises classes for executing so called `RuntimeTasks` in `Runtimes` by leveraging the power of ssh.
-The `RuntimeTask` class is a container for defining a sequence of elegantly task steps. This `RuntimeTask` can then be
-executed either standalone of by passing it over to a `Runtime` instance. Passwordless ssh should be configured for all
-hosts that should act as a `Runtime` to be able to conveniently manage those entities.
-
-
-**Source:** [/lazycluster/runtimes.py#L0](/lazycluster/runtimes.py#L0)
-
--------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1064)</span>
-
-### get_localhost_info
-
-```python
-get_localhost_info() -> dict
-```
-
-Get information about the specifications of localhost.
-
-**Returns:**
-
- - `dict`:  Current dict keys: 'os', 'cpu_cores', 'memory', 'python_version', 'workspace_version', 'gpus'.
-
--------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1081)</span>
-
-### print_localhost_info
-
-```python
-print_localhost_info()
-```
-
-Prints the dictionary retrieved by `get_localhost_info()`.
-
--------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1087)</span>
-
-### command_exists_on_localhost
-
-```python
-command_exists_on_localhost(command:  str) -> bool
-```
-
-Check if a command exists on localhost
-
--------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1093)</span>
-
-### localhost_has_free_port
-
-```python
-localhost_has_free_port(port:  int) -> bool
-```
-
-Checks if the port is free on localhost.
-
-**Args:**
-
- - `port` (int):  The port which will be checked.
-**Returns:**
-
- - `bool`:  True if port is free, else False.
+**Source:** [/lazycluster/runtimes.py](/lazycluster/runtimes.py#L0)
 
 -------------------
 <span style="float:right;">[[source]](/lazycluster/runtimes.py#L35)</span>
@@ -80,7 +17,7 @@ Usually, a `RuntimeTask` will be executed in a `Runtime` or in a `RuntimeGroup`.
 details.
 
 **Examples:**
-  ```python
+  ```python 
   >>> # 1. Define a function that should be executed remotely via a RuntimeTask
   >>> def print():
   ...     print('Hello World!')
@@ -95,11 +32,11 @@ details.
   >>> # 4. Check the logs of the RuntimeTask execution
   >>> task.print_log()
   >>> log = task.execution_log
-```
+  ```
 #### RuntimeTask.execution_log
  
 Return the execution log as list. The list is empty as long as a task was not yet executed. Each log entry
-corresponds to a single task step and the log index starts at 0. If th execution of an individual step does not
+corresponds to a single task step and the log index starts at `0`. If th execution of an individual step does not
 produce and outut the list entry will be empty.
 
 #### RuntimeTask.function_returns
@@ -303,7 +240,7 @@ Runtime for executing `RuntimeTasks` in it or exposing ports from / to localhost
   for setting up the ssh connection.
 
 **Examples:**
-  ```Python
+  ```python
   Execute a RuntimeTask synchronously
   >>> Runtime('host-1').execute_task(my_task, execute_async=False)
 
@@ -314,8 +251,7 @@ Runtime for executing `RuntimeTasks` in it or exposing ports from / to localhost
   Expose a port from a remote `Runtime` to to localhost so that a service running on the `Runtime`
   is accessible from localhost as well.
   >>> Runtime('host-1').expose_port_from_runtime(8787)
-```
-
+  ```
 #### Runtime.alive_process_count
  
 Get the number of alive processes. 
@@ -493,14 +429,16 @@ Checks the `Runtime` object for certain filter criteria.
 
 **Examples:**
 
->>> runtime = Runtime('host-1')
 Check if the `Runtime` has a specific executable installed
 such as `ping` the network administration software utility.
+```python
 >>> check_passed = runtime.check_filter(installed_executables='ping')
-
+```
 Check if a variable `WORKSPACE_VERSION` is set on the `Runtime`
+```python
 >>> filter_str = '[ ! -z "$WORKSPACE_VERSION" ] && echo "true" || echo "false"'
 >>> check_passed = runtime.check_filter(filer_commands=filter_str)
+```
 -------------------
 <span style="float:right;">[[source]](/lazycluster/runtimes.py#L951)</span>
 
@@ -786,4 +724,59 @@ Stop a process by its key.
 
  - `ValueError`:  Unknown process key.
 
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1064)</span>
+
+### get_localhost_info
+
+```python
+get_localhost_info() -> dict
+```
+
+Get information about the specifications of localhost.
+
+**Returns:**
+
+ - `dict`:  Current dict keys: 'os', 'cpu_cores', 'memory', 'python_version', 'workspace_version', 'gpus'.
+
+-------------------
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1081)</span>
+
+### print_localhost_info
+
+```python
+print_localhost_info()
+```
+
+Prints the dictionary retrieved by `get_localhost_info()`.
+
+-------------------
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1087)</span>
+
+### command_exists_on_localhost
+
+```python
+command_exists_on_localhost(command:  str) -> bool
+```
+
+Check if a command exists on localhost
+
+-------------------
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1093)</span>
+
+### localhost_has_free_port
+
+```python
+localhost_has_free_port(port:  int) -> bool
+```
+
+Checks if the port is free on localhost.
+
+**Args:**
+
+ - `port` (int):  The port which will be checked.
+**Returns:**
+
+ - `bool`:  True if port is free, else False.
+
+-------------------
 

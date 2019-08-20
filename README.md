@@ -30,13 +30,13 @@ and convenient cluster setup with Python for various distributed machine learnin
 ## Highlights
 
 - **High-Level API for starting clusters:** 
-    - <a href="#">DASK</a>
-    - <a href="#">PyTorch</a> *(WIP)* 
+    - [DASK](./docs/cluster.dask_cluster.md#daskcluster-class)
+    - [PyTorch](#)PyTorch *(WIP)* 
     - *Further supported *lazyclusters* to come ...*
 - **Lower-level API for:**
-    - Managing <a href="#">Runtimes</a> or <a href="#">RuntimeGroups</a> to:
-        - a-/synchronously execute <a href="#">RuntimeTasks</a> remotely by leveraging the power of ssh
-        - expose services (e.g. a DB) from or to a <a href="#">Runtimes</a> or in a whole <a href="#">RuntimeGroup</a>
+    - Managing [Runtimes](./docs/runtimes.md#runtime-class) or [RuntimeGroups](./docs/runtime_mgmt.md#runtimegroup-class) to:
+        - a-/synchronously execute [RuntimeTasks](./docs/runtimes.md#runtimetask-class) by leveraging the power of ssh
+        - expose services (e.g. a DB) from or to a [Runtime](./docs/runtimes.md#runtime-class) or in a whole [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class)
 
 ## Getting Started
 
@@ -84,7 +84,100 @@ valuable if it's shared publicly so that more people can benefit from it.
 
 ## Features
 
-_WIP: Describe with high level features code examples. E.g. DaskCluster, Chunked Preprocessing, Runtime Group Port Handling..._
+### Create [Runtimes](./docs/runtimes.md#runtime-class) & [RuntimeGroups](./docs/runtime_mgmt.md#runtimegroup-class)
+```python
+from lazycluster import Runtime, RuntimeGroup
+
+rt_1 = Runtime('host-1')
+rt_2 = Runtime('host-1', root_dir='/workspace')
+
+runtime_group = RuntimeGroup([rt_1, rt_2])
+runtime_group = RuntimeGroup(hosts=['host-1', 'host-2'])
+```
+
+### Use [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) to Create a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) Based on the Local ssh Config
+```python
+from lazycluster import RuntimeManager, RuntimeGroup
+
+runtime_group = RuntimeManager().create_group()
+```
+
+### Expose a service from or to a [Runtime](./docs/runtimes.md#runtime-class)
+```python
+from lazycluster import Runtime
+
+# Create a Runtime
+runtime = Runtime('host-1')
+
+# Make the port 50000 from the Runtime accessible on localhost
+runtime.expose_port_from_runtime(50000)
+
+# Make the local port 40000 accessible on the Runtime
+runtime.expose_port_to_runtime(40000)
+
+```
+
+### Expose a Service to a Whole [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) or From One Contained [Runtime](./docs/runtimes.md#runtime-class) in the [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class)
+```python
+from lazycluster import RuntimeGroup
+
+# Create a RuntimeGroup
+runtime_group = RuntimeGroup('host1', 'host-2', 'host-3')
+
+# Make the local port 50000 accessible on all Runtimes contained in the RuntimeGroup
+runtime_group.expose_port_to_runtimes(50000)
+
+
+# Make the port 40000 which is running on host-1 accessible on all other Runtimes in the RuntimeGroup
+runtime_group.expose_port_from_runtime_to_group('host-1', 40000)
+```
+
+### Simple Preprocessing Example
+Read a local CSV and upper case chunks in parallel using [RuntimeTasks](./docs/runtimes.md#runtimetask-class)
+and a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class).
+```python
+from typing import List
+import pandas as pd
+from lazycluster import RuntimeTask, RuntimeManager
+
+# Define the function to be executed remotely
+def preprocess(docs: List[str]):
+    return [str(doc).lower() for doc in docs]
+    
+file_path = '/path/to/file.csv'
+
+runtime_group = RuntimeManager().create_group()
+
+tasks = []
+
+# Distribute chunks of the csv and start the preprocessing in parallel in the RuntimeGroup
+for df_chunk in pd.read_csv(file_path, sep=';', chunksize=500):
+    
+    task = RuntimeTask().run_function(preprocess, docs=df_chunk['text'].tolist())
+    
+    tasks.append(runtime_group.execute_task(task))
+
+# Wait until all executions are done   
+runtime_group.join()    
+
+# Get the return data and print it
+index = 0
+for chunk in runtime_group.function_returns:  
+    print('Chunk: ' + str(index))
+    index += 1
+    print(chunk)
+```
+
+
+### Easily launch a [DASK cluster](./docs/cluster.dask_cluster.md#daskcluster-class)
+```python
+from lazycluster import RuntimeManager
+from lazycluster.cluster.dask_cluster import DaskCluster
+
+cluster = DaskCluster(RuntimeManager().create_group())
+cluster.start()
+```
+
 
 ## Contribution
 
