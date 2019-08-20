@@ -96,7 +96,7 @@ class RuntimeTask(object):
 
     @property
     def name(self) -> str:
-        """Get the task name.
+        """The task name.
         
         Returns:
             str: Task name
@@ -105,15 +105,15 @@ class RuntimeTask(object):
 
     @property
     def execution_log(self) -> List[str]:
-        """Return the execution log as list. The list is empty as long as a task was not yet executed. Each log entry
-        corresponds to a single task step and the log index starts at 0. If th execution of an individual step does not
+        """The execution log as list. The list is empty as long as a task was not yet executed. Each log entry
+        corresponds to a single task step and the log index starts at `0`. If th execution of an individual step does not
         produce and outut the list entry will be empty.
         """
         return self._execution_log
 
     @property
     def function_returns(self) -> Generator[object, None, None]:
-        """Get the return data produced by functions which were executed as a consequence of a `task.run_function()`
+        """The return data produced by functions which were executed as a consequence of a `task.run_function()`
         call.
 
        Internally, a function return is saved as a pickled file. This method unpickles each file one after
@@ -140,7 +140,7 @@ class RuntimeTask(object):
 
     @property
     def process(self) -> Process:
-        """Returns the process object in which the task were executed. None, if not yet or synchronously executed. """
+        """The process object in which the task were executed. None, if not yet or synchronously executed. """
         return self._process
 
     def send_file(self, local_path: str, remote_path: Optional[str] = None):
@@ -238,16 +238,8 @@ class RuntimeTask(object):
         # Hereby we can pickle the function incl. kwargs, since we are
         # going to pickle the wrapper and not only the function itself.
         def function_wrapper():
-
-            result = function(**func_kwargs)
-
             # Make the function return data available
-            # => pickle the data and save it as a file on the remote host so that we can get the file back to the
-            # local machine. Local machine means NOT the one where `function_wrapper()` is actually executed, but
-            # the one where `task.run_function()` is actually executed.
-            with open(remote_return_pickle_file_path, 'wb') as fp:
-                pickle.dump(result, fp)
-                fp.close()
+            return function(**func_kwargs)
 
         # Create cloud pickle file of the function_wrapper() and save it locally
         with open(local_pickle_file_path, 'wb') as f:
@@ -261,8 +253,15 @@ class RuntimeTask(object):
         self.run_command('pip install -q cloudpickle')
 
         # Create commands for executing the pickled function file
-        run_function_code = 'import cloudpickle as pickle; file=open(\'' + remote_pickle_file_path + '\', \'rb\'); ' \
-                            'fn=pickle.load(file); file.close(); fn()'
+        # => pickle the return data and save it as a file on the remote host so that we can get the file back to the
+        # local machine. Local machine means NOT the one where `function_wrapper()` is actually executed, but
+        # the one where `task.run_function()` is actually executed.
+        run_function_code = 'import cloudpickle as pickle; ' \
+                            'file=open(\'' + remote_pickle_file_path + '\', \'rb\'); ' \
+                            'fn=pickle.load(file); file.close(); result = fn(); ' \
+                            'file=open(\'' + remote_return_pickle_file_path + '\', \'wb\'); ' \
+                            'pickle.dump(result, file); file.close();'
+
         run_cmd = 'python -c "' + run_function_code + '"'
         self.run_command(run_cmd)
 
@@ -379,11 +378,9 @@ class Runtime(object):
     Examples:
         Execute a RuntimeTask synchronously
         >>> Runtime('host-1').execute_task(my_task, execute_async=False)
-
         Expose a port from localhost to the remote host so that a service running on localhost
         is accessible from the remote host as well.
         >>> Runtime('host-1').expose_port_to_runtime(8786)
-
         Expose a port from a remote `Runtime` to to localhost so that a service running on the `Runtime`
         is accessible from localhost as well.
         >>> Runtime('host-1').expose_port_from_runtime(8787)
@@ -444,7 +441,7 @@ class Runtime(object):
 
     @property
     def task_processes(self) -> List[Process]:
-        """Get all processes that were started to execute a `RuntimeTask` asynchronously.
+        """All processes that were started to execute a `RuntimeTask` asynchronously.
 
         Returns:
             List[Process]: RuntimeTask processes.
@@ -457,7 +454,7 @@ class Runtime(object):
 
     @property
     def function_returns(self) -> Generator[object, None, None]:
-        """Get the return data produced by Python functions which were executed as a consequence of
+        """The return data produced by Python functions which were executed as a consequence of
            `task.run_function()`. The call will be passed on to the `function_returns` property of the `RuntimeTask`.
            The order is determined by the order in which the `RuntimeTasks` were executed in the `Runtime`.
 
@@ -468,6 +465,108 @@ class Runtime(object):
         for task in self._tasks:
             for function_return in task.function_returns:
                 yield function_return
+
+    @property
+    def host(self) -> str:
+        """The host of the runtime.
+
+        Returns:
+            str:  The host of the runtime.
+        """
+        return self._host
+
+    @property
+    def info(self) -> dict:
+        """Information about the runtime.
+
+        Returns:
+            dict: Runtime information.
+        """
+        if not self._info:
+            self._info = self._read_info()
+        return self._info
+
+    @property
+    def os(self) -> str:
+        """Operating system information.
+
+        Returns:
+            str: OS.
+        """
+        if not self._info:
+            self._info = self._read_info()
+        return self._info['os']
+
+    @property
+    def cpu_cores(self) -> int:
+        """Information about the available CPUs. If you are in a container
+        the CPU quota will be given if set. Otherwise, the number of physical CPUs
+        on the host machine is given.
+
+        Returns:
+            str: CPU quota.
+        """
+        if not self._info:
+            self._info = self._read_info()
+        return int(self._info['cpu_cores'])
+
+    @property
+    def memory(self) -> int:
+        """Information about the total memory in bytes.
+
+        Returns:
+            str: Total memory in bytes.
+        """
+        if not self._info:
+            self._info = self._read_info()
+        return int(self._info['memory'])
+
+    @property
+    def memory_in_mb(self):
+        """Memory information in mb. """
+        return self.memory / 1024 / 1024
+
+    @property
+    def python_version(self) -> str:
+        """The installed python version.
+
+        Returns:
+            str: Python version.
+        """
+        if not self._info:
+            self._info = self._read_info()
+        return self._info['python_version']
+
+    @property
+    def gpus(self) -> list:
+        """GPU information as list. Each list entry contains information for one GPU.
+
+        Returns:
+            list: List with GPU information.
+        """
+        if not self._info:
+            self._info = self._read_info()
+        return self._info['gpus']
+
+    @property
+    def gpu_count(self) -> int:
+        """The count of GPUs."""
+        return len(self.gpus)
+
+    @property
+    def class_name(self) -> str:
+        """The class name  as string. """
+        return self.__class__.__name__
+
+    @property
+    def alive_process_count(self):
+        """The number of alive processes. """
+        return len(self.get_processes(only_alive=True))
+
+    @property
+    def alive_task_process_count(self):
+        """The number of alive processes which were started to execute a `RuntimeTask`. """
+        return len(self.task_processes)
 
     @classmethod
     def is_runtime_task_process(cls, process_key: str) -> bool:
@@ -495,108 +594,6 @@ class Runtime(object):
         key_splits = process_key.split(cls._PROCESS_KEY_DELIMITER)
         return True if key_splits[0] == cls._PORT_FROM_RUNTIME or key_splits[0] == cls._PORT_TO_RUNTIME else False
 
-    @property
-    def host(self) -> str:
-        """Get the host of the runtime.
-
-        Returns:
-            str:  The host of the runtime.
-        """
-        return self._host
-
-    @property
-    def info(self) -> dict:
-        """Get information about the runtime.
-
-        Returns:
-            dict: Runtime information.
-        """
-        if not self._info:
-            self._info = self._read_info()
-        return self._info
-
-    @property
-    def os(self) -> str:
-        """Get operating system information.
-
-        Returns:
-            str: OS.  
-        """
-        if not self._info:
-            self._info = self._read_info()
-        return self._info['os']
-
-    @property
-    def cpu_cores(self) -> int:
-        """Get information about the available CPUs. If you are in a container 
-        the CPU quota will be given if set. Otherwise, the number of physical CPUs
-        on the host machine is given.
-
-        Returns:
-            str: CPU quota.  
-        """
-        if not self._info:
-            self._info = self._read_info()
-        return int(self._info['cpu_cores'])
-
-    @property
-    def memory(self) -> int:
-        """Get information about the total memory in bytes.
-
-        Returns:
-            str: Total memory in bytes.  
-        """
-        if not self._info:
-            self._info = self._read_info()
-        return int(self._info['memory'])
-
-    @property
-    def memory_in_mb(self):
-        """Get the memory information in mb. """
-        return self.memory / 1024 / 1024
-
-    @property
-    def python_version(self) -> str:
-        """Get the python version.
-
-        Returns:
-            str: Python version.  
-        """
-        if not self._info:
-            self._info = self._read_info()
-        return self._info['python_version']
-
-    @property
-    def gpus(self) -> list:
-        """GPU information as list. Each list entry contains information for one GPU.
-
-        Returns:
-            list: List with GPU information.
-        """
-        if not self._info:
-            self._info = self._read_info()
-        return self._info['gpus']
-
-    @property
-    def gpu_count(self) -> int:
-        """The count of GPUs."""
-        return len(self.gpus)
-
-    @property
-    def class_name(self) -> str:
-        """Get the class name  as string. """
-        return self.__class__.__name__
-
-    @property
-    def alive_process_count(self):
-        """Get the number of alive processes. """
-        return len(self.get_processes(only_alive=True))
-
-    @property
-    def alive_task_process_count(self):
-        """Get the number of alive processes which were started to execute a `RuntimeTask`. """
-        return len(self.task_processes)
-
     def is_valid_runtime(self) -> bool:
         """Checks if a given host is a valid `Runtime`.
 
@@ -621,7 +618,7 @@ class Runtime(object):
         if not python_version:
             return False
         elif int(python_version[0]) > 3:  # Stay future-proof
-            warnings.warn('The lib was originally created for Python 3.6 and is not yet fully tested for '
+            warnings.warn('The lib was originally created for Python 3.6 and is not yet tested for '
                           'Python >= Python 4')
             return True
         elif int(python_version[0]) == 3 and int(python_version[1]) >= 6:
@@ -865,11 +862,9 @@ class Runtime(object):
             bool: True, if all filters were successfully checked otherwise False.
 
         Examples:
-            >>> runtime = Runtime('host-1')
             Check if the `Runtime` has a specific executable installed
             such as `ping` the network administration software utility.
             >>> check_passed = runtime.check_filter(installed_executables='ping')
-
             Check if a variable `WORKSPACE_VERSION` is set on the `Runtime`
             >>> filter_str = '[ ! -z "$WORKSPACE_VERSION" ] && echo "true" || echo "false"'
             >>> check_passed = runtime.check_filter(filer_commands=filter_str)
