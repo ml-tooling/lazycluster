@@ -179,22 +179,23 @@ cluster.start()
 ```
 Test the cluster setup
 ```python
+# Define test functions to be executed in parallel via DASK
 def square(x):
-            return x ** 2
-def neg(x):
+    return x ** 2
 
+def neg(x):
+    return -x
+
+# Get a DASK client instance
 client = cluster.get_client()
 
+# Execute the computation
 A = client.map(square, range(task_cnt))
-
 B = client.map(neg, A)
-
 total = client.submit(sum, B, )
-
 res = total.result()
 
 print('Result: ' + str(res))
-    return -x
 ```
 
 
