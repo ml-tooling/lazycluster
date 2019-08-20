@@ -1068,7 +1068,7 @@ def get_localhost_info() -> dict:
         'memory': _get_memory_on_localhost(),
         'python_version': _get_python_version_on_localhost(),
         'workspace_version': _get_workspace_version_on_localhost(),
-        'gpus': _get_gpu_count_from_localhost()
+        'gpus': _get_gpu_info_for_localhost()
     }
     return info
 
@@ -1141,14 +1141,16 @@ def _get_workspace_version_on_localhost() -> str:
     return os.environ['WORKSPACE_VERSION']
 
 
-def _get_gpu_count_from_localhost() -> int:
+def _get_gpu_info_for_localhost() -> list:
     NVIDIA_CMD = 'nvidia-smi'
 
     if not command_exists_on_localhost(NVIDIA_CMD):
-        return 0
+        return []
+
+    gpus = []
 
     try:
-        sp = subprocess.Popen([NVIDIA_CMD, '-q'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        sp = subprocess.Popen(['nvidia-smi', '-q'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out_str = sp.communicate()
         out_list = out_str[0].decode("utf-8").split('\n')
 
@@ -1159,8 +1161,10 @@ def _get_gpu_count_from_localhost() -> int:
                 key, val = key.strip(), val.strip()
                 if key == 'Product Name':
                     count_gpu += 1
+                    gpus.append(val)
             except:
-                pass
+                continue
     except:
-        count_gpu = 0
-    return count_gpu
+        gpus = []
+
+    return gpus
