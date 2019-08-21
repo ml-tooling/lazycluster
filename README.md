@@ -46,7 +46,9 @@ and convenient cluster setup with Python for various distributed machine learnin
 
 ### Usage Example
 
-Prerequisite: Passwordless ssh needs to be setup for the used hosts.
+*Prerequisite*: Passwordless ssh needs to be setup to the used hosts for the most convenient user experience. Otherwise,
+                you need to pass the connection details to Runtime.\_\_init__ via connection_kwargs. These parameters will
+                be passed on to the [fabric.Connection](http://docs.fabfile.org/en/2.4/api/connection.html#connect-kwargs-arg).
 
 ```python
 from lazycluster import RuntimeTask, Runtime
