@@ -147,10 +147,16 @@ class RoundRobinLauncher(WorkerLauncher):
 class DaskCluster(MasterWorkerCluster):
     """Convenient class for launching a Dask cluster in a `RuntimeGroup`. 
 
+    The number of DASK workers defaults to the number of `Runtimes` in the used `RuntimeGroup`. This number can be
+    adjusted so that more or less workers than available `Runtimes` can be used. Per default the desired number of
+    workers is started in a round robin way as implemented in `RoundRobinLauncher`. Consequently, this leads to an
+    equal distribution of DASK workers in the `RuntimeGroup`. You can provide a custom implementation inheriting from
+    the `lazycluster.WorkerLauncher` class in order to execute a different strategy how workers should be started. The
+    DASK master (i.e. scheduler) will always be started on localhost as implemented in `LocalMasterLauncher`. This
+    behavior can also be changed by providing a custom implementation inheriting from the `lazycluster.MasterLauncher`.
+
     Examples:
-        Create a DASK cluster with all `Runtimes` detected by the `RuntimeManager`. Each `Runtime` will host one DASK
-        worker and the DASK master (i.e. scheduler) will be started on localhost as implemented in
-        `LocalMasterLauncher`.
+        Most simple way to launch a cluster based on a `RuntimeGroup` created by the `RuntimeManager`.
         >>> from lazycluster import RuntimeManager
         >>> cluster = DaskCluster(RuntimeManager().create_group())
         >>> cluster.start()
