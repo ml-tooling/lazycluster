@@ -1115,14 +1115,26 @@ def _get_os_on_localhost() -> str:
 
 
 def _get_cpu_count_on_localhost() -> str:
-    # Read the cpu quota
-    cpu_quota = os.popen('cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us').read()
-    # Remove newlines
-    cpu_quota = cpu_quota.replace('\n', '')
-    if not cpu_quota.isnumeric():
-        return str(os.cpu_count())
-    else:
-        return str(float(cpu_quota) / 100000)
+    """Fail-safe method to get cpu count. Also respects docker/cgroup limitations."""
+    try:
+        import psutil
+        cpu_count = psutil.cpu_count()
+    except:
+        # psutil is probably not installed
+        cpu_count = os.cpu_count()
+
+    try:
+        # Try to read out docker cpu quota if it exists
+        quota_file = "/sys/fs/cgroup/cpu/cpu.cfs_quota_us"
+        if os.path.isfile(quota_file):
+            cpu_quota = math.ceil(int(os.popen('cat ' + quota_file).read().replace('\n', '')) / 100000)
+            if 0 < cpu_quota < cpu_count:
+                cpu_count = cpu_quota
+    except:
+        # Do nothing
+        pass
+
+    return cpu_count
 
 
 def _get_memory_on_localhost() -> str:
