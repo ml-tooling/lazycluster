@@ -26,7 +26,6 @@ import warnings
 
 import json
 import os
-import psutil
 import sys
 import platform
 import subprocess
@@ -1114,7 +1113,7 @@ def _get_os_on_localhost() -> str:
     return platform.platform()
 
 
-def _get_cpu_count_on_localhost() -> str:
+def _get_cpu_count_on_localhost() -> float:
     """Fail-safe method to get cpu count. Also respects docker/cgroup limitations."""
     try:
         import psutil
@@ -1124,6 +1123,7 @@ def _get_cpu_count_on_localhost() -> str:
         cpu_count = os.cpu_count()
 
     try:
+        import math
         # Try to read out docker cpu quota if it exists
         quota_file = "/sys/fs/cgroup/cpu/cpu.cfs_quota_us"
         if os.path.isfile(quota_file):
@@ -1137,21 +1137,22 @@ def _get_cpu_count_on_localhost() -> str:
     return cpu_count
 
 
-def _get_memory_on_localhost() -> str:
-    mem_limit = None
-    if os.path.isfile("/sys/fs/cgroup/memory/memory.limit_in_bytes"):
-        with open('/sys/fs/cgroup/memory/memory.limit_in_bytes', 'r') as file:
-            mem_limit = file.read().replace('\n', '').strip()
+def _get_memory_on_localhost() -> int:
+    """Fail-safe method to get total memory. Also respects docker/cgroup limitations."""
+    import psutil
+    memory = psutil.virtual_memory().total
+    try:
+        if os.path.isfile("/sys/fs/cgroup/memory/memory.limit_in_bytes"):
+            with open('/sys/fs/cgroup/memory/memory.limit_in_bytes', 'r') as file:
+                mem_limit = file.read().replace('\n', '').strip()
+                if mem_limit and 0 < int(mem_limit) < int(memory):
+                    # if mem limit from cgroup bigger than total memory -> use total memory
+                    memory = int(mem_limit)
+    except:
+        # Do nothing
+        pass
 
-    total_memory = psutil.virtual_memory().total
-
-    if not mem_limit:
-        mem_limit = total_memory
-    elif int(mem_limit) > int(total_memory):
-        # if mem limit from cgroup bigger than total memory -> use total memory
-        mem_limit = total_memory
-
-    return str(mem_limit)
+    return memory
 
 
 def _get_python_version_on_localhost() -> str:
