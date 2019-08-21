@@ -21,14 +21,10 @@ import lazycluster.settings as settings
 from lazycluster import InvalidRuntimeError, NoPortsLeftError, PortInUseError
 import lazycluster._utils as _utils
 
-import socket
 import warnings
 
-import json
+#import json
 import os
-import sys
-import platform
-import subprocess
 
 
 class RuntimeTask(object):
@@ -289,9 +285,10 @@ class RuntimeTask(object):
         # Fabric will only consider the manually set root directory for connection.run()
         # but not fur connection.put() & connection.get(). Thus, we need to set the path in
         # these cases manually.
+        from socket import gaierror
         try:
             root_dir = connection.run('pwd').stdout.replace('\n', '').replace('\r', '')
-        except socket.gaierror:
+        except gaierror:
             raise ValueError('Connection cannot be established. connection: ' + str(connection))
 
         for task_step in self._task_steps:
@@ -748,7 +745,7 @@ class Runtime(object):
             # We can not forward a port to itself!
             print('Port exposure skipped. Can\'t expose a port to myself.')
             return ''
-        elif not localhost_has_free_port(local_port):
+        elif not _utils.localhost_has_free_port(local_port):
             raise PortInUseError(runtime_port, runtime=self)
 
         proc = Process(target=self._forward_local_port_to_runtime,
@@ -1027,9 +1024,10 @@ class Runtime(object):
             ValueError: If user or port values are given via both host shorthand
                         and their own arguments.
         """
+        from socket import gaierror
         try:
             return Connection(host=self.host, connect_kwargs=self._connection_kwargs)
-        except socket.gaierror:
+        except gaierror:
             raise ValueError('Cannot establish SSH connection to host ' + self.host)
 
     def _forward_local_port_to_runtime(self, local_port: int, runtime_port: Optional[int] = None):
@@ -1056,137 +1054,6 @@ class Runtime(object):
         """Read the host machine information.  """
         task = RuntimeTask('get-host-info')
         task.run_command('pip install -q --upgrade ' + settings.PIP_PROJECT_NAME)
-        task.run_function(print_localhost_info)
+        task.run_function(_utils.print_localhost_info)
         self.execute_task(task, execute_async=False)
         return json.loads(task.execution_log[4])
-
-
-""" Module level utils """
-
-
-def get_localhost_info() -> dict:
-    """Get information about the specifications of localhost.
-
-    Returns:
-        dict: Current dict keys: 'os', 'cpu_cores', 'memory', 'python_version', 'workspace_version', 'gpus'.
-    """
-    info = {
-        'os': _get_os_on_localhost(),
-        'cpu_cores': _get_cpu_count_on_localhost(),
-        'memory': _get_memory_on_localhost(),
-        'python_version': _get_python_version_on_localhost(),
-        'workspace_version': _get_workspace_version_on_localhost(),
-        'gpus': _get_gpu_info_for_localhost()
-    }
-    return info
-
-
-def print_localhost_info():
-    """Prints the dictionary retrieved by `get_localhost_info()`."""
-    json_str = json.dumps(get_localhost_info())
-    print(json_str)
-
-
-def command_exists_on_localhost(command: str) -> bool:
-    """Check if a command exists on localhost"""
-    cmd_ext = 'hash ' + command + ' 2>/dev/null && echo "True" || echo ""'
-    return True if os.popen(cmd_ext).read() else False
-
-
-def localhost_has_free_port(port: int) -> bool:
-    """Checks if the port is free on localhost.
-
-    Args:
-        port (int): The port which will be checked.
-    Returns:
-        bool: True if port is free, else False.
-    """
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    is_success = sock.connect_ex(('localhost', port))
-    return True if is_success else False
-
-
-""" Private module level utils """
-
-
-def _get_os_on_localhost() -> str:
-    return platform.platform()
-
-
-def _get_cpu_count_on_localhost() -> float:
-    """Fail-safe method to get cpu count. Also respects docker/cgroup limitations."""
-    try:
-        import psutil
-        cpu_count = psutil.cpu_count()
-    except:
-        # psutil is probably not installed
-        cpu_count = os.cpu_count()
-
-    try:
-        import math
-        # Try to read out docker cpu quota if it exists
-        quota_file = "/sys/fs/cgroup/cpu/cpu.cfs_quota_us"
-        if os.path.isfile(quota_file):
-            cpu_quota = math.ceil(int(os.popen('cat ' + quota_file).read().replace('\n', '')) / 100000)
-            if 0 < cpu_quota < cpu_count:
-                cpu_count = cpu_quota
-    except:
-        # Do nothing
-        pass
-
-    return cpu_count
-
-
-def _get_memory_on_localhost() -> int:
-    """Fail-safe method to get total memory. Also respects docker/cgroup limitations."""
-    import psutil
-    memory = psutil.virtual_memory().total
-    try:
-        if os.path.isfile("/sys/fs/cgroup/memory/memory.limit_in_bytes"):
-            with open('/sys/fs/cgroup/memory/memory.limit_in_bytes', 'r') as file:
-                mem_limit = file.read().replace('\n', '').strip()
-                if mem_limit and 0 < int(mem_limit) < int(memory):
-                    # if mem limit from cgroup bigger than total memory -> use total memory
-                    memory = int(mem_limit)
-    except:
-        # Do nothing
-        pass
-
-    return memory
-
-
-def _get_python_version_on_localhost() -> str:
-    return str(sys.version_info.major) + '.' + str(sys.version_info.minor) + '.' + str(sys.version_info.micro)
-
-
-def _get_workspace_version_on_localhost() -> str:
-    return os.environ['WORKSPACE_VERSION']
-
-
-def _get_gpu_info_for_localhost() -> list:
-    NVIDIA_CMD = 'nvidia-smi'
-
-    if not command_exists_on_localhost(NVIDIA_CMD):
-        return []
-
-    gpus = []
-
-    try:
-        sp = subprocess.Popen(['nvidia-smi', '-q'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out_str = sp.communicate()
-        out_list = out_str[0].decode("utf-8").split('\n')
-
-        count_gpu = 0
-        for item in out_list:
-            try:
-                key, val = item.split(':')
-                key, val = key.strip(), val.strip()
-                if key == 'Product Name':
-                    count_gpu += 1
-                    gpus.append(val)
-            except:
-                continue
-    except:
-        gpus = []
-
-    return gpus

@@ -6,7 +6,7 @@ from typing import List, Union, Optional
 
 from subprocess import Popen
 
-from lazycluster import RuntimeTask, Runtime, RuntimeGroup, localhost_has_free_port
+from lazycluster import RuntimeTask, Runtime, RuntimeGroup
 from lazycluster.cluster import MasterWorkerCluster, MasterLauncher, WorkerLauncher
 from lazycluster import _utils
 from lazycluster.cluster.exceptions import MasterStartError
@@ -38,7 +38,7 @@ class LocalMasterLauncher(MasterLauncher):
         """
 
         if not isinstance(ports, list):
-            if localhost_has_free_port(ports) and self._group.has_free_port(ports, exclude_hosts=Runtime.LOCALHOST):
+            if _utils.localhost_has_free_port(ports) and self._group.has_free_port(ports, exclude_hosts=Runtime.LOCALHOST):
                 master_port = ports
             else:
                 raise PortInUseError(ports, self._group)
@@ -51,7 +51,7 @@ class LocalMasterLauncher(MasterLauncher):
 
         time.sleep(timeout)  # Needed for being able to check the port
 
-        if not localhost_has_free_port(master_port):
+        if not _utils.localhost_has_free_port(master_port):
             self._port = master_port
             print('Dask scheduler started on localhost on port ' + str(self._port))
         else:

@@ -7,9 +7,9 @@ import warnings
 import logging
 import atexit
 
-from lazycluster import RuntimeTask, Runtime, localhost_has_free_port
+from lazycluster import RuntimeTask, Runtime
+from lazycluster import _utils
 from lazycluster import PortInUseError, InvalidRuntimeError, NoPortsLeftError, NoRuntimesDetectedError
-import lazycluster._utils as _utils
 
 
 class RuntimeGroup(object):
@@ -274,12 +274,12 @@ class RuntimeGroup(object):
 
         # 2. Determine a free port on localhost, since all traffic is tunneled over the local machine
         local_port = None
-        if localhost_has_free_port(group_port):
+        if _utils.localhost_has_free_port(group_port):
             local_port = group_port
         else:
             # Get the first free port from the local port range
             for current_port in self._internal_port_range:
-                if not localhost_has_free_port(current_port):
+                if not _utils.localhost_has_free_port(current_port):
                     continue
                 else:
                     local_port = current_port
@@ -366,7 +366,7 @@ class RuntimeGroup(object):
 
         for port in ports:
 
-            if enforce_check_on_localhost and localhost_not_in_group and not localhost_has_free_port(port):
+            if enforce_check_on_localhost and localhost_not_in_group and not _utils.localhost_has_free_port(port):
                 continue
 
             if not self.has_free_port(port):

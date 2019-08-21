@@ -1,5 +1,11 @@
 from typing import List, Union
 
+import os
+import sys
+import platform
+import subprocess
+import socket
+
 
 def get_remaining_ports(ports: List[int], last_used_port: int) -> List[int]:
     """Get a new list with the remaining ports after cutting out all ports until and incl. the last used port.
@@ -46,3 +52,132 @@ def create_list_from_parameter_value(value: Union[object, List[object], None]) -
         return [value]
     # => value is already a list
     return value
+
+
+def get_localhost_info() -> dict:
+    """Get information about the specifications of localhost.
+
+    Returns:
+        dict: Current dict keys: 'os', 'cpu_cores', 'memory', 'python_version', 'workspace_version', 'gpus'.
+    """
+    info = {
+        'os': _get_os_on_localhost(),
+        'cpu_cores': _get_cpu_count_on_localhost(),
+        'memory': _get_memory_on_localhost(),
+        'python_version': _get_python_version_on_localhost(),
+        'workspace_version': _get_workspace_version_on_localhost(),
+        'gpus': _get_gpu_info_for_localhost()
+    }
+    return info
+
+
+def print_localhost_info():
+    """Prints the dictionary retrieved by `get_localhost_info()`."""
+    from json import dumps
+    json_str = dumps(get_localhost_info())
+    print(json_str)
+
+
+def command_exists_on_localhost(command: str) -> bool:
+    """Check if a command exists on localhost"""
+    cmd_ext = 'hash ' + command + ' 2>/dev/null && echo "True" || echo ""'
+    return True if os.popen(cmd_ext).read() else False
+
+
+def localhost_has_free_port(port: int) -> bool:
+    """Checks if the port is free on localhost.
+
+    Args:
+        port (int): The port which will be checked.
+    Returns:
+        bool: True if port is free, else False.
+    """
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    is_success = sock.connect_ex(('localhost', port))
+    return True if is_success else False
+
+
+""" Private module level utils """
+
+
+def _get_os_on_localhost() -> str:
+    return platform.platform()
+
+
+def _get_cpu_count_on_localhost() -> float:
+    """Fail-safe method to get cpu count. Also respects docker/cgroup limitations."""
+    try:
+        import psutil
+        cpu_count = psutil.cpu_count()
+    except:
+        # psutil is probably not installed
+        cpu_count = os.cpu_count()
+
+    try:
+        import math
+        # Try to read out docker cpu quota if it exists
+        quota_file = "/sys/fs/cgroup/cpu/cpu.cfs_quota_us"
+        if os.path.isfile(quota_file):
+            cpu_quota = math.ceil(int(os.popen('cat ' + quota_file).read().replace('\n', '')) / 100000)
+            if 0 < cpu_quota < cpu_count:
+                cpu_count = cpu_quota
+    except:
+        # Do nothing
+        pass
+
+    return cpu_count
+
+
+def _get_memory_on_localhost() -> int:
+    """Fail-safe method to get total memory. Also respects docker/cgroup limitations."""
+    import psutil
+    memory = psutil.virtual_memory().total
+    try:
+        if os.path.isfile("/sys/fs/cgroup/memory/memory.limit_in_bytes"):
+            with open('/sys/fs/cgroup/memory/memory.limit_in_bytes', 'r') as file:
+                mem_limit = file.read().replace('\n', '').strip()
+                if mem_limit and 0 < int(mem_limit) < int(memory):
+                    # if mem limit from cgroup bigger than total memory -> use total memory
+                    memory = int(mem_limit)
+    except:
+        # Do nothing
+        pass
+
+    return memory
+
+
+def _get_python_version_on_localhost() -> str:
+    return str(sys.version_info.major) + '.' + str(sys.version_info.minor) + '.' + str(sys.version_info.micro)
+
+
+def _get_workspace_version_on_localhost() -> str:
+    return os.environ['WORKSPACE_VERSION']
+
+
+def _get_gpu_info_for_localhost() -> list:
+    NVIDIA_CMD = 'nvidia-smi'
+
+    if not command_exists_on_localhost(NVIDIA_CMD):
+        return []
+
+    gpus = []
+
+    try:
+        sp = subprocess.Popen(['nvidia-smi', '-q'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out_str = sp.communicate()
+        out_list = out_str[0].decode("utf-8").split('\n')
+
+        count_gpu = 0
+        for item in out_list:
+            try:
+                key, val = item.split(':')
+                key, val = key.strip(), val.strip()
+                if key == 'Product Name':
+                    count_gpu += 1
+                    gpus.append(val)
+            except:
+                continue
+    except:
+        gpus = []
+
+    return gpus
