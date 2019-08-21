@@ -21,7 +21,7 @@ import lazycluster.settings as settings
 from lazycluster import InvalidRuntimeError, NoPortsLeftError, PortInUseError
 import lazycluster._utils as _utils
 
-import json.loads
+import json
 import warnings
 import os
 
