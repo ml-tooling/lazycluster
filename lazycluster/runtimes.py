@@ -565,7 +565,7 @@ class Runtime(object):
 
     @classmethod
     def is_runtime_task_process(cls, process_key: str) -> bool:
-        """Checks if the process which belongs to a given `process_key` was started to exectue a `RuntimeTask` based on
+        """Checks if the process which belongs to a given `process_key` was started to execute a `RuntimeTask` based on
         an internal naming scheme of the process keys.
 
         Args:
@@ -574,7 +574,7 @@ class Runtime(object):
             bool: True, if process was started to execute a `RuntimeTask`
         """
         key_splits = process_key.split(cls._PROCESS_KEY_DELIMITER)
-        return True if key_splits[0] == cls._TASK_PROCESS_KEY_PREFIX else False
+        return True if key_splits[1] == cls._TASK_PROCESS_KEY_PREFIX else False
 
     @classmethod
     def is_port_exposure_process(cls, process_key: str) -> bool:
@@ -587,7 +587,7 @@ class Runtime(object):
             bool: True, if process is used for port exposure.
         """
         key_splits = process_key.split(cls._PROCESS_KEY_DELIMITER)
-        return True if key_splits[0] == cls._PORT_FROM_RUNTIME or key_splits[0] == cls._PORT_TO_RUNTIME else False
+        return True if key_splits[1] == cls._PORT_FROM_RUNTIME or key_splits[1] == cls._PORT_TO_RUNTIME else False
 
     def is_valid_runtime(self) -> bool:
         """Checks if a given host is a valid `Runtime`.
@@ -968,8 +968,7 @@ class Runtime(object):
 
     # - Private methods -#
 
-    @classmethod
-    def _create_process_key_for_port_exposure(cls, direction: str, local_port: int, runtime_port: int) -> str:
+    def _create_process_key_for_port_exposure(self, direction: str, local_port: int, runtime_port: int) -> str:
         """Create a process key for processes exposing ports, i.e. keeping ssh tunnels open.
         This key will act as an identifier for internally generated processes.
         
@@ -981,21 +980,23 @@ class Runtime(object):
         if not runtime_port:
             runtime_port = local_port
 
-        delimiter = cls._PROCESS_KEY_DELIMITER
+        delimiter = self._PROCESS_KEY_DELIMITER
 
-        if direction == cls._PORT_FROM_RUNTIME:
-            return cls._PORT_FROM_RUNTIME + delimiter + str(local_port) + delimiter + str(runtime_port)
-        elif direction == cls._PORT_TO_RUNTIME:
-            return cls._PORT_TO_RUNTIME + delimiter + str(runtime_port) + delimiter + str(local_port)
+        if direction == self._PORT_FROM_RUNTIME:
+            return self.host + delimiter + self._PORT_FROM_RUNTIME + delimiter + str(local_port) + delimiter + \
+                   str(runtime_port)
+        elif direction == self._PORT_TO_RUNTIME:
+            return self.host + delimiter + self._PORT_TO_RUNTIME + delimiter + str(runtime_port) + delimiter + \
+                   str(local_port)
         else:
             raise ValueError(direction + ' is not a supported runtime process prefix type')
 
-    @classmethod
-    def _create_process_key_for_task_execution(cls, task: RuntimeTask) -> str:
+    def _create_process_key_for_task_execution(self, task: RuntimeTask) -> str:
         """Create a process key for processes started to execute a `RuntimeTasks` asynchronously
         This key will act as an identifier for internally generated processes.
         """
-        return cls._TASK_PROCESS_KEY_PREFIX + cls._PROCESS_KEY_DELIMITER + task.name
+        return self.host + self._PROCESS_KEY_DELIMITER + self._TASK_PROCESS_KEY_PREFIX + self._PROCESS_KEY_DELIMITER + \
+               task.name
 
     @classmethod
     def _create_executable_installed_shell_cmd(cls, executable: str) -> str:
@@ -1050,7 +1051,7 @@ class Runtime(object):
                 time.sleep(1000)
 
     def _read_info(self) -> dict:
-        """Read the host machine information.  """
+        """Read the host machine information. """
         task = RuntimeTask('get-host-info')
         task.run_command('pip install -q --upgrade ' + settings.PIP_PROJECT_NAME)
         task.run_function(_utils.print_localhost_info)
