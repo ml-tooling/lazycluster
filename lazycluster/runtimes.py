@@ -216,18 +216,18 @@ class RuntimeTask(object):
             self.run_command('mkdir -p ' + self._temp_dir)
             print('Temporary directory ' + self._temp_dir + ' for task ' + self.name + ' on localhost created.')
 
-        # We distinguish between local -  and remote paths because in case we execute a function in a
-        # `Runtime.create_instance('localhost')`, we may overwrite the files.
+        # We distinguish between local -  and remote filename because in case we execute a function in a
+        # `Runtime.('localhost')`, we may overwrite the files.
         input_function_name = function.__name__
         remote_file_name = self._create_file_name(input_function_name)
         local_file_name = 'local_' + remote_file_name
         local_pickle_file_path = os.path.join(self._temp_dir, local_file_name)
-        remote_pickle_file_path = os.path.join(self._temp_dir, remote_file_name)
+        remote_pickle_file_path = os.path.join(".", remote_file_name)
 
         local_return_file_name = 'return_' + remote_file_name
         remote_return_file_name = 'remote_' + local_return_file_name
         local_return_pickle_file_path = os.path.join(self._temp_dir, local_return_file_name)
-        remote_return_pickle_file_path = os.path.join(self._temp_dir, remote_return_file_name)
+        remote_return_pickle_file_path = os.path.join(".", remote_return_file_name)
 
         # Hereby we can pickle the function incl. kwargs, since we are
         # going to pickle the wrapper and not only the function itself.
@@ -275,18 +275,24 @@ class RuntimeTask(object):
 
     def execute(self, connection: Connection):
         """Execute the task on a remote host using a fabric connection.
+
+        Note: Each individual task step will be executed relatively to the current directory of the fabric connection.
+              Although, the current directory might have changed in the previous task step. Each directory change is
+              temporary limited to a single task step.
+              If the task gets executed via a `Runtime`, then the current directory will be the Runtimes working
+              directory. See the `Runtime` docs for further details.
         
         Args:
             connection (fabric.Connection): Fabric connection object managing the ssh connection to the remote host.
         Raises:
             ValueError: If cxn is broken and connection can not be established.
         """
-        # Fabric will only consider the manually set root directory for connection.run()
+        # Fabric will only consider the manually set working directory for connection.run()
         # but not fur connection.put() & connection.get(). Thus, we need to set the path in
         # these cases manually.
         from socket import gaierror
         try:
-            root_dir = connection.run('pwd').stdout.replace('\n', '').replace('\r', '')
+            working_dir = connection.run('pwd').stdout.replace('\n', '').replace('\r', '')
         except gaierror:
             raise ValueError('Connection cannot be established. connection: ' + str(connection))
 
@@ -298,23 +304,44 @@ class RuntimeTask(object):
                 self._execution_log.append(stdout)
 
             elif task_step.type == self._TaskStep.TYPE_SEND_FILE:
+                # Ensure that we have a valid remote path
                 remote_path = task_step.remote_path
+
                 if not remote_path:
-                    # Manually set the root dir since fabric defaults to the os user's home dir
+                    # Manually set the working directory since fabric defaults to the os
+                    # user's home directory in case of file transfer
                     local_dir, filename = os.path.split(task_step.local_path)
-                    remote_path = os.path.join(root_dir, filename)
-                connection.put(task_step.local_path, remote_path)
-                self._execution_log.append('Send file ' + task_step.local_path + ' to ' + remote_path + connection.host)
+                    remote_path = os.path.join(working_dir, filename)
+
+                elif remote_path.startswith('.'):
+                    # Relative path -> in this case it will be interpreted relative to the working directory
+                    remote_path = os.path.join(working_dir, remote_path[2:])
+
+                # Update the path in the `_TaskStep` so that the actual used path is correctly stored
+                task_step.remote_path = remote_path
+
+                connection.put(task_step.local_path, task_step.remote_path)
+                self._execution_log.append('Send file ' + task_step.local_path + ' to ' + task_step.remote_path +
+                                           connection.host)
 
             elif task_step.type == self._TaskStep.TYPE_GET_FILE:
-                # Set root dir manually, so that it feels naturally for the user if he just 
-                # uses the filename w/o a path
+                # Set working directory manually, so that it feels naturally for the user if he just
+                # uses the filename without a path
                 remote_path = task_step.remote_path
                 if not remote_path.startswith('/'):
                     remote_dir, filename = os.path.split(remote_path)
-                    remote_path = os.path.join(root_dir, filename)
-                connection.get(remote_path, task_step.local_path)
-                self._execution_log.append('Get file ' + task_step.local_path + ' to remote.')
+                    remote_path = os.path.join(working_dir, filename)
+
+                # or a relative path (-> will be interpreted relatively to the working directory)
+                elif remote_path.startswith('.'):
+                    remote_path = os.path.join(working_dir, remote_path[2:])
+
+                # Update the path in the `_TaskStep` so that the actual used path is correctly stored
+                task_step.remote_path = remote_path
+
+                connection.get(task_step.remote_path, task_step.local_path)
+                self._execution_log.append('Get remote file ' + task_step.remote_path + ' to local ' +
+                                           task_step.local_path + '.')
 
     def join(self):
         """Block the execution until the `RuntimeTask` finished its asynchronous execution. """

@@ -24,7 +24,7 @@
 </p>
 
 **lazycluster** is a Python library intended to liberate data scientists and machine learning engineers by abstracting 
-away cluster management and configuration so that they are be able to focus on its actual tasks. Especially, the easy 
+away cluster management and configuration so that they are be able to focus on their actual tasks. Especially, the easy 
 and convenient cluster setup with Python for various distributed machine learning frameworks is emphasized.
 
 ## Highlights
