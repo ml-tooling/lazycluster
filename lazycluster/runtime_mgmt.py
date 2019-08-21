@@ -191,7 +191,7 @@ class RuntimeGroup(object):
         del self._runtimes[host]
 
     def expose_port_to_runtimes(self, local_port: int, runtime_port: Union[int, List[int], None] = None,
-                                exclude_hosts: Optional[List[str]] = None) -> int:
+                                exclude_hosts: Union[str, List[str], None] = None) -> int:
         """ Expose a port from localhost to all Runtimes beside the excluded ones so that all traffic on the
         `runtime_port` is forwarded to the `local_port` on the local machine. This corresponds to remote
         port forwarding in ssh tunneling terms. Additionally, all relevant runtimes will be checked if the port is
@@ -203,8 +203,9 @@ class RuntimeGroup(object):
                                                         exposed to. May raise PortInUseError if a single port is given.
                                                         If a list is used to automatically find a free port then a
                                                         NoPortsLeftError may be raised. Defaults to `local_port`.
-            exclude_hosts (Optional[List[str]]): List with hosts where the port should not be exposed to. Defaults to
-                                                 None. Consequently, all `Runtimes` will be considered.
+            exclude_hosts (Union[str, List[str], None]): List with hosts where the port should not be exposed to.
+                                                         Defaults to None. Consequently, all `Runtimes` will be
+                                                         considered.
 
         Returns:
             int: The port which was actually exposed to the `Runtimes`.
@@ -224,8 +225,8 @@ class RuntimeGroup(object):
         elif isinstance(runtime_port, list):
             runtime_port = self.get_free_port(runtime_port)  # Raises NoPortsLeftError
 
-        if not exclude_hosts:
-            exclude_hosts = []
+        # Ensure that we work with a list and not a single value
+        exclude_hosts = _utils.create_list_from_parameter_value(exclude_hosts)
 
         if not self.has_free_port(runtime_port, exclude_hosts=exclude_hosts + [Runtime.LOCALHOST]):
             logging.debug('T')
