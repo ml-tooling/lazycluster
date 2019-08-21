@@ -102,10 +102,10 @@ class RoundRobinLauncher(WorkerLauncher):
             runtime_index = (self._group.runtime_count + worker_index) % self._group.runtime_count
             # Get the actual host corresponding to the index
             host = hosts[runtime_index]
-            root_dir = runtimes[runtime_index].root_directory
+            working_dir = runtimes[runtime_index].working_directory
             assert host == runtimes[runtime_index].host
 
-            worker_port = self._launch_single_worker(host, worker_index, master_port, root_dir)  # NoPortsLeftError
+            worker_port = self._launch_single_worker(host, worker_index, master_port, working_dir)  # NoPortsLeftError
             # Remember which worker ports are now used per `Runtime`
             if host in self._ports_per_host:
                 self._ports_per_host[host].append(worker_port)
@@ -117,7 +117,7 @@ class RoundRobinLauncher(WorkerLauncher):
 
         return self._ports
 
-    def _launch_single_worker(self, host: str, worker_index: int, master_port: int, root_directory: str):
+    def _launch_single_worker(self, host: str, worker_index: int, master_port: int, working_dir: str):
         """Launch a single worker instance in a `Runtime` in the `RuntimeGroup`.
 
         Raises:
@@ -129,18 +129,18 @@ class RoundRobinLauncher(WorkerLauncher):
         # 2. Start the worker on this port
         task = RuntimeTask('launch-dask-worker-' + str(worker_index))
         task.run_command(DaskCluster.PIP_INSTALL_COMMAND)
-        task.run_command(self._get_launch_command(master_port, worker_port, root_directory))
+        task.run_command(self._get_launch_command(master_port, worker_port, working_dir))
         self._group.execute_task(task, host)
         return worker_port
 
     @classmethod
-    def _get_launch_command(cls, master_port: int, worker_port: int, root_directory: str) -> str:
+    def _get_launch_command(cls, master_port: int, worker_port: int, working_directory: str) -> str:
         """Get the shell command for starting a worker instance.
 
         Returns:
              str: The launch command.
         """
-        return 'dask-worker --worker-port=' + str(worker_port) + ' --local-directory=' + root_directory \
+        return 'dask-worker --worker-port=' + str(worker_port) + ' --local-directory=' + working_directory \
                + ' localhost:' + str(master_port)
 
 

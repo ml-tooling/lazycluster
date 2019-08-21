@@ -142,7 +142,8 @@ class RuntimeTask(object):
         
         Args:
             local_path (str): Path to file on local machine.
-            remote_path (Optional[str]): Path on the remote host. Defaults to the root directory.
+            remote_path (Optional[str]): Path on the remote host. Defaults to the connection working directory.
+                                         See `RuntimeTask.execute()` docs for further details.
         
         Raises:
             ValueError: If file locally not found.
@@ -416,15 +417,16 @@ class Runtime(object):
     _PROCESS_KEY_DELIMITER = '::'
     _TASK_PROCESS_KEY_PREFIX = 'task'
 
-    def __init__(self, host: str, root_dir: Optional[str] = None, **connection_kwargs):
+    def __init__(self, host: str, working_dir: Optional[str] = None, **connection_kwargs):
         """Initialization method.
 
         Args:
             host (str): The host of the `Runtime`.
-            root_dir (Optional[str]): The directory which shall act as root one. Defaults to None.
-                                      Consequently, a temporary directory will be created and used as root directory. If
-                                      the root directory is a temporary one it will be cleaned up either `atexit` or
-                                      when calling `cleanup()` manually.
+            working_dir (Optional[str]): The directory which shall act as workind directory. All individual Steps of a
+                                         `RuntimeTask` will be executed relatively to this directory. Defaults to None.
+                                         Consequently, a temporary directory will be created and used as working dir.
+                                         If the working directory is a temporary one it will be cleaned up either
+                                         `atexit` or when calling `cleanup()` manually.
 
             **connection_kwargs: kwargs that will be passed on to the fabric connection. Please check the fabric docs
                                  for further details.
@@ -435,8 +437,8 @@ class Runtime(object):
 
         self._host = host
         self._connection_kwargs = connection_kwargs
-        self._root_dir = root_dir
-        self._root_dir_is_temp = False  # Indicates that a temp directory acts as root, which will be removed at the end
+        self._working_dir = working_dir
+        self._working_dir_is_temp = False  # Indicates that a temp directory acts as working directory
         self._processes = {}  # The dict key is a generated process identifier and the value contains the process
         self._info = {}
         self._process_manager = Manager()
@@ -445,7 +447,7 @@ class Runtime(object):
         # Cleanup will be done atexit since usage of destructor may lead to exceptions
         atexit.register(self.cleanup)
 
-        # The check shall be executed at the end of the method, since it relies on some attributes like _root_dir etc.
+        # The check shall be executed at the end of the method, since it relies on some attributes like _working_dir etc
         if not self.is_valid_runtime():
             raise InvalidRuntimeError(host)
 
@@ -456,10 +458,10 @@ class Runtime(object):
         return self.class_name + ': ' + self.host
 
     @property
-    def root_directory(self):
-        """The path of the root directory that was set during object initialization. """
-        self._create_root_dir_if_not_exists()
-        return self._root_dir
+    def working_directory(self):
+        """The path of the working directory that was set during object initialization. """
+        self._create_working_dir_if_not_exists()
+        return self._working_dir
 
     @property
     def task_processes(self) -> List[Process]:
@@ -673,14 +675,14 @@ class Runtime(object):
             task (RuntimeTask): The task to be executed.
             execute_async (bool, Optional): The execution will be done in a separate thread if True. Defaults to True.
         """
-        self._create_root_dir_if_not_exists()
+        self._create_working_dir_if_not_exists()
         async_str = ' asynchronously ' if execute_async else ' synchronously '
         print('Executing task ' + task.name + async_str + ' on ' + self._host)
 
-        # Wrapper needed to ensure execution from root directory
+        # Wrapper needed to ensure execution from the Runtime's working directory
         def execute_remote_wrapper():
             cxn = self._fabric_connection
-            with cxn.cd(self._root_dir):
+            with cxn.cd(self._working_dir):
                 task.execute(cxn)
 
         if execute_async:
@@ -696,11 +698,11 @@ class Runtime(object):
 
         self._tasks.append(task)
 
-    def _create_root_dir_if_not_exists(self):
-        if not self._root_dir:
-            self._root_dir = self.create_tempdir()
-            self._root_dir_is_temp = True
-            print('Temporary directory ' + self._root_dir + ' created on ' + self._host)
+    def _create_working_dir_if_not_exists(self):
+        if not self._working_dir:
+            self._working_dir = self.create_tempdir()
+            self._working_dir_is_temp = True
+            print('Temporary directory ' + self._working_dir + ' created on ' + self._host)
 
     def print_log(self):
         """Print the execution logs of each `RuntimeTask` that was executed in the `Runtime`. """
@@ -983,14 +985,14 @@ class Runtime(object):
                 print('Process with key ' + key + ' could not be terminated')
             else:
                 print('Process with key ' + key + ' terminated')
-        if self._root_dir_is_temp and self._root_dir:
-            success = self.delete_dir(self._root_dir)
+        if self._working_dir_is_temp and self._working_dir:
+            success = self.delete_dir(self._working_dir)
             if success:
-                print('Temporary directory ' + self.root_directory + ' of Runtime ' + self.host + ' removed.')
-                self._root_dir = None
-                self._root_dir_is_temp = False
+                print('Temporary directory ' + self.working_directory + ' of Runtime ' + self.host + ' removed.')
+                self._working_dir = None
+                self._working_dir_is_temp = False
             else:
-                print('Temporary directory ' + self.root_directory + ' of Runtime ' + self.host +
+                print('Temporary directory ' + self.working_directory + ' of Runtime ' + self.host +
                       ' could not be removed.')
 
     # - Private methods -#

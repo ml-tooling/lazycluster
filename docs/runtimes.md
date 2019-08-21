@@ -222,7 +222,7 @@ Create a task step for sending either a single file or a folder from localhost t
 **Args:**
 
  - `local_path` (str):  Path to file on local machine.
- - `remote_path` (Optional[str]):  Path on the remote host. Defaults to the root directory.
+ - `remote_path` (Optional[str]):  Path on the remote host. Defaults to the working directory.
 
 **Raises:**
 
@@ -341,9 +341,9 @@ Get the python version.
 
  - `str`:  Python version.  
 
-#### Runtime.root_directory
+#### Runtime.working_directory
  
-The path of the root directory that was set during object initialization. 
+The path of the working directory that was set during object initialization. 
 
 #### Runtime.task_processes
  
@@ -362,7 +362,7 @@ Get all processes that were started to execute a `RuntimeTask` asynchronously.
 __init__(
     self,
     host:  str,
-    root_dir:  Union[str,
+    working_dir:  Union[str,
     NoneType]  =  None,
     **connection_kwargs
 )
@@ -373,9 +373,9 @@ Initialization method.
 **Args:**
 
  - `host` (str):  The host of the `Runtime`.
- - `root_dir` (Optional[str]):  The directory which shall act as root one. Defaults to None.
-  Consequently, a temporary directory will be created and used as root directory. If
-  the root directory is a temporary one it will be cleaned up either `atexit` or
+ - `working_dir` (Optional[str]):  The directory which shall act as working one. Defaults to None.
+  Consequently, a temporary directory will be created and used as working directory. If
+  the working directory is a temporary one it will be cleaned up either `atexit` or
   when calling `cleanup()` manually.
 
 **connection_kwargs: kwargs that will be passed on to the fabric connection. Please check the fabric docs

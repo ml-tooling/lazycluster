@@ -507,7 +507,7 @@ create_group(
     filter_commands:  Union[str,
     List[str],
     NoneType]  =  None,
-    root_dir:  Union[str,
+    working_dir:  Union[str,
     NoneType]  =  None
 ) -> lazycluster.runtime_mgmt.RuntimeGroup
 ```
@@ -528,9 +528,9 @@ Create a runtime group with either all detected `Runtimes` or with a subset ther
  - `installed_executables` (Union[str, List[str], None]):  Possibility to only include `Runtimes` that have an
   specific executables installed. See examples.
  - `filter_commands` (Union[str, List[str], None]):  Shell commands that can be used for generic filtering.
- - `root_dir` (Optional[str]):  The directory which shall act as root one. Defaults to None.
-  Consequently, a temporary directory will be created and used as root directory. If
-  the root directory is a temporary one it will be cleaned up either `atexit` or
+ - `working_dir` (Optional[str]):  The directory which shall act as working one. Defaults to None.
+  Consequently, a temporary directory will be created and used as working directory. If
+  the working directory is a temporary one it will be cleaned up either `atexit` or
   when calling `cleanup()` manually.
 
 **Note:**

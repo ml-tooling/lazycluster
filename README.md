@@ -91,7 +91,7 @@ valuable if it's shared publicly so that more people can benefit from it.
 from lazycluster import Runtime, RuntimeGroup
 
 rt_1 = Runtime('host-1')
-rt_2 = Runtime('host-1', root_dir='/workspace')
+rt_2 = Runtime('host-1', working_dir='/workspace')
 
 runtime_group = RuntimeGroup([rt_1, rt_2])
 runtime_group = RuntimeGroup(hosts=['host-1', 'host-2'])
