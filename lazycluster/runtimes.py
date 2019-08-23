@@ -18,7 +18,7 @@ import atexit
 
 import lazycluster.settings as settings
 
-from lazycluster import InvalidRuntimeError, NoPortsLeftError, PortInUseError
+from lazycluster import InvalidRuntimeError, NoPortsLeftError, PortInUseError, TaskExecutionError
 import lazycluster._utils as _utils
 
 import json
@@ -287,6 +287,7 @@ class RuntimeTask(object):
             connection (fabric.Connection): Fabric connection object managing the ssh connection to the remote host.
         Raises:
             ValueError: If cxn is broken and connection can not be established.
+            TaskExecutionError: If an executed task step can't be executed successfully.
         """
         # Fabric will only consider the manually set working directory for connection.run()
         # but not fur connection.put() & connection.get(). Thus, we need to set the path in
@@ -297,10 +298,18 @@ class RuntimeTask(object):
         except gaierror:
             raise ValueError('Connection cannot be established. connection: ' + str(connection))
 
+        from invoke.exceptions import UnexpectedExit
+
+        task_step_index = 0
+
         for task_step in self._task_steps:
 
             if task_step.type == self._TaskStep.TYPE_RUN_COMMAND:
-                res = connection.run(task_step.command, pty=True)
+                try:
+                    res = connection.run(task_step.command, pty=True)
+                except UnexpectedExit as prev_excp:
+                    raise TaskExecutionError(task_step_index, self, prev_excp)
+
                 stdout = res.stdout.replace('\n', '').replace('\r', '')
                 self._execution_log.append(stdout)
 
@@ -321,7 +330,12 @@ class RuntimeTask(object):
                 # Update the path in the `_TaskStep` so that the actual used path is correctly stored
                 task_step.remote_path = remote_path
 
-                connection.put(task_step.local_path, task_step.remote_path)
+                try:
+                    connection.put(task_step.local_path, task_step.remote_path)
+
+                except UnexpectedExit as e:
+                    pass
+
                 self._execution_log.append('Send file ' + task_step.local_path + ' to ' + task_step.remote_path +
                                            connection.host)
 
@@ -343,6 +357,8 @@ class RuntimeTask(object):
                 connection.get(task_step.remote_path, task_step.local_path)
                 self._execution_log.append('Get remote file ' + task_step.remote_path + ' to local ' +
                                            task_step.local_path + '.')
+
+            task_step_index = task_step_index + 1
 
     def join(self):
         """Block the execution until the `RuntimeTask` finished its asynchronous execution. """
@@ -674,6 +690,9 @@ class Runtime(object):
         Args:
             task (RuntimeTask): The task to be executed.
             execute_async (bool, Optional): The execution will be done in a separate thread if True. Defaults to True.
+
+        Raises:
+            TaskExecutionError: If an executed task step can't be executed successfully.
         """
         self._create_working_dir_if_not_exists()
         async_str = ' asynchronously ' if execute_async else ' synchronously '
