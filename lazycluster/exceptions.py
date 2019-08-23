@@ -11,6 +11,7 @@ class LazyclusterError(Exception):
 
          Args:
              msg (str): The error message.
+             predecessor_excp (Optional[Exception]): Optionally, a predecessor exception can be passed on.
          """
         self.msg = msg
         self.predecessor_excp = predecessor_excp
@@ -21,6 +22,23 @@ class LazyclusterError(Exception):
         if self.predecessor_excp:
             return self.msg + ' Predecessor Exception: ' + str(self.predecessor_excp)
         return self.msg
+
+
+class TaskExecutionError(LazyclusterError):
+    """This error relates to exceptions occured during RuntimeTask execution"""
+
+    def __init__(self, task_step_index: int, task: 'RuntimeTask', predecessor_excp: Optional[Exception] = None):
+        """Initialization method.
+
+        Args:
+            task_step_index (int): The index of the task step, where an error occured.
+            task (RuntimeTask): The `RuntimeTask` during which execution the error occured.
+            predecessor_excp (Optional[Exception]): Optionally, a predecessor exception can be passed on.
+        """
+        super().__init__('An error occurred during the execution of RuntimeTask ' + task.name + ' in task step ' +
+                         str(task_step_index) + '.', predecessor_excp)
+        self.task_step_index = task_step_index
+        self.task = task
 
 
 class InvalidRuntimeError(LazyclusterError):
@@ -34,7 +52,7 @@ class InvalidRuntimeError(LazyclusterError):
         """
         self.host = host
 
-        super().__init__('No runtime could be instantiated for host :' + self.host)
+        super().__init__('No runtime could be instantiated for host: ' + self.host)
 
 
 class NoRuntimesDetectedError(LazyclusterError):

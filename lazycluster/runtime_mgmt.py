@@ -319,6 +319,7 @@ class RuntimeGroup(object):
 
         Raises:
             ValueError: If `host` is given and not contained as `Runtime` in the group.
+            TaskExecutionError: If an executed task step can't be executed successfully.
         """
         if broadcast:
             tasks = []

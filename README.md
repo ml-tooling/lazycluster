@@ -32,7 +32,7 @@ and convenient cluster setup with Python for various distributed machine learnin
 - **High-Level API for starting clusters:** 
     - [DASK](./docs/cluster.dask_cluster.md#daskcluster-class)
     - [PyTorch](#) *(WIP)* 
-    - *Further supported *lazyclusters* to come ...*
+    - *More *lazyclusters* (e.g. Tensorflow, Horovod, Spark) to come ...*
 - **Lower-level API for:**
     - Managing [Runtimes](./docs/runtimes.md#runtime-class) or [RuntimeGroups](./docs/runtime_mgmt.md#runtimegroup-class) to:
         - a-/synchronously execute [RuntimeTasks](./docs/runtimes.md#runtimetask-class) by leveraging the power of ssh
