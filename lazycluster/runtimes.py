@@ -308,7 +308,7 @@ class RuntimeTask(object):
                 try:
                     res = connection.run(task_step.command, pty=True)
                 except UnexpectedExit as prev_excp:
-                    raise TaskExecutionError(task_step_index, self, prev_excp)
+                    raise TaskExecutionError(task_step_index, self, connection.host, prev_excp)
 
                 stdout = res.stdout.replace('\n', '').replace('\r', '')
                 self._execution_log.append(stdout)
