@@ -1101,7 +1101,7 @@ class Runtime(object):
     def _read_info(self) -> dict:
         """Read the host machine information. """
         task = RuntimeTask('get-host-info')
-        task.run_command('pip install -q --upgrade ' + settings.PIP_PROJECT_NAME)
+        task.run_command(_utils.get_pip_install_cmd())
         task.run_function(_utils.print_localhost_info)
         self.execute_task(task, execute_async=False)
         return json.loads(task.execution_log[4])
