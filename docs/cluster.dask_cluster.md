@@ -77,7 +77,7 @@ List[int]: In case a port list was given the updated port list will be returned.
  - `MasterStartError`:  If master was not started after the specified `timeout`.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L67)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L68)</span>
 
 ## RoundRobinLauncher class
 
@@ -93,7 +93,7 @@ is reachable on the respective host.
   Dict[str, List[int]]: The ports per host as a dictionary.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L70)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L71)</span>
 
 ### RoundRobinLauncher.`__init__`
 
@@ -109,7 +109,7 @@ Initialization method.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L79)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L80)</span>
 
 ### RoundRobinLauncher.start
 
@@ -139,30 +139,34 @@ List[int]: The updated port list after starting the workers, i.e. the used ones 
  - `NoPortsLeftError`:  If there are not enough free ports for starting all workers.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L146)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L147)</span>
 
 ## DaskCluster class
 
 Convenient class for launching a Dask cluster in a `RuntimeGroup`. 
 
+The number of DASK workers defaults to the number of `Runtimes` in the used `RuntimeGroup`. This number can be
+adjusted so that more or less workers than available `Runtimes` can be used. Per default the desired number of
+workers is started in a round robin way as implemented in `RoundRobinLauncher`. Consequently, this leads to an
+equal distribution of DASK workers in the `RuntimeGroup`. You can provide a custom implementation inheriting from
+the `lazycluster.WorkerLauncher` class in order to execute a different strategy how workers should be started. The
+DASK master (i.e. scheduler) will always be started on localhost as implemented in `LocalMasterLauncher`. This
+behavior can also be changed by providing a custom implementation inheriting from the `lazycluster.MasterLauncher`.
+
 **Examples:**
 
-  Create a DASK cluster with all `Runtimes` detected by the `RuntimeManager`. Each `Runtime` will host one DASK
-  worker and the DASK master (i.e. scheduler) will be started on localhost as implemented in
-  `LocalMasterLauncher`.
-  ```python
+  Most simple way to launch a cluster based on a `RuntimeGroup` created by the `RuntimeManager`.
   >>> from lazycluster import RuntimeManager
   >>> cluster = DaskCluster(RuntimeManager().create_group())
   >>> cluster.start()
-  ```
+
   Use different strategies for launching the master and the worker instance by providing custom implementation of
   `MasterLauncher` and `WorkerLauncher`.
-  ```python
   >>> cluster = DaskCluster(RuntimeManager().create_group(),
   ...                       MyMasterLauncherImpl(),
   ...                       MyWorkerLauncherImpl)
   >>> cluster.start()
-  ```
+
 #### DaskCluster.master_port
  
 The port where the master instance was started. None, if not yet started.
@@ -172,7 +176,7 @@ The port where the master instance was started. None, if not yet started.
  - `int`:  The master port.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L168)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L175)</span>
 
 ### DaskCluster.`__init__`
 
@@ -209,7 +213,7 @@ ports (Optional[List[int]]: The list of ports which will be used to instantiate 
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L193)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L200)</span>
 
 ### DaskCluster.get_client
 
