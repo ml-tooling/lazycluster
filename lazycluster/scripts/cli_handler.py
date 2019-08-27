@@ -1,5 +1,6 @@
 import logging
 import sys
+import os
 
 import click
 
@@ -26,21 +27,27 @@ def add_runtime(name: str, connection_uri: str, id_file: Optional[str] = None, c
     storm.add(name, connection_uri, id_file, [], config)
 
 
-@cli.command('edit-runtime')
-@click.argument("name")
-@click.argument("connection_uri")
-@click.option("--id_file", "-id", required=False, type=click.STRING,
-              help="The private key file that should be used for authentication")
-@click.option("--config", "-c", required=False, type=click.STRING, help="The ssh config file")
-def edit_runtime(name: str, connection_uri: str, id_file: Optional[str] = None, config: Optional[str] = None):
-    storm.update(name, connection_uri, id_file, [], config)
-
-
 @cli.command('delete-runtime')
 @click.argument("name")
 @click.option("--config", "-c", required=False, type=click.STRING, help="The ssh config file")
 def delete_runtimes(name: str, config: Optional[str] = None):
+    # Delete the related ssh config
     storm.delete(name, config)
+
+    # Delete configured remote kernel if present
+    try:
+        import remote_ikernel
+
+        kernel_name = 'rik_ssh_' + name.replace('-', '_') + '_py36'
+
+        os.system('remote_ikernel manage --delete ' + kernel_name)
+
+        # The Identity file won't be removed. Maybe it is useful to provide an additional flag to enforce the removal
+        # can be retrieved from storm via single_ssh_entry['options']['identityfile']
+    except Exception:
+        pass
+
+    print('Runtime successfully deleted.')
 
 
 @cli.command('list-runtimes')
@@ -57,7 +64,6 @@ def list_runtime():
     # many prints to the console we enforce this before actually printing the desired output.json.loads
     for runtime in runtime_group.runtimes:
         runtime.info
-
 
     runtime_group.cleanup()
 
