@@ -149,7 +149,7 @@ class RuntimeGroup(object):
             print('The group is empty!')
             return
         else:
-            print('Runtimes contained in Group:')
+            print('\u001b[1mRuntimes contained in Group:\u001b[0m')
         for hostname in self.hosts:
             print(self.get_runtime(hostname).class_name + ': ' + hostname)
 
@@ -157,7 +157,6 @@ class RuntimeGroup(object):
         """Print information of contained `Runtimes`. """
         for runtime in self.runtimes:
             runtime.print_info()
-
 
     def add_runtime(self, host: Optional[str] = None, runtime: Optional[Runtime] = None):
         """Add a `Runtime` to the group either by host or as a `Runtime` object.

@@ -87,6 +87,7 @@ class RuntimeTask(object):
         if self._temp_dir:
             shutil.rmtree(self._temp_dir)
             print('Temporary directory ' + self._temp_dir + ' of RuntimeTask ' + self.name + ' on localhost removed.')
+            self._temp_dir = None
 
     @property
     def name(self) -> str:
@@ -876,7 +877,7 @@ class Runtime(object):
         """Print the Runtime info formatted as table."""
         info = self.info
         print('\n')
-        print('Information of `' + self.class_name + '` ' + self.host + ':')
+        print('\u001b[1mInformation of `' + self.class_name + '` ' + self.host + ':\u001b[0m')
         for key, value in info.items():
 
             if key == 'memory':
@@ -1013,6 +1014,9 @@ class Runtime(object):
             else:
                 print('Temporary directory ' + self.working_directory + ' of Runtime ' + self.host +
                       ' could not be removed.')
+
+        for task in self._tasks:
+            task.cleanup()
 
     # - Private methods -#
 

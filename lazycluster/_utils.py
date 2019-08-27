@@ -99,10 +99,10 @@ def localhost_has_free_port(port: int) -> bool:
 
 def get_pip_install_cmd() -> str:
 
-    if not settings.branch:
+    if not settings.BRANCH:
         return 'pip install -q --upgrade ' + settings.PIP_PROJECT_NAME
 
-    return 'pip install -q --upgrade ' + settings.GITHUB_URL + '@' + settings.branch
+    return 'pip install -q --upgrade git+' + settings.GITHUB_URL + '@' + settings.BRANCH
 
 
 """ Private module level utils """
