@@ -153,6 +153,12 @@ class RuntimeGroup(object):
         for hostname in self.hosts:
             print(self.get_runtime(hostname).class_name + ': ' + hostname)
 
+    def print_runtime_info(self):
+        """Print information of contained `Runtimes`. """
+        for runtime in self.runtimes:
+            runtime.print_info()
+
+
     def add_runtime(self, host: Optional[str] = None, runtime: Optional[Runtime] = None):
         """Add a `Runtime` to the group either by host or as a `Runtime` object.
         
@@ -598,3 +604,10 @@ class RuntimeManager(object):
             raise NoRuntimesDetectedError(e)
 
         return group
+
+    def print_runtime_info(self):
+        """Print information of detected `Runtimes`.
+
+        Note: This function is a wrapper for `RuntimeGroup.print_runtime_info()`.
+        """
+        self._group.print_runtime_info()
