@@ -9,12 +9,13 @@ import sys
 from shutil import rmtree
 
 from setuptools import find_packages, setup, Command
+import lazycluster.settings as settings
 
 # Package meta-data.
-NAME = 'lazycluster'
-MAIN_PACKAGE = 'lazycluster'  # Change if main package != NAME
+NAME = settings.PIP_PROJECT_NAME
+MAIN_PACKAGE = NAME  # Change if main package != NAME
 DESCRIPTION = 'Distributed machine learning made simple.'
-URL = 'https://github.com/ml-tooling/lazycluster.git'
+URL = settings.GITHUB_URL
 EMAIL = 'jan.kalkan@mailbox.org'
 AUTHOR = 'Jan Kalkan'
 REQUIRES_PYTHON = '>=3.6'
@@ -113,6 +114,10 @@ setup(
     # If your package is a single module, use this instead of 'packages':
     # py_modules=['mypackage'],
     install_requires=requirements,
+    entry_points='''
+        [console_scripts]
+        lazycluster=lazycluster.scripts.cli_handler:cli
+    ''',
     include_package_data=True,
     classifiers=[
         # TODO: update this list to match your application: https://pypi.python.org/pypi?%3Aaction=list_classifiers

@@ -5,6 +5,7 @@ import sys
 import platform
 import subprocess
 import socket
+import lazycluster.settings as settings
 
 
 def get_remaining_ports(ports: List[int], last_used_port: int) -> List[int]:
@@ -95,6 +96,13 @@ def localhost_has_free_port(port: int) -> bool:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     is_success = sock.connect_ex(('localhost', port))
     return True if is_success else False
+
+def get_pip_install_cmd() -> str:
+
+    if not settings.branch:
+        return 'pip install -q --upgrade ' + settings.PIP_PROJECT_NAME
+
+    return 'pip install -q --upgrade ' + settings.GITHUB_URL + '@' + settings.branch
 
 
 """ Private module level utils """
