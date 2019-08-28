@@ -93,7 +93,7 @@ valuable if it's shared publicly so that more people can benefit from it.
 
 ## Features
 
-### Manage Local SSH Configuration to Enable [Runtime](./docs/runtimes.md#runtime-class) Use
+### Use CLI to Manage Local SSH Configuration to Enable [Runtime](./docs/runtimes.md#runtime-class) Use
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
