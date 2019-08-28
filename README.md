@@ -35,21 +35,28 @@ and convenient cluster setup with Python for various distributed machine learnin
     - *More *lazyclusters* (e.g. Tensorflow, Horovod, Spark) to come ...*
 - **Lower-level API for:**
     - Managing [Runtimes](./docs/runtimes.md#runtime-class) or [RuntimeGroups](./docs/runtime_mgmt.md#runtimegroup-class) to:
-        - a-/synchronously execute [RuntimeTasks](./docs/runtimes.md#runtimetask-class) by leveraging the power of ssh
-        - expose services (e.g. a DB) from or to a [Runtime](./docs/runtimes.md#runtime-class) or in a whole [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class)
-
+        - A-/synchronously execute [RuntimeTasks](./docs/runtimes.md#runtimetask-class) by leveraging the power of ssh
+        - Expose services (e.g. a DB) from or to a [Runtime](./docs/runtimes.md#runtime-class) or in a whole [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class)
+- **CLI**
+    - List all available [Runtimes](./docs/runtimes.md#runtime-class)
+    - Add a [Runtime](./docs/runtimes.md#runtime-class) configuration
+    - Delete a [Runtime](./docs/runtimes.md#runtime-class) configuration
 ## Getting Started
 
 ### Installation
+```bash
+pip install lazycluster
+``` 
+```bash
+pip install git+https://github.com/ml-tooling/lazycluster.git@master
+``` 
 
-`pip install lazycluster` 
+### Prerequisites
+Passwordless ssh needs to be setup for the hosts to be used as [Runtimes](./docs/runtimes.md#runtime-class) for the most 
+convenient user experience. Otherwise, you need to pass the connection details to Runtime.\_\_init__ via connection_kwargs. 
+These parameters will be passed on to the [fabric.Connection](http://docs.fabfile.org/en/2.4/api/connection.html#connect-kwargs-arg).
 
 ### Usage Example
-
-*Prerequisite*: Passwordless ssh needs to be setup to the used hosts for the most convenient user experience. Otherwise,
-                you need to pass the connection details to Runtime.\_\_init__ via connection_kwargs. These parameters will
-                be passed on to the [fabric.Connection](http://docs.fabfile.org/en/2.4/api/connection.html#connect-kwargs-arg).
-
 ```python
 from lazycluster import RuntimeTask, Runtime
 
@@ -64,7 +71,7 @@ task = RuntimeTask('my-first_task').run_command('echo Hello World!') \
 # Actually execute it remotely in a `Runtime`                                   
 task = Runtime('host-1').execute_task(task, execute_async=False)
 
-# The stdout from from the executing `Runtime` can be accessed via the execution log of teh `RuntimeTask`
+# The stdout from from the executing `Runtime` can be accessed via the execution log of the `RuntimeTask`
 task.print_log()
 
 # Print the return of the `hello()` call
@@ -86,7 +93,36 @@ valuable if it's shared publicly so that more people can benefit from it.
 
 ## Features
 
+### Manage Local SSH Configuration to Enable [Runtime](./docs/runtimes.md#runtime-class) Use
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
+#### Add Host to SSH config 
+The host is named `localhost` for user `root` accessible on `localhost` port `22` using the private key file found under 
+~/.ssh/id_rsa.
+
+```bash
+lazycluster add-runtime localhost root@localhost:22 --id_file ~/.ssh/id_rsa
+```
+![Runtime Added](./docs/img/cli-runtime-added.png)
+#### List all available runtimes incl. additional information like cpu, memory, etc.
+```bash
+lazycluster list-runtimes
+```
+![List Runtimes](./docs/img/cli-list-runtimes.png)
+
+#### Delete the ssh config for 
+*Note:* Corresponding remote ikernel will be deleted too if present.
+```bash
+lazycluster delete-runtime localhost
+```
+![Runtime Deleted](./docs/img/cli-runtime-deleted.png)
+</details>
+
 ### Create [Runtimes](./docs/runtimes.md#runtime-class) & [RuntimeGroups](./docs/runtime_mgmt.md#runtimegroup-class)
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
 ```python
 from lazycluster import Runtime, RuntimeGroup
 
@@ -96,15 +132,23 @@ rt_2 = Runtime('host-1', working_dir='/workspace')
 runtime_group = RuntimeGroup([rt_1, rt_2])
 runtime_group = RuntimeGroup(hosts=['host-1', 'host-2'])
 ```
+</details>
 
 ### Use [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) to Create a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) Based on the Local ssh Config
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
 ```python
 from lazycluster import RuntimeManager, RuntimeGroup
 
 runtime_group = RuntimeManager().create_group()
 ```
+</details>
 
 ### Expose a service from or to a [Runtime](./docs/runtimes.md#runtime-class)
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
 ```python
 from lazycluster import Runtime
 
@@ -116,10 +160,13 @@ runtime.expose_port_from_runtime(50000)
 
 # Make the local port 40000 accessible on the Runtime
 runtime.expose_port_to_runtime(40000)
-
 ```
+</details>
 
 ### Expose a Service to a Whole [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) or From One Contained [Runtime](./docs/runtimes.md#runtime-class) in the [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class)
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
 ```python
 from lazycluster import RuntimeGroup
 
@@ -133,10 +180,14 @@ runtime_group.expose_port_to_runtimes(50000)
 # Make the port 40000 which is running on host-1 accessible on all other Runtimes in the RuntimeGroup
 runtime_group.expose_port_from_runtime_to_group('host-1', 40000)
 ```
+</details>
 
 ### Simple Preprocessing Example
 Read a local CSV and upper case chunks in parallel using [RuntimeTasks](./docs/runtimes.md#runtimetask-class)
 and a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class).
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
 ```python
 from typing import List
 import pandas as pd
@@ -169,12 +220,15 @@ for chunk in runtime_group.function_returns:
     index += 1
     print(chunk)
 ```
-
+</details>
 
 ### Easily Launch a [Dask Cluster](./docs/cluster.dask_cluster.md#daskcluster-class)
 The [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) can automatically detect all available 
 [Runtimes](./docs/runtimes.md#runtime-class) based on your local ssh config and eventually create a necessary 
 [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) for you.
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
 ```python
 from lazycluster import RuntimeManager
 from lazycluster.cluster.dask_cluster import DaskCluster
@@ -202,7 +256,7 @@ res = total.result()
 
 print('Result: ' + str(res))
 ```
-
+</details>
 
 ## Contribution
 
