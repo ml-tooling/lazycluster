@@ -9,13 +9,12 @@ import sys
 from shutil import rmtree
 
 from setuptools import find_packages, setup, Command
-import lazycluster.settings as settings
 
 # Package meta-data.
-NAME = settings.PIP_PROJECT_NAME
+NAME = 'lazycluster'
 MAIN_PACKAGE = NAME  # Change if main package != NAME
 DESCRIPTION = 'Distributed machine learning made simple.'
-URL = settings.GITHUB_URL
+URL = 'https://github.com/ml-tooling/lazycluster.git'
 EMAIL = 'jan.kalkan@mailbox.org'
 AUTHOR = 'Jan Kalkan'
 REQUIRES_PYTHON = '>=3.6'
