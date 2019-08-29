@@ -301,4 +301,4 @@ class MasterWorkerCluster(RuntimeCluster):
         print('Shutting down cluster...')
         self._group.cleanup()
         self._master_launcher.process.terminate()
-        print('Custer shutted down ...')
+        print('Cluster shutted down ...')
