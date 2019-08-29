@@ -367,7 +367,7 @@ class RuntimeTask(object):
     def print_log(self):
         """Print the execution log. Each log entry will be printed separately. The log index will be prepended."""
         if not self.execution_log:
-            print('The log of task ' + self.name + 'is empty!')
+            print('The log of task ' + self.name + ' is empty!')
         else:
             print('Log of Task ' + self.name + ':')
         i = 0
