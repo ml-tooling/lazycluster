@@ -16,8 +16,6 @@ import shutil
 import cloudpickle as pickle
 import atexit
 
-import lazycluster.settings as settings
-
 from lazycluster import InvalidRuntimeError, NoPortsLeftError, PortInUseError, TaskExecutionError
 import lazycluster._utils as _utils
 
