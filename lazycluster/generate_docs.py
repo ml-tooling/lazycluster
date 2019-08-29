@@ -124,6 +124,9 @@ def to_md_file(string, filename, out_path="."):
         f.write(string)
     print("wrote {}.".format(md_file))
 
+def modules2mdfiles():
+    # TODO
+    pass
 
 def code_snippet(snippet):
     result = '```python\n'
@@ -239,6 +242,8 @@ class MarkdownAPIGenerator(object):
         doc = self.doc2md(func)
 
         funcdef = get_function_signature(func)
+        # -> is rendered with a red background in github readme
+        funcdef = funcdef.replace("->", "→")
         funcdef = funcdef.replace("=", " = ")
         funcdef = funcdef.replace(":", ": ")
 

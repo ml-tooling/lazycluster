@@ -33,7 +33,7 @@ The process object where the master instance was started in.
 ### LocalMasterLauncher.`__init__`
 
 ```python
-__init__(self, runtime_group:  lazycluster.runtime_mgmt.RuntimeGroup)
+__init__(self, runtime_group: lazycluster.runtime_mgmt.RuntimeGroup)
 ```
 
 Constructor method.
@@ -51,10 +51,10 @@ Constructor method.
 ```python
 start(
     self,
-    ports:  Union[List[int],
+    ports: Union[List[int],
     int],
-    timeout:  int  =  3
-) -> List[int]
+    timeout: int = 3
+) → List[int]
 ```
 
 Launch a master instance.
@@ -98,7 +98,7 @@ is reachable on the respective host.
 ### RoundRobinLauncher.`__init__`
 
 ```python
-__init__(self, runtime_group:  lazycluster.runtime_mgmt.RuntimeGroup)
+__init__(self, runtime_group: lazycluster.runtime_mgmt.RuntimeGroup)
 ```
 
 Initialization method.
@@ -116,10 +116,10 @@ Initialization method.
 ```python
 start(
     self,
-    worker_count:  int,
-    master_port:  int,
-    ports:  List[int]
-) -> List[int]
+    worker_count: int,
+    master_port: int,
+    ports: List[int]
+) → List[int]
 ```
 
 Launches the worker instances in the `RuntimeGroup`.
@@ -183,13 +183,13 @@ The port where the master instance was started. None, if not yet started.
 ```python
 __init__(
     self,
-    runtime_group:  lazycluster.runtime_mgmt.RuntimeGroup,
-    ports:  Union[List[int],
-    NoneType]  =  None,
-    master_launcher:  Union[lazycluster.cluster.runtime_cluster.MasterLauncher,
-    NoneType]  =  None,
-    worker_launcher:  Union[lazycluster.cluster.runtime_cluster.WorkerLauncher,
-    NoneType]  =  None
+    runtime_group: lazycluster.runtime_mgmt.RuntimeGroup,
+    ports: Union[List[int],
+    NoneType] = None,
+    master_launcher: Union[lazycluster.cluster.runtime_cluster.MasterLauncher,
+    NoneType] = None,
+    worker_launcher: Union[lazycluster.cluster.runtime_cluster.WorkerLauncher,
+    NoneType] = None
 )
 ```
 
@@ -218,7 +218,7 @@ ports (Optional[List[int]]: The list of ports which will be used to instantiate 
 ### DaskCluster.get_client
 
 ```python
-get_client(self, timeout:  int  =  2) -> distributed.client.Client
+get_client(self, timeout: int = 2) → distributed.client.Client
 ```
 
 Get a connected Dask client. 
