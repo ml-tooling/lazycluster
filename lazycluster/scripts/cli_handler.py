@@ -7,6 +7,8 @@ import click
 from typing import Optional
 import storm.__main__ as storm
 
+from lazycluster import RuntimeManager, NoRuntimesDetectedError
+
 log = logging.getLogger(__name__)
 
 
@@ -53,8 +55,6 @@ def delete_runtimes(name: str, config: Optional[str] = None):
 @cli.command('list-runtimes')
 def list_runtime():
 
-    from lazycluster import RuntimeManager, NoRuntimesDetectedError
-
     try:
         runtime_group = RuntimeManager().create_group()
     except NoRuntimesDetectedError:
@@ -74,6 +74,15 @@ def list_runtime():
     runtime_group.print_runtime_info()
 
     print('\n')
+
+
+@cli.command('start-dask')
+def start_dask_cluster():
+    from lazycluster.cluster import DaskCluster
+    cluster = DaskCluster(RuntimeManager().create_group())
+    cluster.start()
+    while True:
+        pass
 
 
 if __name__ == '__main__':
