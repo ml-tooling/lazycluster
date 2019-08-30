@@ -87,6 +87,7 @@ print(next(generator))
 ---
 
 <br>
+
 ## Support
 
 The **lazycluster** project is maintained by [Jan Kalkan](https://www.linkedin.com/in/jan-kalkan-b5390284/). Please 
