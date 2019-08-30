@@ -56,7 +56,7 @@ if args.version:
     update_version_file(str(args.version))
 
 # Install develop version of packages
-call("pip uninstall .")
+call("pip uninstall -y lazycluster")
 call("pip install --ignore-installed --no-cache -U -e .")
 
 # Update documentation
