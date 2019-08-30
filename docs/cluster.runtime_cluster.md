@@ -38,7 +38,7 @@ Constructor method.
 
 **Args:**
 
- - `runtime_group` (RuntimeGroup):  The group where the workers will be started.
+ - `runtime_group`:  The group where the workers will be started.
 
 
 -------------------
@@ -52,17 +52,16 @@ start(
     ports:  Union[List[int],
     int],
     timeout:  int  =  3
-) -> List[int]
+) → List[int]
 ```
 
 Launch a master instance.
 
 **Args:**
 
- - `ports` (Union[List[int], int]):  Port where the master should be started. If a list is given then the
-  first port that is free in the `RuntimeGroup` will be used. The actual
-  chosen port can requested via the property `port`.
- - `timeout` (int):  Timeout (s) after which an MasterStartError is raised if master instance not started yet.
+ - `ports`:  Port where the master should be started. If a list is given then the first port that is free in the
+  `RuntimeGroup` will be used. The actual chosen port can requested via the property `port`.
+ - `timeout`:  Timeout (s) after which an MasterStartError is raised if master instance not started yet.
 
 **Returns:**
 
@@ -75,7 +74,7 @@ List[int]: In case a port list was given the updated port list will be returned.
  - `MasterStartError`:  If master was not started after the specified `timeout`.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L69)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L68)</span>
 
 ## WorkerLauncher class
 
@@ -98,7 +97,7 @@ is reachable on the respective host.
   Dict[str, List[int]]: The ports per host as a dictionary.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L80)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L79)</span>
 
 ### WorkerLauncher.`__init__`
 
@@ -110,11 +109,11 @@ Initialization method.
 
 **Args:**
 
- - `runtime_group` (RuntimeGroup):  The group where the workers will be started in.
+ - `runtime_group`:  The group where the workers will be started in.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L124)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L123)</span>
 
 ### WorkerLauncher.setup_worker_ssh_tunnels
 
@@ -125,10 +124,18 @@ setup_worker_ssh_tunnels(self)
 Set up ssh tunnel for workers such that all communication is routed over the
 local machine and all entities can talk to each other on localhost.
 
-**Note: This method needs to be called if the communication between the worker instances is necessary, e.g. in case of 
-DASK or Apache Flink, where data needs to be shuffled between the different entities.
+**Note:**
+
+  This method needs to be called if the communication between the worker instances is necessary, e.g. in case of
+  DASK or Apache Flink, where data needs to be shuffled between the different entities.
+
+**Raises:**
+
+ - `ValueError`:  If host is not contained.
+ - `PortInUseError`:  If `group_port` is occupied on the local machine.
+ - `NoPortsLeftError`:  If `group_ports` was given and none of the ports was free.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L102)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L101)</span>
 
 ### WorkerLauncher.start
 
@@ -138,17 +145,17 @@ start(
     worker_count:  int,
     master_port:  int,
     ports:  List[int]
-) -> List[int]
+) → List[int]
 ```
 
 Launches the worker instances in the `RuntimeGroup`.
 
 **Args:**
 
- - `worker_count` (int):  The number of worker instances to be started in the group.
- - `master_port` (int):   The port of the master instance.
- - `ports` (List[int]):  The ports to be used for starting the workers. Only ports from the list will be chosen
-  that are actually free.
+ - `worker_count`:  The number of worker instances to be started in the group.
+ - `master_port`:   The port of the master instance.
+ - `ports`:  The ports to be used for starting the workers. Only ports from the list will be chosen that are
+  actually free.
 **Returns:**
 
 List[int]: The updated port list after starting the workers, i.e. the used ones were removed.
@@ -158,7 +165,7 @@ List[int]: The updated port list after starting the workers, i.e. the used ones 
  - `NoPortsLeftError`:  If there are not enough free ports for starting all workers.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L136)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L141)</span>
 
 ## RuntimeCluster class
 
@@ -172,7 +179,7 @@ All further cluster implementations should inherit from this class either direct
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L148)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L153)</span>
 
 ## MasterWorkerCluster class
 
@@ -184,20 +191,20 @@ class as an abstract class or an interface.
 **Examples:**
 
   Create a cluster with all `Runtimes` detected by the `RuntimeManager`.
-  ```python
-  >>> from lazycluster import RuntimeManager
-  >>> cluster = MyMasterWorkerClusterImpl(RuntimeManager().create_group())
-  >>> cluster.start()
-  ```  
-
+  ´´´python
+  from lazycluster import RuntimeManager
+  cluster = MyMasterWorkerClusterImpl(RuntimeManager().create_group())
+  cluster.start()
+  ´´´
   Use different strategies for launching the master and the worker instance as the default ones by providing
   custom implementation of `MasterLauncher` and `WorkerLauncher`.
-  ```python
-  >>> cluster = MyMasterWorkerClusterImpl(RuntimeManager().create_group(),
-  ...                                     MyMasterLauncherImpl(),
-  ...                                     MyWorkerLauncherImpl)
-  >>> cluster.start()
+  ´´´python
+  cluster = MyMasterWorkerClusterImpl(RuntimeManager().create_group(),
+  MyMasterLauncherImpl(),
+  MyWorkerLauncherImpl)
+  cluster.start()
   ```
+
 #### MasterWorkerCluster.master_port
  
 The port where the master instance was started. None, if not yet started.
@@ -207,7 +214,7 @@ The port where the master instance was started. None, if not yet started.
  - `int`:  The master port.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L172)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L180)</span>
 
 ### MasterWorkerCluster.`__init__`
 
@@ -228,23 +235,21 @@ Initialization method.
 
 **Args:**
 
- - `runtime_group` (RuntimeGroup):  The `RuntimeGroup` contains all `Runtimes` which can be used for starting the
-  cluster entities.
-ports (Optional[List[int]]: The list of ports which will be used to instantiate a cluster. Defaults to
+ - `runtime_group`:  The `RuntimeGroup` contains all `Runtimes` which can be used for starting the cluster
+  entities.
+ - `ports`:  The list of ports which will be used to instantiate a cluster. Defaults to
   list(range(self.DEFAULT_PORT_RANGE_START,
   self.DEFAULT_PORT_RANGE_END).)
- - `master_launcher` (Optional[MasterLauncher]):  Optionally, an instance implementing the `MasterLauncher`
-  interface can be given, which implements the strategy for
-  launching the master instances in the cluster. If None, then the
-  default of the concrete cluster implementation will be chosen.
- - `worker_launcher` (Optional[WorkerLauncher]):  Optionally, an instance implementing the `WorkerLauncher`
-  interface can be given, which implements the strategy for
-  launching the worker instances. If None, then the default of the
-  concrete cluster implementation will be chosen.
+ - `master_launcher`:  Optionally, an instance implementing the `MasterLauncher` interface can be given, which
+  implements the strategy for launching the master instances in the cluster. If None, then
+  the default of the concrete cluster implementation will be chosen.
+ - `worker_launcher`:  Optionally, an instance implementing the `WorkerLauncher` interface can be given, which
+  implements the strategy for launching the worker instances. If None, then the default of
+  the concrete cluster implementation will be chosen.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L298)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L304)</span>
 
 ### MasterWorkerCluster.cleanup
 
@@ -252,9 +257,10 @@ ports (Optional[List[int]]: The list of ports which will be used to instantiate 
 cleanup(self)
 ```
 
-Release all resources. 
+Release all resources.
+  
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L212)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L218)</span>
 
 ### MasterWorkerCluster.start
 
@@ -274,12 +280,12 @@ Internally, `self.start_master()` and `self.start_workers()` will be called.
 
 **Args:**
 
- - `master_port` (int):  Port of the cluster master. Will be passed on to `self.start()`, hence see
-  respective method for further details.
- - `worker_count` (int, Optional):  The number of worker instances to be started in the cluster. Will be passed on
-  to `self.start()`, hence see respective method for further details.
+ - `master_port`:  Port of the cluster master. Will be passed on to `self.start()`, hence see respective method
+  for further details.
+ - `worker_count`:  The number of worker instances to be started in the cluster. Will be passed on to
+  `self.start()`, hence see respective method for further details.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L229)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L235)</span>
 
 ### MasterWorkerCluster.start_master
 
@@ -302,10 +308,10 @@ Start the master instance.
 
 **Args:**
 
- - `master_port` (int):  Port of the master instance. Defaults to self.DEFAULT_MASTER_PORT, but another one is
-  chosen if the port is not free within the group. The actual chosen port can be requested
-  via self.master_port.
- - `timeout` (int):  Timeout (s) after which an MasterStartError is raised if master instance not started yet.
+ - `master_port`:  Port of the master instance. Defaults to self.DEFAULT_MASTER_PORT, but another one is chosen if
+  the port is not free within the group. The actual chosen port can be requested via
+  self.master_port.
+ - `timeout`:  Timeout (s) after which an MasterStartError is raised if master instance not started yet.
 
 **Raises:**
 
@@ -313,7 +319,7 @@ Start the master instance.
  - `NoPortsLeftError`:  If there are no free ports left in the port list for instantiating the master.
  - `MasterStartError`:  If master was not started after the specified `timeout`.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L272)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L278)</span>
 
 ### MasterWorkerCluster.start_workers
 
@@ -331,8 +337,8 @@ Start the worker instances.
 
 **Args:**
 
- - `count` (int):  The number of worker instances to be started in the cluster. Defaults to the number of runtimes
-  in the cluster.
+ - `count`:  The number of worker instances to be started in the cluster. Defaults to the number of runtimes in
+  the cluster.
 **Raises:**
 
   - `NoPortsLeftError`:  If there are no free ports left in the port list for instantiating new Dask entities.
