@@ -1,4 +1,5 @@
-"""Module for conveniently managing a DASK cluster. http://distributed.dask.org """
+"""Module for conveniently managing a DASK cluster. http://distributed.dask.org
+"""
 
 from distributed import Client
 import time
@@ -23,10 +24,9 @@ class LocalMasterLauncher(MasterLauncher):
         """Launch a master instance.
 
         Args:
-            ports (Union[List[int], int]): Port where the master should be started. If a list is given then the
-                                                 first port that is free in the `RuntimeGroup` will be used. The actual
-                                                 chosen port can requested via the property `port`.
-            timeout (int): Timeout (s) after which an MasterStartError is raised if master instance not started yet.
+            ports: Port where the master should be started. If a list is given then the first port that is free in the
+                   `RuntimeGroup` will be used. The actual chosen port can requested via the property `port`.
+            timeout: Timeout (s) after which an MasterStartError is raised if master instance not started yet.
 
         Returns:
             List[int]: In case a port list was given the updated port list will be returned. Otherwise an empty list.
@@ -66,13 +66,14 @@ class LocalMasterLauncher(MasterLauncher):
 
 
 class RoundRobinLauncher(WorkerLauncher):
-    """WorkerLauncher implementation for launching DASK workers in a round robin manner. """
+    """WorkerLauncher implementation for launching DASK workers in a round robin manner.
+    """
 
     def __init__(self, runtime_group: RuntimeGroup):
         """Initialization method.
 
         Args:
-            runtime_group (RuntimeGroup): The group where the workers will be started.
+            runtime_group: The group where the workers will be started.
         """
         super().__init__(runtime_group)
         self._ports = None
@@ -81,9 +82,9 @@ class RoundRobinLauncher(WorkerLauncher):
         """Launches the worker instances in the `RuntimeGroup`.
 
         Args:
-            worker_count (int): The number of worker instances to be started in the group.
-            master_port (int):  The port of the master instance.
-            ports (List[int]): The ports to be used for starting the workers. Only ports from the list will be chosen
+            worker_count: The number of worker instances to be started in the group.
+            master_port:  The port of the master instance.
+            ports: The ports to be used for starting the workers. Only ports from the list will be chosen
                                that are actually free.
         Returns:
             List[int]: The updated port list after starting the workers, i.e. the used ones were removed.
@@ -151,22 +152,9 @@ class DaskCluster(MasterWorkerCluster):
     adjusted so that more or less workers than available `Runtimes` can be used. Per default the desired number of
     workers is started in a round robin way as implemented in `RoundRobinLauncher`. Consequently, this leads to an
     equal distribution of DASK workers in the `RuntimeGroup`. You can provide a custom implementation inheriting from
-    the `lazycluster.WorkerLauncher` class in order to execute a different strategy how workers should be started. The
+    the `WorkerLauncher` class in order to execute a different strategy how workers should be started. The
     DASK master (i.e. scheduler) will always be started on localhost as implemented in `LocalMasterLauncher`. This
-    behavior can also be changed by providing a custom implementation inheriting from the `lazycluster.MasterLauncher`.
-
-    Examples:
-        Most simple way to launch a cluster based on a `RuntimeGroup` created by the `RuntimeManager`.
-        >>> from lazycluster import RuntimeManager
-        >>> cluster = DaskCluster(RuntimeManager().create_group())
-        >>> cluster.start()
-
-        Use different strategies for launching the master and the worker instance by providing custom implementation of
-        `MasterLauncher` and `WorkerLauncher`.
-        >>> cluster = DaskCluster(RuntimeManager().create_group(),
-        ...                       MyMasterLauncherImpl(),
-        ...                       MyWorkerLauncherImpl)
-        >>> cluster.start()
+    behavior can also be changed by providing a custom implementation inheriting from the `MasterLauncher`.
     """
 
     DEFAULT_MASTER_PORT = 8786
@@ -178,19 +166,16 @@ class DaskCluster(MasterWorkerCluster):
         """Initialization method.
 
         Args:
-            runtime_group (RuntimeGroup): The `RuntimeGroup` contains all `Runtimes` which can be used for starting the
-                                          DASK entities.
-            ports (Optional[List[int]]: The list of ports which will be used to instantiate a cluster. Defaults to
+            runtime_group: The `RuntimeGroup` contains all `Runtimes` which can be used for starting the DASK entities.
+            ports: The list of ports which will be used to instantiate a cluster. Defaults to
                                         list(range(self.DEFAULT_PORT_RANGE_START,
                                                    self.DEFAULT_PORT_RANGE_END)).
-            master_launcher (Optional[MasterLauncher]): Optionally, an instance implementing the `MasterLauncher`
-                                                        interface can be given, which implements the strategy for
-                                                        launching the master instances in the cluster. If None, then
-                                                        `LocalMasterLauncher` is used.
-            worker_launcher (Optional[WorkerLauncher]): Optionally, an instance implementing the `WorkerLauncher`
-                                                        interface can be given, which implements the strategy for
-                                                        launching the worker instances. If None, then
-                                                        `RoundRobinLauncher` is used.
+            master_launcher: Optionally, an instance implementing the `MasterLauncher` interface can be given, which
+                             implements the strategy for launching the master instances in the cluster. If None, then
+                             `LocalMasterLauncher` is used.
+            worker_launcher: Optionally, an instance implementing the `WorkerLauncher` interface can be given, which
+                             implements the strategy for launching the worker instances. If None, then
+                             `RoundRobinLauncher` is used.
         """
         super().__init__(runtime_group, ports)
 
@@ -201,7 +186,7 @@ class DaskCluster(MasterWorkerCluster):
         """Get a connected Dask client. 
         
         Args:
-            timeout (int): The timeout (s) value passed on to the Dask `Client` constructor. Defaults to 2.
+            timeout: The timeout (s) value passed on to the Dask `Client` constructor. Defaults to 2.
 
         Raises:
             TimeoutError: If client connection `timeout` expires.
