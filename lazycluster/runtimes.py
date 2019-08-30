@@ -37,28 +37,30 @@ class RuntimeTask(object):
     details.
 
     Examples:
-        >>> # 1. Define a function that should be executed remotely via a RuntimeTask
-        >>> def print():
-        ...     print('Hello World!')
+        ```python
+        # 1. Define a function that should be executed remotely via a RuntimeTask
+        def print():
+            print('Hello World!')
 
-        >>> # 2. Create & compose the RuntimeTask by using the elementary operations
-        >>> my_task = RuntimeTask('my-task').run_command('echo Hello World!').run_function(print)
+        # 2. Create & compose the RuntimeTask by using the elementary operations
+        my_task = RuntimeTask('my-task').run_command('echo Hello World!').run_function(print)
 
-        >>> # 3. Execute the RuntimeTask standalone w/o Runtime by handing over a fabric ssh connection
-        >>> from fabric import Connection
-        >>> task = my_task.execute(Connection('host'))
+        # 3. Execute the RuntimeTask standalone w/o Runtime by handing over a fabric ssh connection
+        from fabric import Connection
+        task = my_task.execute(Connection('host'))
 
-        >>> # 4. Check the logs of the RuntimeTask execution
-        >>> task.print_log()
-        >>> log = task.execution_log
+        # 4. Check the logs of the RuntimeTask execution
+        task.print_log()
+        log = task.execution_log
+        ```
     """
 
     def __init__(self, name: Optional[str] = None):
         """Initialization method.
         
         Args:
-            name (Optional[str]): The name of the task. Defaults to None and consequently a unique identifier is
-                                  generated via Python's id() function.
+            name: The name of the task. Defaults to None and consequently a unique identifier is generated via Python's
+                  id() function.
         """
 
         # Create the Logger
@@ -145,9 +147,9 @@ class RuntimeTask(object):
         """Create a task step for sending either a single file or a folder from localhost to another host.
         
         Args:
-            local_path (str): Path to file on local machine.
-            remote_path (Optional[str]): Path on the remote host. Defaults to the connection working directory.
-                                         See `RuntimeTask.execute()` docs for further details.
+            local_path: Path to file on local machine.
+            remote_path: Path on the remote host. Defaults to the connection working directory. See
+                         `RuntimeTask.execute()` docs for further details.
         
         Raises:
             ValueError: If file locally not found.
@@ -166,11 +168,10 @@ class RuntimeTask(object):
         """Create a task step for getting either a single file or a folder from another host to localhost.
 
         Args:
-            remote_path (str): Path to file on host.
-            local_path (Optional[str]): Path to file on local machine. The remote file is downloaded 
-                                        to the current working directory (as seen by os.getcwd) using 
-                                        its remote filename if local_path is None. This is the default
-                                        behavior of fabric.
+            remote_path: Path to file on host.
+            local_path: Path to file on local machine. The remote file is downloaded  to the current working directory
+                        (as seen by os.getcwd) using its remote filename if local_path is None. This is the default
+                        behavior of fabric.
         Raises:
             ValueError: If remote path is emtpy.
         """
@@ -186,7 +187,7 @@ class RuntimeTask(object):
         """Create a task step for running a given shell command. 
 
         Args:
-            command (str): Shell command.
+            command: Shell command.
 
         Raises:
             ValueError: If command is emtpy.
@@ -206,7 +207,7 @@ class RuntimeTask(object):
             correct versions on the remote host for now. We are planning to improve the dependency handling.
 
         Args:
-            function (callable): The function to be executed remotely.
+            function: The function to be executed remotely.
             **func_kwargs: kwargs which will be passed to the function.
         
         Raises:
@@ -290,10 +291,9 @@ class RuntimeTask(object):
               task.`execution.log`. The log gets updated after each task step.
         
         Args:
-            connection (fabric.Connection): Fabric connection object managing the ssh connection to the remote host.
-            debug (bool): If `True`, stdout/stderr from the remote host will be printed to stdout of localhost. If,
-                          `False` then the stdout/stderr will be added to python logger with level debug after each
-                          task step.
+            connection: Fabric connection object managing the ssh connection to the remote host.
+            debug : If `True`, stdout/stderr from the remote host will be printed to stdout of localhost. If, `False`
+                    then the stdout/stderr will be added to python logger with level debug after each task step.
         Raises:
             ValueError: If cxn is broken and connection can not be established.
             TaskExecutionError: If an executed task step can't be executed successfully.
@@ -425,17 +425,19 @@ class Runtime(object):
     """Runtime for executing `RuntimeTasks` in it or exposing ports from / to localhost.
     
     Note: Passwordless ssh access should be be setup in advance. Otherwise the connection kwargs of fabric must be used
-          for setting up the ssh connection.
+          for setting up the ssh connection. See prerequisites in project README.
 
     Examples:
-        Execute a RuntimeTask synchronously
-        >>> Runtime('host-1').execute_task(my_task, execute_async=False)
-        Expose a port from localhost to the remote host so that a service running on localhost
-        is accessible from the remote host as well.
-        >>> Runtime('host-1').expose_port_to_runtime(8786)
-        Expose a port from a remote `Runtime` to to localhost so that a service running on the `Runtime`
-        is accessible from localhost as well.
-        >>> Runtime('host-1').expose_port_from_runtime(8787)
+        ```python
+        # Execute a RuntimeTask synchronously
+        Runtime('host-1').execute_task(my_task, execute_async=False)
+        # Expose a port from localhost to the remote host so that a service running on localhost
+        # is accessible from the remote host as well.
+        Runtime('host-1').expose_port_to_runtime(8786)
+        # Expose a port from a remote `Runtime` to to localhost so that a service running on the `Runtime`
+        # is accessible from localhost as well.
+        Runtime('host-1').expose_port_from_runtime(8787)
+        ```
     """
 
     LOCALHOST = 'localhost'
@@ -450,8 +452,8 @@ class Runtime(object):
         """Initialization method.
 
         Args:
-            host (str): The host of the `Runtime`.
-            working_dir (Optional[str]): The directory which shall act as workind directory. All individual Steps of a
+            host: The host of the `Runtime`.
+            working_dir: The directory which shall act as workind directory. All individual Steps of a
                                          `RuntimeTask` will be executed relatively to this directory. Defaults to None.
                                          Consequently, a temporary directory will be created and used as working dir.
                                          If the working directory is a temporary one it will be cleaned up either
@@ -683,7 +685,7 @@ class Runtime(object):
         """Returns the first port from the list which is currently not in use in the `Runtime`.
 
         Args:
-             ports List[int]: The list of ports that will be used to check if the port is currently in use.
+             ports: The list of ports that will be used to check if the port is currently in use.
 
         Returns:
             int: The first port from the list which is not yet used within the whole group.
@@ -701,11 +703,10 @@ class Runtime(object):
         """Execute a given `RuntimeTask` in the `Runtime`.
 
         Args:
-            task (RuntimeTask): The task to be executed.
-            execute_async (bool, Optional): The execution will be done in a separate thread if True. Defaults to True.
-            debug (bool): If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If,
-                          `False` then the stdout/stderr will be added to python logger with level debug after each
-                          task step.
+            task: The task to be executed.
+            execute_async: The execution will be done in a separate thread if True. Defaults to True.
+            debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
+                   the stdout/stderr will be added to python logger with level debug after each task step.
 
         Raises:
             TaskExecutionError: If an executed task step can't be executed successfully.
@@ -755,8 +756,8 @@ class Runtime(object):
         `local_port` on localhost.
         
         Args:
-            local_port (int): The port on the local machine.
-            runtime_port (Optional[int]): The port on the runtime. Defaults to `local_port`.
+            local_port: The port on the local machine.
+            runtime_port: The port on the runtime. Defaults to `local_port`.
 
         Returns:
             str: Process key, which can be used for manually stopping the process running the port exposure for example.
@@ -790,8 +791,8 @@ class Runtime(object):
         `runtime_port` of the `Runtime`. This corresponds to local port forwarding in ssh tunneling terms.
         
         Args:            
-            runtime_port (int): The port on the runtime.
-            local_port (Optional[int]): The port on the local machine. Defaults to `runtime_port`.
+            runtime_port: The port on the runtime.
+            local_port: The port on the local machine. Defaults to `runtime_port`.
 
         Returns:
             str: Process key, which can be used for manually stopping the process running the port exposure.
@@ -825,7 +826,7 @@ class Runtime(object):
         """Get an individual process by process key.
         
         Args:
-            key (str): The key identifying the process.
+            key: The key identifying the process.
             
         Returns:
             Process: The desired process.
@@ -842,7 +843,7 @@ class Runtime(object):
         individual process can be retrieved by key via `get_process()`.
         
         Args:
-            only_alive (bool): True, if only alive processes shall be returned instead of all. Defaults to False.
+            only_alive: True, if only alive processes shall be returned instead of all. Defaults to False.
             
         Returns:
             Dict[str, Process]: Dictionary with process keys as dict keys and the respective processes as dict values.
@@ -863,7 +864,7 @@ class Runtime(object):
         """Stop a process by its key. 
 
         Args: 
-            key (str): The key identifying the process.
+            key: The key identifying the process.
         
         Raises:
             ValueError: Unknown process key.
@@ -876,7 +877,7 @@ class Runtime(object):
         """Checks if the port is available on the runtime. 
         
         Args:
-            port (int): The port which will be checked.
+            port: The port which will be checked.
 
         Returns:
             bool: True if port is free, else False.
@@ -915,27 +916,27 @@ class Runtime(object):
         """Checks the `Runtime` object for certain filter criteria.
 
         Args:
-            gpu_required (bool): True, if gpu availability is required. Defaults to False.
-            min_memory (Optional[int]): The minimal amount of memory in MB. Defaults to None, i.e. not restricted.
-            min_cpu_cores (Optional[int]): The minimum number of cpu cores required. Defaults to None, i.e. not
-                                           restricted.
-            installed_executables (Union[str, List[str], None]): Possibility to check if an executable is
-                                                                installed. E.g. if the executable `ping` is installed.
-            filter_commands (Union[str, List[str], None]): Shell commands that can be used for generic filtering.
-                                                           See examples. A filter command must echo true to be evaluated
-                                                           to True, everything else will be interpreted as False.
-                                                           Defaults to None.
+            gpu_required: True, if gpu availability is required. Defaults to False.
+            min_memory: The minimal amount of memory in MB. Defaults to None, i.e. not restricted.
+            min_cpu_cores: The minimum number of cpu cores required. Defaults to None, i.e. not restricted.
+            installed_executables: Possibility to check if an executable is installed. E.g. if the executable `ping` is
+                                   installed.
+            filter_commands: Shell commands that can be used for generic filtering. See examples. A filter command must
+                             echo true to be evaluated to True, everything else will be interpreted as False. Defaults
+                             to None.
 
         Returns:
             bool: True, if all filters were successfully checked otherwise False.
 
         Examples:
-            Check if the `Runtime` has a specific executable installed
-            such as `ping` the network administration software utility.
-            >>> check_passed = runtime.check_filter(installed_executables='ping')
-            Check if a variable `WORKSPACE_VERSION` is set on the `Runtime`
-            >>> filter_str = '[ ! -z "$WORKSPACE_VERSION" ] && echo "true" || echo "false"'
-            >>> check_passed = runtime.check_filter(filer_commands=filter_str)
+            ```python
+            # Check if the `Runtime` has a specific executable installed
+            # such as `ping` the network administration software utility.
+            check_passed = runtime.check_filter(installed_executables='ping')
+            # Check if a variable `WORKSPACE_VERSION` is set on the `Runtime`
+            filter_str = '[ ! -z "$WORKSPACE_VERSION" ] && echo "true" || echo "false"'
+            check_passed = runtime.check_filter(filer_commands=filter_str)
+            ```
         """
 
         all_filters_checked = True
@@ -988,17 +989,20 @@ class Runtime(object):
         """Create a directory. All folders in the path will be created if not existing.
 
         Args:
-            path (str): The full path of the directory to be created.
+            path: The full path of the directory to be created.
         """
         with self._fabric_connection as cxn:
             cmd_str = 'mkdir -p ' + path
-            res = cxn.run(cmd_str)
+            res = cxn.run(cmd_str, hide=True)
+            if res.stderr:
+                from lazycluster.exceptions import LazyclusterError
+                raise LazyclusterError('The directory ' + path + ' could not be created!')
 
     def delete_dir(self, path: str) -> bool:
         """Delete a directory recursively. If at least one contained file could not be removed then False is returned.
 
         Args:
-            path (str): The full path of the directory to be deleted.
+            path: The full path of the directory to be deleted.
 
         Returns:
             bool: True if the directory could be deleted successfully.
