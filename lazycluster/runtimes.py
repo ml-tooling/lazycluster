@@ -21,6 +21,7 @@ import lazycluster._utils as _utils
 
 import json
 import warnings
+import logging
 import os
 
 
@@ -59,6 +60,10 @@ class RuntimeTask(object):
             name (Optional[str]): The name of the task. Defaults to None and consequently a unique identifier is
                                   generated via Python's id() function.
         """
+
+        # Create the Logger
+        self.log = logging.getLogger(__name__)
+
         self._name = name
         if not self._name:
             self._name = str(id(self))
@@ -273,7 +278,7 @@ class RuntimeTask(object):
 
         return self
 
-    def execute(self, connection: Connection):
+    def execute(self, connection: Connection, debug: bool = False):
         """Execute the task on a remote host using a fabric connection.
 
         Note: Each individual task step will be executed relatively to the current directory of the fabric connection.
@@ -281,19 +286,25 @@ class RuntimeTask(object):
               temporary limited to a single task step.
               If the task gets executed via a `Runtime`, then the current directory will be the Runtimes working
               directory. See the `Runtime` docs for further details.
+              Moreover, beside the regular Python log or the `debug` option you can access the execution logs via
+              task.`execution.log`. The log gets updated after each task step.
         
         Args:
             connection (fabric.Connection): Fabric connection object managing the ssh connection to the remote host.
+            debug (bool): If `True`, stdout/stderr from the remote host will be printed to stdout of localhost. If,
+                          `False` then the stdout/stderr will be added to python logger with level debug after each
+                          task step.
         Raises:
             ValueError: If cxn is broken and connection can not be established.
             TaskExecutionError: If an executed task step can't be executed successfully.
         """
-        # Fabric will only consider the manually set working directory for connection.run()
+        # The Fabric connection will only consider the manually set working directory for connection.run()
         # but not fur connection.put() & connection.get(). Thus, we need to set the path in
         # these cases manually.
+
         from socket import gaierror
         try:
-            working_dir = connection.run('pwd').stdout.replace('\n', '').replace('\r', '')
+            working_dir = connection.run('pwd', hide=True, warn=True).stdout.replace('\n', '').replace('\r', '')
         except gaierror:
             raise ValueError('Connection cannot be established. connection: ' + str(connection))
 
@@ -305,11 +316,14 @@ class RuntimeTask(object):
 
             if task_step.type == self._TaskStep.TYPE_RUN_COMMAND:
                 try:
-                    res = connection.run(task_step.command, pty=True)
+                    res = connection.run(task_step.command, hide=not debug, pty=True)
                 except UnexpectedExit as prev_excp:
                     raise TaskExecutionError(task_step_index, self, connection.host, prev_excp)
 
                 stdout = res.stdout.replace('\n', '').replace('\r', '')
+                if not debug:
+                    self.log.debug(stdout)
+
                 self._execution_log.append(stdout)
 
             elif task_step.type == self._TaskStep.TYPE_SEND_FILE:
@@ -683,12 +697,15 @@ class Runtime(object):
 
         raise NoPortsLeftError()
 
-    def execute_task(self, task: RuntimeTask, execute_async: Optional[bool] = True):
+    def execute_task(self, task: RuntimeTask, execute_async: Optional[bool] = True, debug: bool = False):
         """Execute a given `RuntimeTask` in the `Runtime`.
 
         Args:
             task (RuntimeTask): The task to be executed.
             execute_async (bool, Optional): The execution will be done in a separate thread if True. Defaults to True.
+            debug (bool): If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If,
+                          `False` then the stdout/stderr will be added to python logger with level debug after each
+                          task step.
 
         Raises:
             TaskExecutionError: If an executed task step can't be executed successfully.
@@ -701,7 +718,7 @@ class Runtime(object):
         def execute_remote_wrapper():
             cxn = self._fabric_connection
             with cxn.cd(self._working_dir):
-                task.execute(cxn)
+                task.execute(cxn, debug=debug)
 
         if execute_async:
             # Initialize logs with managed list (multiprocessing)
@@ -868,7 +885,7 @@ class Runtime(object):
             cmd_str = 'python -c "import socket;print(\'free\') ' \
                       'if socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect_ex((\'localhost\', ' + str(port) + \
                       ')) else None"'
-            res = cxn.run(cmd_str)
+            res = cxn.run(cmd_str, hide=True)
             return True if res.stdout else False
 
     def print_info(self):

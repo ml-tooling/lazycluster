@@ -306,8 +306,8 @@ class RuntimeGroup(object):
 
         return group_port
 
-    def execute_task(self, task: RuntimeTask, host: Optional[str] = None,
-                     broadcast: bool = False, execute_async: bool = True) -> RuntimeTask or List[RuntimeTask]:
+    def execute_task(self, task: RuntimeTask, host: Optional[str] = None, broadcast: bool = False,
+                     execute_async: bool = True, debug: bool = False) -> RuntimeTask or List[RuntimeTask]:
         """Execute a `RuntimeTask` in the whole group or in a single `Runtime`. 
         
         Args:
@@ -317,6 +317,9 @@ class RuntimeGroup(object):
                         `Runtime` will be chosen.
             broadcast (bool): True, if the task will be executed on all `Runtimes`. Defaults to False.
             execute_async (bool): True, if execution will take place async. Defaults to True.
+            debug (bool): If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If,
+                          `False` then the stdout/stderr will be added to python logger with level debug after each
+                          task step. Defaults to false.
 
         Returns:
             RuntimeTask or List[RuntimeTask]: Either a single `RuntimeTask` object in case the execution took place
@@ -330,17 +333,18 @@ class RuntimeGroup(object):
             tasks = []
             for runtime in self.get_runtimes().values():  # Raises ValueError
                 print('Start executing task ' + task.name + ' in ' + runtime.class_name + ' ' + runtime.host)
-                runtime.execute_task(task, execute_async)
+                runtime.execute_task(task, execute_async, debug)
                 tasks.append(task)
                 self._tasks.append(task)
             return tasks
+
         else:
             if host:
                 if host not in self._runtimes:
                     raise ValueError('The host ' + host + ' is not a valid runtime.')
-                self.get_runtime(host).execute_task(task, execute_async)
+                self.get_runtime(host).execute_task(task, execute_async, debug)
             else:
-                self._get_least_busy_runtime().execute_task(task, execute_async)
+                self._get_least_busy_runtime().execute_task(task, execute_async, debug)
             self._tasks.append(task)
             return task
 
