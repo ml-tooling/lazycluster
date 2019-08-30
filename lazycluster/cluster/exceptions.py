@@ -15,8 +15,8 @@ class MasterStartError(LazyclusterError):
         """Initialization method.
 
         Args:
-            host (str): The host where the cluster master instance should be started.
-            port (int): The port of the cluster master instance.
+            host: The host where the cluster master instance should be started.
+            port: The port of the cluster master instance.
         """
         self.port = port
         super().__init__('The cluster master instance could not be started successfully on host `' + host + '` on port '

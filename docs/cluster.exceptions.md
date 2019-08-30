@@ -22,8 +22,8 @@ Initialization method.
 
 **Args:**
 
- - `host` (str):  The host where the cluster master instance should be started.
- - `port` (int):  The port of the cluster master instance.
+ - `host`:  The host where the cluster master instance should be started.
+ - `port`:  The port of the cluster master instance.
 
 
 
