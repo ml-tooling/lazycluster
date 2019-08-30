@@ -88,7 +88,8 @@ class RuntimeTask(object):
         return type(self).__name__ + ': ' + self.name
 
     def cleanup(self):
-        """Remove temporary used resources, like temporary directories if created."""
+        """Remove temporary used resources, like temporary directories if created.
+        """
         if self._temp_dir:
             shutil.rmtree(self._temp_dir)
             print('Temporary directory ' + self._temp_dir + ' of RuntimeTask ' + self.name + ' on localhost removed.')
@@ -140,16 +141,20 @@ class RuntimeTask(object):
 
     @property
     def process(self) -> Process:
-        """The process object in which the task were executed. None, if not yet or synchronously executed. """
+        """The process object in which the task were executed. None, if not yet or synchronously executed.
+        """
         return self._process
 
-    def send_file(self, local_path: str, remote_path: Optional[str] = None):
+    def send_file(self, local_path: str, remote_path: Optional[str] = None) -> 'RuntimeTask':
         """Create a task step for sending either a single file or a folder from localhost to another host.
         
         Args:
             local_path: Path to file on local machine.
             remote_path: Path on the remote host. Defaults to the connection working directory. See
                          `RuntimeTask.execute()` docs for further details.
+
+        Returns:
+            RuntimeTask: self.
         
         Raises:
             ValueError: If file locally not found.
@@ -164,7 +169,7 @@ class RuntimeTask(object):
                                                remote_path=remote_path))
         return self
 
-    def get_file(self, remote_path: str, local_path: Optional[str] = None):
+    def get_file(self, remote_path: str, local_path: Optional[str] = None) -> 'RuntimeTask':
         """Create a task step for getting either a single file or a folder from another host to localhost.
 
         Args:
@@ -172,6 +177,10 @@ class RuntimeTask(object):
             local_path: Path to file on local machine. The remote file is downloaded  to the current working directory
                         (as seen by os.getcwd) using its remote filename if local_path is None. This is the default
                         behavior of fabric.
+
+        Returns:
+            RuntimeTask: self.
+
         Raises:
             ValueError: If remote path is emtpy.
         """
@@ -183,11 +192,14 @@ class RuntimeTask(object):
         self._requested_files.append(local_path)
         return self
 
-    def run_command(self, command: str):
+    def run_command(self, command: str) -> 'RuntimeTask':
         """Create a task step for running a given shell command. 
 
         Args:
             command: Shell command.
+
+        Returns:
+            RuntimeTask: self.
 
         Raises:
             ValueError: If command is emtpy.
@@ -198,7 +210,7 @@ class RuntimeTask(object):
 
         return self
 
-    def run_function(self, function: callable, **func_kwargs):
+    def run_function(self, function: callable, **func_kwargs) -> 'RuntimeTask':
         """Create a task step for executing a given python function on a remote host. The function will be transferred
         to the remote host via ssh and cloudpickle. The return data can be requested via the property `function_returns`
 
@@ -208,7 +220,10 @@ class RuntimeTask(object):
 
         Args:
             function: The function to be executed remotely.
-            **func_kwargs: kwargs which will be passed to the function.
+            func_kwargs: kwargs which will be passed to the function.
+
+        Returns:
+            RuntimeTask: self.
         
         Raises:
             ValueError: If function is empty.
@@ -282,13 +297,14 @@ class RuntimeTask(object):
     def execute(self, connection: Connection, debug: bool = False):
         """Execute the task on a remote host using a fabric connection.
 
-        Note: Each individual task step will be executed relatively to the current directory of the fabric connection.
-              Although, the current directory might have changed in the previous task step. Each directory change is
-              temporary limited to a single task step.
-              If the task gets executed via a `Runtime`, then the current directory will be the Runtimes working
-              directory. See the `Runtime` docs for further details.
-              Moreover, beside the regular Python log or the `debug` option you can access the execution logs via
-              task.`execution.log`. The log gets updated after each task step.
+        Note:
+            Each individual task step will be executed relatively to the current directory of the fabric connection.
+            Although, the current directory might have changed in the previous task step. Each directory change is
+            temporary limited to a single task step.
+            If the task gets executed via a `Runtime`, then the current directory will be the Runtimes working
+            directory. See the `Runtime` docs for further details.
+            Moreover, beside the regular Python log or the `debug` option you can access the execution logs via
+            task.`execution.log`. The log gets updated after each task step.
         
         Args:
             connection: Fabric connection object managing the ssh connection to the remote host.
@@ -374,12 +390,14 @@ class RuntimeTask(object):
             task_step_index = task_step_index + 1
 
     def join(self):
-        """Block the execution until the `RuntimeTask` finished its asynchronous execution. """
+        """Block the execution until the `RuntimeTask` finished its asynchronous execution.
+        """
         if self.process:
             self.process.join()
 
     def print_log(self):
-        """Print the execution log. Each log entry will be printed separately. The log index will be prepended."""
+        """Print the execution log. Each log entry will be printed separately. The log index will be prepended.
+        """
         if not self.execution_log:
             print('The log of task ' + self.name + ' is empty!')
         else:
@@ -396,7 +414,8 @@ class RuntimeTask(object):
 
     @classmethod
     def _create_file_name(cls, function_name: Optional[str] = None):
-        """Creates a program unique function name. """
+        """Creates a program unique function name.
+        """
         if function_name:
             file_prefix = function_name
         else:
@@ -405,7 +424,8 @@ class RuntimeTask(object):
         return file_prefix + str(cls._function_index) + '.' + cls._PICKLE_FILENAME_EXT
 
     class _TaskStep:
-        """Represents an individual action, i.e. a `_TaskStep` within a `RuntimeTask`. """
+        """Represents an individual action, i.e. a `_TaskStep` within a `RuntimeTask`.
+        """
         TYPE_RUN_COMMAND = 'command'
         TYPE_SEND_FILE = 'send-file'
         TYPE_GET_FILE = 'get-file'
@@ -424,8 +444,9 @@ class RuntimeTask(object):
 class Runtime(object):
     """Runtime for executing `RuntimeTasks` in it or exposing ports from / to localhost.
     
-    Note: Passwordless ssh access should be be setup in advance. Otherwise the connection kwargs of fabric must be used
-          for setting up the ssh connection. See prerequisites in project README.
+    Note:
+        Passwordless ssh access should be be setup in advance. Otherwise the connection kwargs of fabric must be used
+        for setting up the ssh connection. See prerequisites in project README.
 
     Examples:
         ```python
@@ -459,7 +480,7 @@ class Runtime(object):
                                          If the working directory is a temporary one it will be cleaned up either
                                          `atexit` or when calling `cleanup()` manually.
 
-            **connection_kwargs: kwargs that will be passed on to the fabric connection. Please check the fabric docs
+            connection_kwargs: kwargs that will be passed on to the fabric connection. Please check the fabric docs
                                  for further details.
 
         Raises:
@@ -489,8 +510,12 @@ class Runtime(object):
         return self.class_name + ': ' + self.host
 
     @property
-    def working_directory(self):
-        """The path of the working directory that was set during object initialization. """
+    def working_directory(self) -> str:
+        """The path of the working directory that was set during object initialization.
+
+        Returns:
+            str: The path of thw working directory.
+        """
         self._create_working_dir_if_not_exists()
         return self._working_dir
 
@@ -577,8 +602,12 @@ class Runtime(object):
         return int(self._info['memory'])
 
     @property
-    def memory_in_mb(self):
-        """Memory information in mb. """
+    def memory_in_mb(self) -> int:
+        """Memory information in mb.
+
+        Returns:
+            str: Total memory in mega bytes.
+        """
         return self.memory / 1024 / 1024
 
     @property
@@ -605,7 +634,11 @@ class Runtime(object):
 
     @property
     def gpu_count(self) -> int:
-        """The count of GPUs."""
+        """The count of GPUs.
+
+        Returns:
+            int: The number of GPUs
+        """
         return len(self.gpus)
 
     @property
@@ -614,13 +647,21 @@ class Runtime(object):
         return self.__class__.__name__
 
     @property
-    def alive_process_count(self):
-        """The number of alive processes. """
+    def alive_process_count(self) -> int:
+        """The number of alive processes.
+
+        Returns:
+            int: The count.
+        """
         return len(self.get_processes(only_alive=True))
 
     @property
-    def alive_task_process_count(self):
-        """The number of alive processes which were started to execute a `RuntimeTask`. """
+    def alive_task_process_count(self) -> int:
+        """The number of alive processes which were started to execute a `RuntimeTask`.
+
+        Returns:
+            int: The count.
+        """
         return len(self.task_processes)
 
     @classmethod
@@ -629,7 +670,7 @@ class Runtime(object):
         an internal naming scheme of the process keys.
 
         Args:
-            process_key (str): The generated process identifier.
+            process_key: The generated process identifier.
         Returns:
             bool: True, if process was started to execute a `RuntimeTask`
         """
@@ -741,12 +782,14 @@ class Runtime(object):
             print('Temporary directory ' + self._working_dir + ' created on ' + self._host)
 
     def print_log(self):
-        """Print the execution logs of each `RuntimeTask` that was executed in the `Runtime`. """
+        """Print the execution logs of each `RuntimeTask` that was executed in the `Runtime`.
+        """
         for task in self._tasks:
             task.print_log()
 
     def clear_tasks(self):
-        """Clears all internal state related to `RuntimeTasks`. """
+        """Clears all internal state related to `RuntimeTasks`.
+        """
         self._tasks = []
         self._processes = {key: value for key, value in self._processes.items()
                            if not Runtime.is_runtime_task_process(key)}
@@ -761,11 +804,6 @@ class Runtime(object):
 
         Returns:
             str: Process key, which can be used for manually stopping the process running the port exposure for example.
-        
-        Examples:
-            A DB is running on localhost on port `local_port` and the DB is only accessible from localhost.
-            But you also want to access the service on the remote `Runtime` on port `runtime_port`. Then you can use
-            this method to expose the service which is running on localhost to the remote host.
         """
         if not runtime_port:
             runtime_port = local_port
@@ -789,19 +827,13 @@ class Runtime(object):
     def expose_port_from_runtime(self, runtime_port: int, local_port: Optional[int] = None) -> str:
         """Expose a port from a `Runtime` to localhost so that all traffic to the `local_port` is forwarded to the
         `runtime_port` of the `Runtime`. This corresponds to local port forwarding in ssh tunneling terms.
-        
-        Args:            
+
+        Args:
             runtime_port: The port on the runtime.
             local_port: The port on the local machine. Defaults to `runtime_port`.
 
         Returns:
             str: Process key, which can be used for manually stopping the process running the port exposure.
-        
-        Examples:
-            A DB is running on a remote host on port `runtime_port` and the DB is only accessible from the remote host.
-            But you also want to access the service from the local machine on port `local_port`. Then you can use this
-            method to expose the service which is running on the remote host to localhost.
-
         """
         if not local_port:
             local_port = runtime_port
@@ -863,7 +895,7 @@ class Runtime(object):
     def stop_process(self, key: str):
         """Stop a process by its key. 
 
-        Args: 
+        Args:
             key: The key identifying the process.
         
         Raises:
@@ -890,7 +922,8 @@ class Runtime(object):
             return True if res.stdout else False
 
     def print_info(self):
-        """Print the Runtime info formatted as table."""
+        """Print the Runtime info formatted as table.
+        """
         info = self.info
         print('\n')
         print('\u001b[1mInformation of `' + self.class_name + '` ' + self.host + ':\u001b[0m')
@@ -1016,7 +1049,8 @@ class Runtime(object):
                 return False
 
     def cleanup(self):
-        """Release all acquired resources and terminate all processes. """
+        """Release all acquired resources and terminate all processes.
+        """
         for key, process in self._processes.items():
             process.terminate()
             process.join()
@@ -1074,7 +1108,8 @@ class Runtime(object):
         return 'hash ' + executable + ' 2>/dev/null && echo "true" || echo ""'
 
     def _has_executable_installed(self, executable_name: str) -> bool:
-        """Checks if an executable is installed on the runtime."""
+        """Checks if an executable is installed on the runtime.
+        """
         shell_cmd = self._create_executable_installed_shell_cmd(executable_name)
         return self._filter_command_checked(shell_cmd)
 
@@ -1103,7 +1138,8 @@ class Runtime(object):
 
     def _forward_local_port_to_runtime(self, local_port: int, runtime_port: Optional[int] = None):
         """Creates ssh connection to the runtime and creates then a ssh tunnel
-        from `localhost`:`local_port to `runtime`:`runtime_port`. """
+        from `localhost`:`local_port to `runtime`:`runtime_port`.
+        """
         if not runtime_port:
             runtime_port = local_port
 
@@ -1113,7 +1149,8 @@ class Runtime(object):
 
     def _forward_runtime_port_to_local(self, runtime_port: int, local_port: Optional[int] = None):
         """Creates ssh connection to the runtime and then creates a ssh tunnel
-        from `runtime`:`runtime_port` to `localhost`:`local_port`. """
+        from `runtime`:`runtime_port` to `localhost`:`local_port`.
+        """
         if not local_port:
             local_port = runtime_port
 
@@ -1122,7 +1159,8 @@ class Runtime(object):
                 time.sleep(1000)
 
     def _read_info(self) -> dict:
-        """Read the host machine information. """
+        """Read the host machine information.
+        """
         task = RuntimeTask('get-host-info')
         task.run_command(_utils.get_pip_install_cmd())
         task.run_function(_utils.print_localhost_info)
