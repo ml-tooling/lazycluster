@@ -41,6 +41,11 @@ and convenient cluster setup with Python for various distributed machine learnin
     - List all available [Runtimes](./docs/runtimes.md#runtime-class)
     - Add a [Runtime](./docs/runtimes.md#runtime-class) configuration
     - Delete a [Runtime](./docs/runtimes.md#runtime-class) configuration
+
+---
+
+<br>
+
 ## Getting Started
 
 ### Installation
@@ -78,6 +83,10 @@ task.print_log()
 generator = task.function_returns
 print(next(generator))
 ```
+
+---
+
+<br>
 ## Support
 
 The **lazycluster** project is maintained by [Jan Kalkan](https://www.linkedin.com/in/jan-kalkan-b5390284/). Please 
@@ -90,6 +99,10 @@ valuable if it's shared publicly so that more people can benefit from it.
 | 🎁 **Feature Requests**  | <a href="https://github.com/ml-tooling/lazycluster/issues?q=is%3Aopen+is%3Aissue+label%3Afeature-request+sort%3Areactions-%2B1-desc" title="Open Feature Request"><img src="https://img.shields.io/github/issues/ml-tooling/lazycluster/feature-request.svg?label=feature%20requests"></a>                                 |
 | 👩‍💻 **Usage Questions**   |  <a href="https://stackoverflow.com/questions/tagged/ml-tooling" title="Open Question on Stackoverflow"><img src="https://img.shields.io/badge/stackoverflow-ml--tooling-orange.svg"></a> <a href="https://gitter.im/ml-tooling/lazycluster" title="Chat on Gitter"><img src="https://badges.gitter.im/ml-tooling/lazycluster.svg"></a> |
 | 🗯 **General Discussion** | <a href="https://gitter.im/ml-tooling/lazycluster" title="Chat on Gitter"><img src="https://badges.gitter.im/ml-tooling/lazycluster.svg"></a>  <a href="https://twitter.com/mltooling" title="ML Tooling on Twitter"><img src="https://img.shields.io/twitter/follow/mltooling.svg?style=social"></a>
+
+---
+
+<br>
 
 ## Features
 
@@ -145,7 +158,31 @@ runtime_group = RuntimeManager().create_group()
 ```
 </details>
 
-### Expose a service from or to a [Runtime](./docs/runtimes.md#runtime-class)
+### Expose a service from a [Runtime](./docs/runtimes.md#runtime-class)
+A DB is running on a remote host on port `runtime_port` and the DB is only accessible from the remote host. 
+But you also want to access the service from the local machine on port `local_port`. Then you can use this 
+method to expose the service which is running on the remote host to localhost.
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
+```python
+from lazycluster import Runtime
+
+# Create a Runtime
+runtime = Runtime('host-1')
+
+# Make the port 50000 from the Runtime accessible on localhost
+runtime.expose_port_from_runtime(50000)
+
+# Make the local port 40000 accessible on the Runtime
+runtime.expose_port_to_runtime(40000)
+```
+</details>
+
+### Expose a service to a [Runtime](./docs/runtimes.md#runtime-class)
+A DB is running on localhost on port `local_port` and the DB is only accessible from localhost. 
+But you also want to access the service on the remote `Runtime` on port `runtime_port`. Then you can use 
+this method to expose the service which is running on localhost to the remote host.
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
@@ -257,6 +294,10 @@ res = total.result()
 print('Result: ' + str(res))
 ```
 </details>
+
+---
+
+<br>
 
 ## Contribution
 
