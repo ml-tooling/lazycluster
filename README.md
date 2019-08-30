@@ -264,6 +264,7 @@ for chunk in runtime_group.function_returns:
 The [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) can automatically detect all available 
 [Runtimes](./docs/runtimes.md#runtime-class) based on your local ssh config and eventually create a necessary 
 [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) for you.
+Most simple way to launch a cluster based on a `RuntimeGroup` created by the `RuntimeManager`.
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
@@ -274,7 +275,9 @@ from lazycluster.cluster.dask_cluster import DaskCluster
 cluster = DaskCluster(RuntimeManager().create_group())
 cluster.start()
 ```
+
 Test the cluster setup
+
 ```python
 # Define test functions to be executed in parallel via DASK
 def square(x):
@@ -287,12 +290,25 @@ def neg(x):
 client = cluster.get_client()
 
 # Execute the computation
-A = client.map(square, range(task_cnt))
+A = client.map(square, range(10))
 B = client.map(neg, A)
 total = client.submit(sum, B, )
 res = total.result()
 
 print('Result: ' + str(res))
+```
+</details>
+
+Use different strategies for launching the master and the worker instance by providing custom implementation of 
+`MasterLauncher` and `WorkerLauncher`.
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
+```python
+cluster = DaskCluster(RuntimeManager().create_group(),
+                      MyMasterLauncherImpl(),
+                      MyWorkerLauncherImpl)
+cluster.start()
 ```
 </details>
 
