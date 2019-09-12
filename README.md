@@ -57,9 +57,19 @@ pip install git+https://github.com/ml-tooling/lazycluster.git@master
 ``` 
 
 ### Prerequisites
-Passwordless ssh needs to be setup for the hosts to be used as [Runtimes](./docs/runtimes.md#runtime-class) for the most 
-convenient user experience. Otherwise, you need to pass the connection details to Runtime.\_\_init__ via connection_kwargs. 
-These parameters will be passed on to the [fabric.Connection](http://docs.fabfile.org/en/2.4/api/connection.html#connect-kwargs-arg).
+
+**For lazycluster installation:**
+- Python > 3.6
+- ssh client (e.g. openssh-client)
+
+**Runtime Host Requirements:**
+- Python > 3.6
+- ssh server (e.g. openssh-server)
+- passwordless ssh to the host (recommended)
+
+**Note:**
+
+  Passwordless ssh needs to be setup for the hosts to be used as [Runtimes](./docs/runtimes.md#runtime-class) for the most convenient user experience. Otherwise, you need to pass the connection details to Runtime.\_\_init__ via connection_kwargs. These parameters will be passed on to the [fabric.Connection](http://docs.fabfile.org/en/2.4/api/connection.html#connect-kwargs-arg).
 
 ### Usage Example
 ```python

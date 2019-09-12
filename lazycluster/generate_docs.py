@@ -7,6 +7,7 @@ import os
 import re
 import sys
 from inspect import getdoc, getsourcefile, getsourcelines, getmembers
+from importlib import reload
 
 if sys.version[0] == '2':
     reload(sys)
@@ -124,9 +125,11 @@ def to_md_file(string, filename, out_path="."):
         f.write(string)
     print("wrote {}.".format(md_file))
 
+
 def modules2mdfiles():
     # TODO
     pass
+
 
 def code_snippet(snippet):
     result = '```python\n'
