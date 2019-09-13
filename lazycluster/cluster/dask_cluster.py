@@ -54,12 +54,13 @@ class LocalMasterLauncher(MasterLauncher):
 
         if not _utils.localhost_has_free_port(master_port):
             self._port = master_port
-            print('Dask scheduler started on localhost on port ' + str(self._port))
+            self.log.debug('Dask scheduler started on localhost on port ' + str(self._port))
         else:
             raise MasterStartError('localhost', self._port)
 
         # Sets up ssh tunnel for scheduler such that all communication is routed over the
         # local machine and all entities can talk to each the scheduler on localhost.
+        self.log.debug(f'Expose the Dask scheduler port in the RuntimeGroup.')
         self._group.expose_port_to_runtimes(self._port)
 
         return ports
@@ -77,6 +78,8 @@ class RoundRobinLauncher(WorkerLauncher):
         """
         super().__init__(runtime_group)
         self._ports = None
+
+        self.log.debug('RoundRobinLauncher object created.')
 
     def start(self, worker_count: int, master_port: int, ports: List[int]) -> List[int]:
         """Launches the worker instances in the `RuntimeGroup`.
@@ -98,13 +101,14 @@ class RoundRobinLauncher(WorkerLauncher):
 
         # Launch each desired worker one by one
         for worker_index in range(worker_count):
-
             # Determine the runtime where the next worker will be started in
             runtime_index = (self._group.runtime_count + worker_index) % self._group.runtime_count
             # Get the actual host corresponding to the index
             host = hosts[runtime_index]
             working_dir = runtimes[runtime_index].working_directory
             assert host == runtimes[runtime_index].host
+
+            self.log.debug(f'Launch Dask worker with index {worker_index} on Runtime {host}')
 
             worker_port = self._launch_single_worker(host, worker_index, master_port, working_dir)  # NoPortsLeftError
             # Remember which worker ports are now used per `Runtime`
@@ -181,6 +185,8 @@ class DaskCluster(MasterWorkerCluster):
 
         self._master_launcher = master_launcher if master_launcher else LocalMasterLauncher(runtime_group)
         self._worker_launcher = worker_launcher if worker_launcher else RoundRobinLauncher(runtime_group)
+
+        self.log.debug('DaskCluster initialized.')
 
     def get_client(self, timeout: int = 2) -> Client:
         """Get a connected Dask client. 
