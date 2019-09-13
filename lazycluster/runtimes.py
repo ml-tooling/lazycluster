@@ -81,7 +81,7 @@ class RuntimeTask(object):
         # Cleanup will be done atexit since usage of destructor may lead to exceptions
         atexit.register(self.cleanup)
 
-        self.log.debug(f'Created RuntimeTask {self.name}')
+        self.log.debug(f'RuntimeTask {self.name} initialized.')
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__, self.__dict__)
@@ -525,7 +525,7 @@ class Runtime(object):
         if not self.is_valid_runtime():
             raise InvalidRuntimeError(host)
 
-        self.log.debug(f'Runtime {self.host} created')
+        self.log.debug(f'Runtime {self.host} initialized.')
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__, self.__dict__)
