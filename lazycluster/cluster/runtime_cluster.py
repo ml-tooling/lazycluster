@@ -5,6 +5,7 @@ Note: The design of the launcher classes follows the strategy pattern.
 from typing import List, Optional, Dict, Union
 
 import atexit
+import logging
 
 from subprocess import Popen
 from lazycluster.runtime_mgmt import RuntimeGroup
@@ -19,6 +20,9 @@ class MasterLauncher(object):
         Args:
             runtime_group: The group where the workers will be started.
         """
+        # Create the Logger
+        self.log = logging.getLogger(__name__)
+
         self._group = runtime_group
         self._port = None            # Needs to be set in self.start()
         self._process: Optional[Popen] = None  # Needs to be set in self.start()
@@ -82,6 +86,9 @@ class WorkerLauncher(object):
         Args:
             runtime_group: The group where the workers will be started in.
         """
+        # Create the Logger
+        self.log = logging.getLogger(__name__)
+
         self._group = runtime_group
         self._ports_per_host: Dict[str, List[int]] = {}  # Needs to be set in `self.start()`
 
@@ -133,6 +140,7 @@ class WorkerLauncher(object):
             PortInUseError: If `group_port` is occupied on the local machine.
             NoPortsLeftError: If `group_ports` was given and none of the ports was free.
         """
+        self.log.info('Setting up ssh tunnel for workers.')
         for host, ports in self.ports_per_host.items():
             for worker_port in ports:
                 self._group.expose_port_from_runtime_to_group(host, worker_port)  # Raises all errors
@@ -195,6 +203,9 @@ class MasterWorkerCluster(RuntimeCluster):
                              implements the strategy for launching the worker instances. If None, then the default of
                              the concrete cluster implementation will be chosen.
         """
+        # Create the Logger
+        self.log = logging.getLogger(__name__)
+
         self._group = runtime_group
         self._ports = ports if ports else list(range(self.DEFAULT_PORT_RANGE_START, self.DEFAULT_PORT_RANGE_END))
         self._master_launcher = master_launcher
@@ -202,6 +213,8 @@ class MasterWorkerCluster(RuntimeCluster):
 
         # Cleanup will be done atexit since usage of destructor may lead to exceptions
         atexit.register(self.cleanup)
+
+        self.log.debug('MasterWorkerCluster object created.')
 
     def __str__(self):
         return type(self).__name__ + ' with ' + str(self._group)
@@ -227,10 +240,9 @@ class MasterWorkerCluster(RuntimeCluster):
                           `self.start()`, hence see respective method for further details.
 
         """
-        print('Starting the cluster ...')
+        self.log.info('Starting the cluster ...')
         self.start_master(master_port)
         self.start_workers(worker_count)
-        print('Cluster started ...')
 
     def start_master(self, master_port: Optional[int] = None, timeout: int = 3):
         """Start the master instance.
@@ -273,7 +285,7 @@ class MasterWorkerCluster(RuntimeCluster):
         assert self._master_launcher.port
         assert self._master_launcher.process
 
-        print('Master instance started on port ' + str(self.master_port) + '...')
+        self.log.info(f'Master instance started on port {str(self.master_port)}.')
 
     def start_workers(self, count: Optional[int] = None):
         """Start the worker instances.
@@ -299,12 +311,11 @@ class MasterWorkerCluster(RuntimeCluster):
         # => indicates a wrong implementation of the given launcher class
         assert self._worker_launcher.ports_per_host
 
-        print('Worker instances started ...')
+        self.log.info('Worker instances started.')
 
     def cleanup(self):
         """Release all resources.
         """
-        print('Shutting down cluster...')
+        self.log.info('Shutting down the cluster...')
         self._group.cleanup()
         self._master_launcher.process.terminate()
-        print('Cluster shutted down ...')
