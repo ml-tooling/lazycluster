@@ -89,7 +89,7 @@ class RuntimeGroup(object):
         # Cleanup will be done atexit since usage of destructor may lead to exceptions
         atexit.register(self.cleanup)
 
-        self.log.debug(f'RuntimeGroup object created')
+        self.log.debug(f'RuntimeGroup initialized.')
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__, self.__dict__)
@@ -577,6 +577,8 @@ class RuntimeManager(object):
             self.log.info(f'RuntimeManager detected {len(runtimes)} valid Runtimes.')
         except ValueError as err:
             raise NoRuntimesDetectedError(err)
+
+        self.log.debug('RuntimeManager initialized.')
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__, self.__dict__)
