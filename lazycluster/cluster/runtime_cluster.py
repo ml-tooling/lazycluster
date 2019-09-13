@@ -15,7 +15,7 @@ class MasterLauncher(object):
     """Abstract class for implementing the strategy for launching the master instance of the cluster. """
 
     def __init__(self, runtime_group: RuntimeGroup):
-        """Constructor method.
+        """Initialization method.
 
         Args:
             runtime_group: The group where the workers will be started.
@@ -26,6 +26,8 @@ class MasterLauncher(object):
         self._group = runtime_group
         self._port = None            # Needs to be set in self.start()
         self._process: Optional[Popen] = None  # Needs to be set in self.start()
+
+        self.log.debug('MasterLauncher initialized.')
 
     @property
     def port(self) -> int:
@@ -91,6 +93,8 @@ class WorkerLauncher(object):
 
         self._group = runtime_group
         self._ports_per_host: Dict[str, List[int]] = {}  # Needs to be set in `self.start()`
+
+        self.log.debug('Worker launcher initialized')
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__, self.__dict__)
@@ -214,7 +218,7 @@ class MasterWorkerCluster(RuntimeCluster):
         # Cleanup will be done atexit since usage of destructor may lead to exceptions
         atexit.register(self.cleanup)
 
-        self.log.debug('MasterWorkerCluster object created.')
+        self.log.debug('MasterWorkerCluster initialized.')
 
     def __str__(self):
         return type(self).__name__ + ' with ' + str(self._group)
