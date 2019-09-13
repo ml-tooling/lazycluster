@@ -92,7 +92,7 @@ class RuntimeTask(object):
     def cleanup(self):
         """Remove temporary used resources, like temporary directories if created.
         """
-        self.log.debug(f'Start `cleanup()` of task {self.name}.')
+        self.log.debug(f'Start cleanup of task {self.name}.')
         if self._temp_dir:
             shutil.rmtree(self._temp_dir)
             self.log.debug(f'Temporary directory {self._temp_dir} of RuntimeTask {self.name} on localhost removed.')
@@ -409,10 +409,10 @@ class RuntimeTask(object):
     def join(self):
         """Block the execution until the `RuntimeTask` finished its asynchronous execution.
         """
-        self.log.debug(f'Start joining threads of task {self.name}')
+        self.log.info(f'Start joining threads of task {self.name}')
         if self.process:
             self.process.join()
-        self.log.debug(f'Finished joining threads of task {self.name}')
+        self.log.info(f'Finished joining threads of task {self.name}')
 
     def print_log(self):
         """Print the execution log. Each log entry will be printed separately. The log index will be prepended.
@@ -779,7 +779,7 @@ class Runtime(object):
         """
         self._create_working_dir_if_not_exists()
         async_str = ' asynchronously ' if execute_async else ' synchronously '
-        self.log.debug(f'Executing task {task.name} {async_str} on ' + self._host)
+        self.log.info(f'Start executing task {task.name} {async_str} on {self.host}')
 
         # Wrapper needed to ensure execution from the Runtime's working directory
         def execute_remote_wrapper():
@@ -804,7 +804,7 @@ class Runtime(object):
         if not self._working_dir:
             self._working_dir = self.create_tempdir()
             self._working_dir_is_temp = True
-            print('Temporary directory ' + self._working_dir + ' created on ' + self._host)
+            self.log.debug(f'Temporary directory {self._working_dir} created on {self._host}')
 
     def print_log(self):
         """Print the execution logs of each `RuntimeTask` that was executed in the `Runtime`.
@@ -815,7 +815,7 @@ class Runtime(object):
     def clear_tasks(self):
         """Clears all internal state related to `RuntimeTasks`.
         """
-        self.log.debug(f'Clear all tasks and kill related processes on Runtime {self.host}')
+        self.log.info(f'Clear all tasks and kill related processes on Runtime {self.host}')
         self._tasks = []
         self._processes = {key: value for key, value in self._processes.items()
                            if not Runtime.is_runtime_task_process(key)}
@@ -847,7 +847,7 @@ class Runtime(object):
         key = self._create_process_key_for_port_exposure(self._PORT_TO_RUNTIME, local_port, runtime_port)
         self._processes.update({key: proc})
         time.sleep(0.1)  # Necessary to prevent collisions with MaxStartup restrictions
-        self.log.debug(f'Local port {str(local_port)} exposed to Runtime {self._host} on port {str(runtime_port)}')
+        self.log.info(f'Local port {str(local_port)} exposed to Runtime {self._host} on port {str(runtime_port)}')
         return key
 
     def expose_port_from_runtime(self, runtime_port: int, local_port: Optional[int] = None) -> str:
@@ -877,7 +877,7 @@ class Runtime(object):
         key = self._create_process_key_for_port_exposure(self._PORT_FROM_RUNTIME, local_port, runtime_port)
         self._processes.update({key: proc})
         time.sleep(0.1)  # Necessary to prevent collisions with MaxStartup restrictions
-        self.log.debug(f'Port {str(runtime_port)} from runtime {self._host} exposed to local port {str(local_port)}')
+        self.log.info(f'Port {str(runtime_port)} from runtime {self._host} exposed to local port {str(local_port)}')
         return key
 
     def get_process(self, key: str) -> Process:
@@ -1081,6 +1081,7 @@ class Runtime(object):
     def cleanup(self):
         """Release all acquired resources and terminate all processes.
         """
+        self.log.info(f'Start cleanup of Runtime {self.host}.')
         for key, process in self._processes.items():
             process.terminate()
             process.join()
