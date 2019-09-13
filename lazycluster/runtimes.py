@@ -81,6 +81,8 @@ class RuntimeTask(object):
         # Cleanup will be done atexit since usage of destructor may lead to exceptions
         atexit.register(self.cleanup)
 
+        self.log.debug(f'Created RuntimeTask {self.name}')
+
     def __repr__(self):
         return "%s(%r)" % (self.__class__, self.__dict__)
 
@@ -90,9 +92,10 @@ class RuntimeTask(object):
     def cleanup(self):
         """Remove temporary used resources, like temporary directories if created.
         """
+        self.log.debug(f'Start `cleanup()` of task {self.name}.')
         if self._temp_dir:
             shutil.rmtree(self._temp_dir)
-            print('Temporary directory ' + self._temp_dir + ' of RuntimeTask ' + self.name + ' on localhost removed.')
+            self.log.debug(f'Temporary directory {self._temp_dir} of RuntimeTask {self.name} on localhost removed.')
             self._temp_dir = None
 
     @property
@@ -167,6 +170,7 @@ class RuntimeTask(object):
 
         self._task_steps.append(self._TaskStep(self._TaskStep.TYPE_SEND_FILE, local_path=local_path,
                                                remote_path=remote_path))
+        self.log.debug(f'Step for sending the file {local_path} to {remote_path} was added to RuntimeTask {self.name}')
         return self
 
     def get_file(self, remote_path: str, local_path: Optional[str] = None) -> 'RuntimeTask':
@@ -190,6 +194,7 @@ class RuntimeTask(object):
         self._task_steps.append(self._TaskStep(self._TaskStep.TYPE_GET_FILE, remote_path=remote_path,
                                                local_path=local_path))
         self._requested_files.append(local_path)
+        self.log.debug(f'Step for getting the file {remote_path} to {local_path} was added to RuntimeTask {self.name}')
         return self
 
     def run_command(self, command: str) -> 'RuntimeTask':
@@ -208,6 +213,7 @@ class RuntimeTask(object):
             raise ValueError("Command must not be emtpy")
         self._task_steps.append(self._TaskStep(self._TaskStep.TYPE_RUN_COMMAND, command=command))
 
+        self.log.debug(f'Step for running the command `{command}` was added to RuntimeTask {self.name}')
         return self
 
     def run_function(self, function: callable, **func_kwargs) -> 'RuntimeTask':
@@ -231,14 +237,15 @@ class RuntimeTask(object):
         if not function:
             raise ValueError("Function is invalid.")
 
+        self.log.debug(f'Start adding steps to RuntimeTask {self.name} for executing function {function.__name__}')
+
         # Create a temp directory for persisting the serialized function
         if not self._temp_dir:
             self._temp_dir = tempfile.mkdtemp()
-            self.run_command('mkdir -p ' + self._temp_dir)
-            print('Temporary directory ' + self._temp_dir + ' for task ' + self.name + ' on localhost created.')
+            self.log.debug(f'Temporary directory {self._temp_dir} for RuntimeTask {self.name} on localhost created.')
 
         # We distinguish between local -  and remote filename because in case we execute a function in a
-        # `Runtime.('localhost')`, we may overwrite the files.
+        # `Runtime('localhost')`, we may overwrite the files.
         input_function_name = function.__name__
         remote_file_name = self._create_file_name(input_function_name)
         local_file_name = 'local_' + remote_file_name
@@ -292,6 +299,7 @@ class RuntimeTask(object):
         run_cmd = 'rm ' + remote_return_pickle_file_path
         self.run_command(run_cmd)
 
+        self.log.debug(f'End adding steps to RuntimeTask {self.name} for executing function {function.__name__}')
         return self
 
     def execute(self, connection: Connection, debug: bool = False):
@@ -324,6 +332,8 @@ class RuntimeTask(object):
         except gaierror:
             raise ValueError('Connection cannot be established. connection: ' + str(connection))
 
+        self.log.debug(f'Start executing RuntimeTask {self.name} on host {connection.host}')
+
         from invoke.exceptions import UnexpectedExit
 
         task_step_index = 0
@@ -331,6 +341,7 @@ class RuntimeTask(object):
         for task_step in self._task_steps:
 
             if task_step.type == self._TaskStep.TYPE_RUN_COMMAND:
+                self.log.debug(f'Start executing step {task_step_index} (`run_command`) from RuntimeTask {self.name}')
                 try:
                     res = connection.run(task_step.command, hide=not debug, pty=True)
                 except UnexpectedExit as prev_excp:
@@ -359,11 +370,13 @@ class RuntimeTask(object):
                 # Update the path in the `_TaskStep` so that the actual used path is correctly stored
                 task_step.remote_path = remote_path
 
+                self.log.debug(f'Start executing TaskStep {task_step_index} (`send_file`) from RuntimeTask '
+                                  f'{self.name}')
                 try:
                     connection.put(task_step.local_path, task_step.remote_path)
-
                 except UnexpectedExit as e:
-                    pass
+                    self.log.error(f'UnexpectedExit while executing step {task_step_index} (`send_file`) ' 
+                                      f'from RuntimeTask {self.name}')
 
                 self._execution_log.append('Send file ' + task_step.local_path + ' to ' + task_step.remote_path +
                                            connection.host)
@@ -383,17 +396,23 @@ class RuntimeTask(object):
                 # Update the path in the `_TaskStep` so that the actual used path is correctly stored
                 task_step.remote_path = remote_path
 
-                connection.get(task_step.remote_path, task_step.local_path)
-                self._execution_log.append('Get remote file ' + task_step.remote_path + ' to local ' +
-                                           task_step.local_path + '.')
+                self.log.debug(f'Start executing step {task_step_index} (`get_file`) from RuntimeTask {self.name}')
+                try:
+                    connection.get(task_step.remote_path, task_step.local_path)
+                except UnexpectedExit as e:
+                    self.log.error(f'UnexpectedExit while executing step {task_step_index} (`get_file`) '
+                                      f'from RuntimeTask {self.name}', e)
+                self._execution_log.append(f'Get remote file {task_step.remote_path} to local {task_step.local_path}.')
 
             task_step_index = task_step_index + 1
 
     def join(self):
         """Block the execution until the `RuntimeTask` finished its asynchronous execution.
         """
+        self.log.debug(f'Start joining threads of task {self.name}')
         if self.process:
             self.process.join()
+        self.log.debug(f'Finished joining threads of task {self.name}')
 
     def print_log(self):
         """Print the execution log. Each log entry will be printed separately. The log index will be prepended.
@@ -487,6 +506,9 @@ class Runtime(object):
             InvalidRuntimeError: If `Runtime` could not be instantiated successfully.
         """
 
+        # Create the Logger
+        self.log = logging.getLogger(__name__)
+
         self._host = host
         self._connection_kwargs = connection_kwargs
         self._working_dir = working_dir
@@ -502,6 +524,8 @@ class Runtime(object):
         # The check shall be executed at the end of the method, since it relies on some attributes like _working_dir etc
         if not self.is_valid_runtime():
             raise InvalidRuntimeError(host)
+
+        self.log.debug(f'Runtime {self.host} created')
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__, self.__dict__)
@@ -606,9 +630,9 @@ class Runtime(object):
         """Memory information in mb.
 
         Returns:
-            str: Total memory in mega bytes.
+            int: Total memory in mega bytes.
         """
-        return self.memory / 1024 / 1024
+        return int(self.memory / 1024 / 1024)
 
     @property
     def python_version(self) -> str:
@@ -696,6 +720,7 @@ class Runtime(object):
         Returns:
             bool: True, if it is a valid remote runtime.
         """
+        self.log.debug(f'Start executing `is_valid_runtime()` on Runtime {self.host}')
 
         task = RuntimeTask('check-python-version')
         task.run_command('python --version')
@@ -714,7 +739,7 @@ class Runtime(object):
         if not python_version:
             return False
         elif int(python_version[0]) > 3:  # Stay future-proof
-            warnings.warn('The lib was originally created for Python 3.6 and is not yet tested for '
+            self.log.warning('The lib was originally created for Python 3.6 and is not yet tested for '
                           'Python >= Python 4')
             return True
         elif int(python_version[0]) == 3 and int(python_version[1]) >= 6:
@@ -754,7 +779,7 @@ class Runtime(object):
         """
         self._create_working_dir_if_not_exists()
         async_str = ' asynchronously ' if execute_async else ' synchronously '
-        print('Executing task ' + task.name + async_str + ' on ' + self._host)
+        self.log.debug(f'Executing task {task.name} {async_str} on ' + self._host)
 
         # Wrapper needed to ensure execution from the Runtime's working directory
         def execute_remote_wrapper():
@@ -790,6 +815,7 @@ class Runtime(object):
     def clear_tasks(self):
         """Clears all internal state related to `RuntimeTasks`.
         """
+        self.log.debug(f'Clear all tasks and kill related processes on Runtime {self.host}')
         self._tasks = []
         self._processes = {key: value for key, value in self._processes.items()
                            if not Runtime.is_runtime_task_process(key)}
@@ -809,7 +835,8 @@ class Runtime(object):
             runtime_port = local_port
         if local_port == runtime_port and self._host == self.LOCALHOST:
             # We can not forward a port to itself!
-            print('Port exposure skipped. Can\'t expose a port to myself.')
+            self.log.debug(f'Port ({str(local_port)}) exposure skipped on Runtime {self.host}. Can\'t expose a port to '
+                           f'myself.')
             return ''
         elif not self.has_free_port(runtime_port):
             raise PortInUseError(runtime_port, runtime=self)
@@ -820,8 +847,7 @@ class Runtime(object):
         key = self._create_process_key_for_port_exposure(self._PORT_TO_RUNTIME, local_port, runtime_port)
         self._processes.update({key: proc})
         time.sleep(0.1)  # Necessary to prevent collisions with MaxStartup restrictions
-        print('Local port ' + str(local_port) + ' exposed to runtime ' + self._host + ' on port ' +
-              str(runtime_port))
+        self.log.debug(f'Local port {str(local_port)} exposed to Runtime {self._host} on port {str(runtime_port)}')
         return key
 
     def expose_port_from_runtime(self, runtime_port: int, local_port: Optional[int] = None) -> str:
@@ -839,7 +865,8 @@ class Runtime(object):
             local_port = runtime_port
         if local_port == runtime_port and self._host == self.LOCALHOST:
             # We can not forward a port to itself!
-            print('Port exposure skipped. Can\'t expose a port to myself.')
+            self.log.debug(f'Port ({str(local_port)}) exposure skipped on Runtime {self.host}. Can\'t expose a port to '
+                           f'myself.')
             return ''
         elif not _utils.localhost_has_free_port(local_port):
             raise PortInUseError(runtime_port, runtime=self)
@@ -850,8 +877,7 @@ class Runtime(object):
         key = self._create_process_key_for_port_exposure(self._PORT_FROM_RUNTIME, local_port, runtime_port)
         self._processes.update({key: proc})
         time.sleep(0.1)  # Necessary to prevent collisions with MaxStartup restrictions
-        print('Port ' + str(runtime_port) + ' from runtime ' + self._host + ' exposed to local port ' +
-              str(local_port))
+        self.log.debug(f'Port {str(runtime_port)} from runtime {self._host} exposed to local port {str(local_port)}')
         return key
 
     def get_process(self, key: str) -> Process:
@@ -904,6 +930,7 @@ class Runtime(object):
         if key not in self._processes:
             raise ValueError('Unknown process key.')
         self._processes[key].terminate()
+        self.log.debug(f'Process with key {key} stopped in Runtime {self.host}')
 
     def has_free_port(self, port: int) -> bool:
         """Checks if the port is available on the runtime. 
@@ -914,6 +941,8 @@ class Runtime(object):
         Returns:
             bool: True if port is free, else False.
         """
+        self.log.debug(f'Checking if port {str(port)} is free on Runtime {self.host}')
+
         with self._fabric_connection as cxn:
             cmd_str = 'python -c "import socket;print(\'free\') ' \
                       'if socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect_ex((\'localhost\', ' + str(port) + \
@@ -975,31 +1004,27 @@ class Runtime(object):
         all_filters_checked = True
 
         if gpu_required and not self.gpus:
-            print(self.class_name + ' ' + self.host + 'does not have GPUs.')
+            self.log.debug(f'Runtime  {self.host} does not have GPUs.')
             all_filters_checked = False
 
-        if min_memory and self.memory < min_memory:
-            print(self.class_name + ' ' + self.host + 'has only ' + str(self.memory) + ' instead of ' + str(min_memory) +
-                  ' as required')
+        if min_memory and self.memory_in_mb < min_memory:
+            self.log.debug(f'Runtime {self.host} has only {str(self.memory_in_mb)} mb instead of {str(min_memory)} as required.')
             all_filters_checked = False
 
         if min_cpu_cores and self.cpu_cores < min_cpu_cores:
-            print(self.class_name + ' ' + self.host + 'has only ' + str(self.cpu_cores) + ' instead of ' + str(min_cpu_cores) +
-                  ' as required.')
+            self.log.debug(f'Runtime {self.host} has only {str(self.cpu_cores)} instead of {str(min_cpu_cores)} as required.')
             all_filters_checked = False
 
         if installed_executables:
             for executable_name in _utils.create_list_from_parameter_value(installed_executables):
                 if not self._has_executable_installed(str(executable_name)):
-                    print(self.class_name + ' ' + self.host + 'does not have executable ' + str(executable_name) +
-                          'installed.')
+                    self.log.debug(f'Runtime {self.host} does not have executable {str(executable_name)} installed.')
                     all_filters_checked = False
 
         if filter_commands:
             for filter_command in _utils.create_list_from_parameter_value(filter_commands):
                 if not self._filter_command_checked(str(filter_command)):
-                    print('Filter ' + filter_commands + ' could not be checked successfully on ' + self.class_name + ' ' +
-                          self.host + ' .')
+                    self.log.debug(f'Filter filter_commands could not be checked successfully on Runtime' f' {self.host}.')
                     all_filters_checked = False
 
         return all_filters_checked
@@ -1016,6 +1041,7 @@ class Runtime(object):
             path = res.stdout.split("\n")[0]
             if not path:
                 path = res.stdout
+            self.log.debug(f'Temporary directory {path} created on Runtime {self.host}')
             return path
 
     def create_dir(self, path):
@@ -1030,6 +1056,8 @@ class Runtime(object):
             if res.stderr:
                 from lazycluster.exceptions import LazyclusterError
                 raise LazyclusterError('The directory ' + path + ' could not be created!')
+            else:
+                self.log.debug(f'Directory {path} created on Runtime {self.host}')
 
     def delete_dir(self, path: str) -> bool:
         """Delete a directory recursively. If at least one contained file could not be removed then False is returned.
@@ -1044,8 +1072,10 @@ class Runtime(object):
             cmd_str = 'rm -r ' + path
             try:
                 cxn.run(cmd_str)
+                self.log.debug(f'Directory {path} delete from Runtime {self.host}')
                 return True
             except:
+                self.log.warning(f'Directory {path} could not be deleted on Runtime {self.host}')
                 return False
 
     def cleanup(self):
@@ -1055,18 +1085,18 @@ class Runtime(object):
             process.terminate()
             process.join()
             if process.is_alive():
-                print('Process with key ' + key + ' could not be terminated')
+                self.log.warning(f'Process with key {key} could not be terminated')
             else:
-                print('Process with key ' + key + ' terminated')
+                self.log.debug(f'Process with key {key} terminated')
         if self._working_dir_is_temp and self._working_dir:
             success = self.delete_dir(self._working_dir)
             if success:
-                print('Temporary directory ' + self.working_directory + ' of Runtime ' + self.host + ' removed.')
+                self.log.debug(f'Temporary directory {self.working_directory} of Runtime {self.host} removed.')
                 self._working_dir = None
                 self._working_dir_is_temp = False
             else:
-                print('Temporary directory ' + self.working_directory + ' of Runtime ' + self.host +
-                      ' could not be removed.')
+                self.log.warning(f'Temporary directory {self.working_directory} of Runtime {self.host} could not be'
+                                 f' removed.')
 
         for task in self._tasks:
             task.cleanup()
@@ -1132,6 +1162,7 @@ class Runtime(object):
         """
         from socket import gaierror
         try:
+            self.log.debug(f'Create new fabric connection to host {self.host} via _fabric_connection.')
             return Connection(host=self.host, connect_kwargs=self._connection_kwargs)
         except gaierror:
             raise ValueError('Cannot establish SSH connection to host ' + self.host)
@@ -1161,6 +1192,7 @@ class Runtime(object):
     def _read_info(self) -> dict:
         """Read the host machine information.
         """
+        self.log.debug(f'Read Runtime information of Runtime {self.host}')
         task = RuntimeTask('get-host-info')
         task.run_command(_utils.get_pip_install_cmd())
         task.run_function(_utils.print_localhost_info)
