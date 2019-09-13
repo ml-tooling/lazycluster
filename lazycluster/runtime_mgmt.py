@@ -77,6 +77,9 @@ class RuntimeGroup(object):
         if not runtimes and not hosts or runtimes and hosts:
             raise ValueError("Either `runtimes` or `hosts` must be supplied. Not both or none.")
 
+        # Create the Logger
+        self.log = logging.getLogger(__name__)
+
         if runtimes:
             self._runtimes = {runtime.host: runtime for runtime in runtimes}
         elif hosts:
@@ -85,6 +88,8 @@ class RuntimeGroup(object):
         self._tasks = []
         # Cleanup will be done atexit since usage of destructor may lead to exceptions
         atexit.register(self.cleanup)
+
+        self.log.debug(f'RuntimeGroup object created')
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__, self.__dict__)
@@ -190,7 +195,7 @@ class RuntimeGroup(object):
         else:
             rt = runtime
         self._runtimes[rt.host] = rt
-        print(rt.host + ' added as ' + rt.class_name + ' to the group.')
+        self.log.info(rt.host + ' added as ' + rt.class_name + ' to the group.')
 
     def remove_runtime(self, host: str):
         """Remove a runtime from the group by host.
@@ -201,7 +206,9 @@ class RuntimeGroup(object):
         if not self.contains_runtime(host):
             warnings.warn('Runtime ' + host + ' is  not contained in the group!')
             return
-        del self._runtimes[host]
+        else:
+            del self._runtimes[host]
+            self.log.info(f'Runtime {host} removed from RuntimeGroup')
 
     def expose_port_to_runtimes(self, local_port: int, runtime_port: Union[int, List[int], None] = None,
                                 exclude_hosts: Union[str, List[str], None] = None) -> int:
@@ -225,6 +232,8 @@ class RuntimeGroup(object):
             PortInUseError: If `runtime_port` is already in use on at least one Runtime.
             ValueError: Only hosts or `exclude_hosts` must be provided or host is not contained in the group.
         """
+
+        self.log.info(f'Start exposing the local port {local_port} in the RuntimeGroup.')
 
         # 1. Determine a free runtime port
         if not runtime_port or not isinstance(runtime_port, list):
@@ -272,6 +281,8 @@ class RuntimeGroup(object):
         """
         if not self.contains_runtime(host):
             raise ValueError('Runtime ' + host + ' is not contained in the group.')
+
+        self.log.info(f'Start exposing the port {runtime_port} from Runtime {host} in the RuntimeGroup.')
 
         # 1. Determine a free group port
         if not group_port or not isinstance(group_port, list):
@@ -334,10 +345,13 @@ class RuntimeGroup(object):
             ValueError: If `host` is given and not contained as `Runtime` in the group.
             TaskExecutionError: If an executed task step can't be executed successfully.
         """
+        if not broadcast:
+            self.log.info(f'Start executing task {task.name} in RuntimeGroup (no broadcasting).')
+        else:
+            self.log.info(f'Start broadcasting task {task.name} in RuntimeGroup.')
         if broadcast:
             tasks = []
             for runtime in self.get_runtimes().values():  # Raises ValueError
-                print('Start executing task ' + task.name + ' in ' + runtime.class_name + ' ' + runtime.host)
                 runtime.execute_task(task, execute_async, debug)
                 tasks.append(task)
                 self._tasks.append(task)
@@ -356,6 +370,7 @@ class RuntimeGroup(object):
     def join(self):
         """Blocks until `RuntimeTasks` which were started via the `runtime.execute_task()` method terminated.
         """
+        self.log.info('Joining all processes executing a task that were started via the RuntimeGroup')
         for task in self._tasks:
             task.join()
 
@@ -389,6 +404,7 @@ class RuntimeGroup(object):
             if not self.has_free_port(port):
                 continue
 
+            self.log.debug(f'Port {str(port)} is retrieved as free port in thr RuntimeGroup.')
             return port
 
         raise NoPortsLeftError()
@@ -413,7 +429,7 @@ class RuntimeGroup(object):
 
         for runtime in self.get_runtimes(exclude_hosts=exclude_hosts).values():  # Raises ValueError
             if not runtime.has_free_port(port):
-                print('The port ' + str(port) + ' is currently in use on ' + runtime.class_name + ' ' + runtime.host)
+                self.log.debug(f'The port {str(port)} is currently in use on {runtime.class_name} {runtime.host}')
                 is_free = False
 
         return is_free
@@ -432,6 +448,7 @@ class RuntimeGroup(object):
     def clear_tasks(self):
         """Clears all internal state related to `RuntimeTasks`.
         """
+        self.log.info(f'Clear all tasks and kill related processes in the RuntimeGroup.')
         # 1: Clean up all state on group level
         self._tasks = []
         self._proc_keys = [proc_key for proc_key in self._proc_keys if not Runtime.is_runtime_task_process(proc_key)]
@@ -502,6 +519,7 @@ class RuntimeGroup(object):
         """Release all acquired resources and terminate all processes by calling the cleanup method on all contained
         `Runtimes`.
         """
+        self.log.info(f'Start cleanup of RuntimeGroup.')
         for runtime in self.get_runtimes().values():
             runtime.cleanup()
 
