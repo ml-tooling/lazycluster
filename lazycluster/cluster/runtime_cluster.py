@@ -140,7 +140,7 @@ class WorkerLauncher(object):
             PortInUseError: If `group_port` is occupied on the local machine.
             NoPortsLeftError: If `group_ports` was given and none of the ports was free.
         """
-        self.log.info('Setting up ssh tunnel for workers.')
+        self.log.info('Setting up ssh tunnel for inter worker communication.')
         for host, ports in self.ports_per_host.items():
             for worker_port in ports:
                 self._group.expose_port_from_runtime_to_group(host, worker_port)  # Raises all errors
