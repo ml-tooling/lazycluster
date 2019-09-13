@@ -233,7 +233,7 @@ class RuntimeGroup(object):
             ValueError: Only hosts or `exclude_hosts` must be provided or host is not contained in the group.
         """
 
-        self.log.info(f'Start exposing the local port {local_port} in the RuntimeGroup.')
+        self.log.info(f'Start exposing the local port {str(local_port)} in the RuntimeGroup.')
 
         # 1. Determine a free runtime port
         if not runtime_port or not isinstance(runtime_port, list):
@@ -249,7 +249,6 @@ class RuntimeGroup(object):
         exclude_hosts = _utils.create_list_from_parameter_value(exclude_hosts)
 
         if not self.has_free_port(runtime_port, exclude_hosts=exclude_hosts + [Runtime.LOCALHOST]):
-            logging.debug('T')
             raise PortInUseError(runtime_port, self)
 
         for runtime in self.get_runtimes(exclude_hosts=exclude_hosts).values():  # Raises ValueError
@@ -257,6 +256,7 @@ class RuntimeGroup(object):
             if process_key:
                 self._proc_keys.append(process_key)
 
+        self.log.debug(f'Port {str(runtime_port)} used as runtime_port.')
         return runtime_port
 
     def expose_port_from_runtime_to_group(self, host: str, runtime_port: int,
@@ -266,7 +266,7 @@ class RuntimeGroup(object):
         
         Args:
             host: The host of the `Runtime`.
-            runtime_port): The port on the runtime.
+            runtime_port: The port on the runtime.
             group_port: The port on the other runtimes where the `runtime_port` shall be exposed to. May raise
                         PortInUseError if a single port is given. If a list is used to automatically find a free port
                         then a NoPortsLeftError may be raised. Defaults to runtime_port.
@@ -282,7 +282,7 @@ class RuntimeGroup(object):
         if not self.contains_runtime(host):
             raise ValueError('Runtime ' + host + ' is not contained in the group.')
 
-        self.log.info(f'Start exposing the port {runtime_port} from Runtime {host} in the RuntimeGroup.')
+        self.log.info(f'Start exposing the port {str(runtime_port)} from Runtime {host} in the RuntimeGroup.')
 
         # 1. Determine a free group port
         if not group_port or not isinstance(group_port, list):
@@ -319,7 +319,7 @@ class RuntimeGroup(object):
                 process_key = runtime.expose_port_to_runtime(local_port, group_port)
             if process_key:
                 self._proc_keys.append(process_key)
-
+        self.log.debug(f'Port {str(group_port)} used as group_port.')
         return group_port
 
     def execute_task(self, task: RuntimeTask, host: Optional[str] = None, broadcast: bool = False,
@@ -548,10 +548,15 @@ class RuntimeManager(object):
         Raises:
             NoRuntimeDetectedError: If no `Runtime` could be automatically detected.
         """
+        # Create the Logger
+        self.log = logging.getLogger(__name__)
+
         runtimes = {}
 
         # Iterate over ssh configuration entries and look for valid RemoteRuntimes
         ssh_util = Storm()
+        self.log.debug('RuntimeManager starts looking for Runtimes based on ssh configuration.')
+
         for ssh_entry in ssh_util.list_entries(only_servers=True):
             if ssh_entry['host'] in runtimes:
                 continue
@@ -561,13 +566,15 @@ class RuntimeManager(object):
             try:
                 runtime = Runtime(ssh_entry['host'])
             except InvalidRuntimeError:
-                logging.debug('Host ' + ssh_entry['host'] + ' is not a valid RemoteRuntime.')
+                self.log.debug(f'RuntimeManager detected host config for {ssh_entry["host"]}, that could not be '
+                               f'instantiated  as NOT a valid Runtime.')
                 continue
             runtimes.update({runtime.host: runtime})
-            print(runtime.host + ' detected as valid RemoteRuntime.')
+            self.log.info(runtime.host + ' detected as valid Runtime by the RuntimeManager.')
 
         try:
             self._group = RuntimeGroup(list(runtimes.values()))
+            self.log.info(f'RuntimeManager detected {len(runtimes)} valid Runtimes.')
         except ValueError as err:
             raise NoRuntimesDetectedError(err)
 
@@ -626,6 +633,7 @@ class RuntimeManager(object):
 
         try:
             group = RuntimeGroup(final_runtimes)
+            self.log.debug('RuntimeGroup created by RuntimeManager', group)
         except ValueError as e:
             raise NoRuntimesDetectedError(e)
 
@@ -635,6 +643,7 @@ class RuntimeManager(object):
         """Print information of detected `Runtimes`.
 
         Note:
-            This function is a wrapper for `RuntimeGroup.print_runtime_info()`.
+            This function is a wrapper for `RuntimeGroup.print_runtime_info()`, since the detected `Runtimes` are
+            internally kept as a 'RuntimeGroup`.
         """
         self._group.print_runtime_info()
