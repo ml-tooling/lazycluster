@@ -53,7 +53,8 @@ and convenient cluster setup with Python for various distributed machine learnin
 pip install lazycluster
 ``` 
 ```bash
-pip install git+https://github.com/ml-tooling/lazycluster.git@master
+# Most up-to-date development version
+pip install git+https://github.com/ml-tooling/lazycluster.git@develop
 ``` 
 
 ### Prerequisites
