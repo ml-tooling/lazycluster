@@ -4,7 +4,7 @@ import os
 
 import click
 
-from typing import Optional
+from typing import Optional, List
 import storm.__main__ as storm
 
 from lazycluster import RuntimeManager, NoRuntimesDetectedError
@@ -24,9 +24,10 @@ def cli():
 @click.argument("connection_uri")
 @click.option("--id_file", "-id", required=False, type=click.STRING,
               help="The private key file that should be used for authentication")
+@click.option("--options", "-o", required=False, default=[], help="Custom ssh options")
 @click.option("--config", "-c", required=False, type=click.STRING, help="The ssh config file")
-def add_runtime(name: str, connection_uri: str, id_file: Optional[str] = None, config: Optional[str] = None):
-    storm.add(name, connection_uri, id_file, [], config)
+def add_runtime(name: str, connection_uri: str, id_file: Optional[str] = None, options: List = [], config: Optional[str] = None):
+    storm.add(name, connection_uri, id_file, options, config)
 
 
 @cli.command('delete-runtime')
@@ -59,6 +60,7 @@ def list_runtime():
         runtime_group = RuntimeManager().create_group()
     except NoRuntimesDetectedError:
         print('\nNo runtimes detected!')
+        return
 
     # Accessing an info attribute will enforce the actual reading of the data via ssh. Since the reading causes
     # many prints to the console we enforce this before actually printing the desired output.json.loads
