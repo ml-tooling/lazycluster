@@ -60,11 +60,11 @@ pip install git+https://github.com/ml-tooling/lazycluster.git@develop
 ### Prerequisites
 
 **For lazycluster installation:**
-- Python > 3.6
+- Python >= 3.6
 - ssh client (e.g. openssh-client)
 
 **Runtime Host Requirements:**
-- Python > 3.6
+- Python >= 3.6
 - ssh server (e.g. openssh-server)
 - passwordless ssh to the host (recommended)
 
