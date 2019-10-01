@@ -69,12 +69,14 @@ class RuntimeTask(object):
         self._name = name
         if not self._name:
             self._name = str(id(self))
+
         self._task_steps = []
         self._execution_log = []
         self._function_return_pkl_paths = []  # file paths to files with function's pickled return data
         self._requested_files = []
-
         self._process = None
+
+        self._env_variables = {}  # will be passed on to the fabric connection
 
         # Will be created if run_function is executed      
         self._temp_dir = None
@@ -147,6 +149,18 @@ class RuntimeTask(object):
         """The process object in which the task were executed. None, if not yet or synchronously executed.
         """
         return self._process
+
+    @property
+    def env_variables(self) -> Dict:
+        return self._env_variables
+
+    def set_env_variables(self, env_variables: Dict):
+        """Set environment parameters used when executing a task.
+
+        Args:
+            env_variables: The env variables as dictionary.
+        """
+        self._env_variables = env_variables
 
     def send_file(self, local_path: str, remote_path: Optional[str] = None) -> 'RuntimeTask':
         """Create a task step for sending either a single file or a folder from localhost to another host.
@@ -343,7 +357,7 @@ class RuntimeTask(object):
             if task_step.type == self._TaskStep.TYPE_RUN_COMMAND:
                 self.log.debug(f'Start executing step {task_step_index} (`run_command`) from RuntimeTask {self.name}')
                 try:
-                    res = connection.run(task_step.command, hide=not debug, pty=True)
+                    res = connection.run(task_step.command, hide=not debug, pty=True, env=self._env_variables)
                 except UnexpectedExit as prev_excp:
                     raise TaskExecutionError(task_step_index, self, connection.host, prev_excp)
 
@@ -376,7 +390,7 @@ class RuntimeTask(object):
                     connection.put(task_step.local_path, task_step.remote_path)
                 except UnexpectedExit as e:
                     self.log.error(f'UnexpectedExit while executing step {task_step_index} (`send_file`) ' 
-                                      f'from RuntimeTask {self.name}')
+                                   f'from RuntimeTask {self.name}')
 
                 self._execution_log.append('Send file ' + task_step.local_path + ' to ' + task_step.remote_path +
                                            connection.host)
@@ -465,7 +479,7 @@ class Runtime(object):
     
     Note:
         Passwordless ssh access should be be setup in advance. Otherwise the connection kwargs of fabric must be used
-        for setting up the ssh connection. See prerequisites in project README.
+        for setting up the ssh connection. See project README.
 
     Examples:
         ```python
@@ -488,7 +502,7 @@ class Runtime(object):
     _PROCESS_KEY_DELIMITER = '::'
     _TASK_PROCESS_KEY_PREFIX = 'task'
 
-    def __init__(self, host: str, working_dir: Optional[str] = None, **connection_kwargs):
+    def __init__(self, host: str, working_dir: Optional[str] = None, connection_kwargs: Optional[Dict] = None):
         """Initialization method.
 
         Args:
