@@ -531,6 +531,7 @@ class Runtime(object):
         self._info = {}
         self._process_manager = Manager()
         self._tasks = []
+        self._env_variables = {}  # will be passed on to the RuntimeTasks
 
         # Cleanup will be done atexit since usage of destructor may lead to exceptions
         atexit.register(self.cleanup)
@@ -702,6 +703,18 @@ class Runtime(object):
         """
         return len(self.task_processes)
 
+    @property
+    def env_variables(self) -> Dict:
+        return self._env_variables
+
+    def set_env_variables(self, env_variables: Dict):
+        """Set environment parameters used when executing a task.
+
+        Args:
+            env_variables: The env variables as dictionary.
+        """
+        self._env_variables = env_variables
+
     @classmethod
     def is_runtime_task_process(cls, process_key: str) -> bool:
         """Checks if the process which belongs to a given `process_key` was started to execute a `RuntimeTask` based on
@@ -794,6 +807,9 @@ class Runtime(object):
         self._create_working_dir_if_not_exists()
         async_str = ' asynchronously ' if execute_async else ' synchronously '
         self.log.info(f'Start executing task {task.name} {async_str} on {self.host}')
+
+        # Pass env parameters on to the RuntimeTask
+        task.set_env_variables(self._env_variables)
 
         # Wrapper needed to ensure execution from the Runtime's working directory
         def execute_remote_wrapper():
@@ -1171,6 +1187,8 @@ class Runtime(object):
     def _fabric_connection(self) -> Connection:
         """Get a new fabric connection to the runtime.
 
+        Note: We set the `fabric.Connection` parameter `inline_ssh_env=True`.
+
         Raises:
             ValueError: If user or port values are given via both host shorthand
                         and their own arguments.
@@ -1178,7 +1196,7 @@ class Runtime(object):
         from socket import gaierror
         try:
             self.log.debug(f'Create new fabric connection to host {self.host} via _fabric_connection.')
-            return Connection(host=self.host, connect_kwargs=self._connection_kwargs)
+            return Connection(host=self.host, connect_kwargs=self._connection_kwargs, inline_ssh_env=True)
         except gaierror:
             raise ValueError('Cannot establish SSH connection to host ' + self.host)
 
