@@ -25,7 +25,7 @@ class LocalMasterLauncher(MasterLauncher):
 
         Args:
             ports: Port where the master should be started. If a list is given then the first port that is free in the
-                   `RuntimeGroup` will be used. The actual chosen port can requested via the property `port`.
+                   `RuntimeGroup` will be used. The actual chosen port can be requested via the property `port`.
             timeout: Timeout (s) after which an MasterStartError is raised if master instance not started yet.
 
         Returns:
