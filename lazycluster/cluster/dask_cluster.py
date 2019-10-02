@@ -56,7 +56,7 @@ class LocalMasterLauncher(MasterLauncher):
             self._port = master_port
             self.log.debug('Dask scheduler started on localhost on port ' + str(self._port))
         else:
-            raise MasterStartError('localhost', self._port)
+            raise MasterStartError('localhost', master_port)
 
         # Sets up ssh tunnel for scheduler such that all communication is routed over the
         # local machine and all entities can talk to each the scheduler on localhost.
