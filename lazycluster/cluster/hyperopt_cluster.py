@@ -129,7 +129,7 @@ class RoundRobinLauncher(WorkerLauncher):
         return f'hyperopt-mongo-worker --mongo=localhost:{str(master_port)}/{db} --poll-interval={str(0.1)}'
 
 
-class Hyperoptluster(MasterWorkerCluster):
+class HyperoptCluster(MasterWorkerCluster):
     """Convenient class for launching a Hyperopt cluster in a `RuntimeGroup`.
 
     The number of hyperopt workers defaults to the number of `Runtimes` in the used `RuntimeGroup`. This number can be
