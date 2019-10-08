@@ -248,6 +248,12 @@ class RuntimeTask(object):
         Raises:
             ValueError: If function is empty.
         """
+
+        # Attention:
+        #   Please do not change the current task step composition, i.e. the order of the task steps where the current
+        #   TaskStep is composed of. The reason is the order of the task log, which will break. At least, the indices
+        #   in Runtime._read_info() needs to be adapted. Of course, this change might affect existing users!!!
+
         if not function:
             raise ValueError("Function is invalid.")
 
@@ -1230,4 +1236,4 @@ class Runtime(object):
         task.run_command(_utils.get_pip_install_cmd())
         task.run_function(_utils.print_localhost_info)
         self.execute_task(task, execute_async=False)
-        return json.loads(task.execution_log[4])
+        return json.loads(task.execution_log[3])
