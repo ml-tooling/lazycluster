@@ -997,9 +997,8 @@ class Runtime(object):
             if key == 'memory':
                 display_value = str(self.memory_in_mb) + ' mb'
             elif isinstance(value, list):
-                display_value = ''
                 for gpu in value:
-                    display_value = '{}; {}'.format(display_value, gpu)
+                    display_value = '{}'.format(gpu)
             else:
                 display_value = value
 
