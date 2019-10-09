@@ -20,6 +20,15 @@ class LocalMongoLauncher(MasterLauncher):
     instance as master node.
     """
 
+    def __init__(self, runtime_group: RuntimeGroup):
+        """Initialization method.
+
+        Args:
+            runtime_group: The group where the workers will be started.
+        """
+        super().__init__(runtime_group)
+        self._dbpath = None
+
     def start(self, ports: Union[List[int], int], timeout: int = 3) -> List[int]:
         """Launch a master instance.
 
@@ -48,7 +57,7 @@ class LocalMongoLauncher(MasterLauncher):
             master_port = self._group.get_free_port(ports)  # Raises NoPortsLeftError
             ports = _utils.get_remaining_ports(ports, master_port)
 
-        self._process = Popen(['mongod', '--dbpath', '.', '--port', str(master_port)])
+        self._process = Popen(['mongod', '--dbpath', dbpath, '--port', str(master_port)])
 
         time.sleep(timeout)  # Needed for being able to check the port
 
@@ -141,11 +150,12 @@ class HyperoptCluster(MasterWorkerCluster):
     behavior can also be changed by providing a custom implementation inheriting from the `MasterLauncher`.
     """
 
-    DEFAULT_MASTER_PORT = 1234
+    DEFAULT_MASTER_PORT = 27017
 
     def __init__(self, runtime_group: RuntimeGroup,
                  master_launcher: Optional[MasterLauncher] = None,
-                 worker_launcher: Optional[WorkerLauncher] = None):
+                 worker_launcher: Optional[WorkerLauncher] = None,
+                 dbpath: str = '/data/db'):
         """Initialization method.
 
         Args:
@@ -156,10 +166,13 @@ class HyperoptCluster(MasterWorkerCluster):
             worker_launcher: Optionally, an instance implementing the `WorkerLauncher` interface can be given, which
                              implements the strategy for launching the worker instances. If None, then
                              `RoundRobinLauncher` is used.
+            dbpath: The directory where the db files will be kept. Defaults to /data/db.
         """
         super().__init__(runtime_group)
 
         self._master_launcher = master_launcher if master_launcher else LocalMongoLauncher(runtime_group)
+        self._master_launcher._dbpath = dbpath
+
         self._worker_launcher = worker_launcher if worker_launcher else RoundRobinLauncher(runtime_group)
 
         self.log.debug('HyperoptCluster initialized.')
