@@ -188,7 +188,7 @@ class HyperoptCluster(MasterWorkerCluster):
         Returns:
             str: URL string.
         """
-        return f'mongo://localhost:{self.master_port}/{self.dbname}'
+        return f'mongo://localhost:{self.master_port}/{self.dbname}/jobs'
 
     @property
     def dbname(self):
