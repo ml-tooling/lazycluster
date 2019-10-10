@@ -313,7 +313,7 @@ class MasterWorkerCluster(RuntimeCluster):
         # Some attributes must be set in the given MasterLauncher implementation after
         # starting the master to ensure correct behavior of MasterWorkerCluster
         # => indicates a wrong implementation of the given launcher class
-        assert self._worker_launcher.ports_per_host
+        # e.g. for DASK -> assert self._worker_launcher.ports_per_host
 
         self.log.info('Worker instances started.')
 
