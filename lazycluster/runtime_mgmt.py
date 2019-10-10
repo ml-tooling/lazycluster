@@ -154,6 +154,18 @@ class RuntimeGroup(object):
             for return_data in task.function_returns:
                 yield return_data
 
+    def set_env_variables(self, env_variables: Dict):
+        """Set environment variables used when executing a task.
+
+        Note:
+            This is a convenient wrapper and internally calls Runtime.set_env_variables().
+
+        Args:
+            env_variables: The env variables as dictionary.
+        """
+        for runtime in self._runtimes.values():
+            runtime.set_env_variables(env_variables)
+
     def print_hosts(self):
         """Print the hosts of the group.
         """
