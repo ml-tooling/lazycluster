@@ -324,3 +324,4 @@ class MasterWorkerCluster(RuntimeCluster):
         self._group.cleanup()
         if self._master_launcher.process:
             self._master_launcher.process.terminate()
+            self.log.debug('The process of the master node was terminated.')
