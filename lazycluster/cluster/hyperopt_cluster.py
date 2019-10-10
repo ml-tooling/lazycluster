@@ -69,7 +69,7 @@ class LocalMongoLauncher(MasterLauncher):
 
         # Sets up ssh tunnel for scheduler such that all communication is routed over the
         # local machine and all entities can talk to each the scheduler on localhost.
-        self.log.debug(f'Expose the Dask scheduler port in the RuntimeGroup.')
+        self.log.debug(f'Expose the MongoDB port in the RuntimeGroup.')
         self._group.expose_port_to_runtimes(self._port)
 
         return ports

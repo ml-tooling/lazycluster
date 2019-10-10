@@ -136,8 +136,8 @@ class WorkerLauncher(object):
         local machine and all entities can talk to each other on localhost.
 
         Note:
-            This method needs to be called if the communication between the worker instances is necessary, e.g. in case of
-            DASK or Apache Flink, where data needs to be shuffled between the different entities.
+            This method needs to be called if the communication between the worker instances is necessary, e.g. in case
+            of DASK or Apache Flink, where data needs to be shuffled between the different entities.
 
         Raises:
             ValueError: If host is not contained.
@@ -303,7 +303,7 @@ class MasterWorkerCluster(RuntimeCluster):
             count: The number of worker instances to be started in the cluster. Defaults to the number of runtimes in
                    the cluster.
          Raises:
-            NoPortsLeftError: If there are no free ports left in the port list for instantiating new Dask entities.
+            NoPortsLeftError: If there are no free ports left in the port list for instantiating new worker entities.
         """
         if not count:
             count = self._group.runtime_count
