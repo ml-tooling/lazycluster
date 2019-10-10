@@ -155,7 +155,8 @@ class HyperoptCluster(MasterWorkerCluster):
     def __init__(self, runtime_group: RuntimeGroup,
                  master_launcher: Optional[MasterLauncher] = None,
                  worker_launcher: Optional[WorkerLauncher] = None,
-                 dbpath: str = '/data/db'):
+                 dbpath: str = '/data/db',
+                 dbname: str = 'hyperopt'):
         """Initialization method.
 
         Args:
@@ -167,13 +168,30 @@ class HyperoptCluster(MasterWorkerCluster):
                              implements the strategy for launching the worker instances. If None, then
                              `RoundRobinLauncher` is used.
             dbpath: The directory where the db files will be kept. Defaults to /data/db.
+            dbname: The name of the database to be used for experiments. See MongoTrials url scheme in hyperopt
+                    documentation for more details.
         """
         super().__init__(runtime_group)
 
         self._master_launcher = master_launcher if master_launcher else LocalMongoLauncher(runtime_group)
         self._master_launcher._dbpath = dbpath
+        self._dbname = dbname
 
         self._worker_launcher = worker_launcher if worker_launcher else RoundRobinLauncher(runtime_group)
 
         self.log.debug('HyperoptCluster initialized.')
 
+    @property
+    def mongo_url(self) -> str:
+        """The MongoDB url indicating what mongod process and which database to use.
+
+        Returns:
+            str: URL string.
+        """
+        return f'mongo://localhost:{self.master_port}/{self.dbname}'
+
+    @property
+    def dbname(self):
+        """The name of the MongoDB database to be used for experiments.
+        """
+        return self._dbname
