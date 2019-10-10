@@ -635,7 +635,7 @@ class RuntimeManager(object):
 
         try:
             group = RuntimeGroup(final_runtimes)
-            self.log.debug('RuntimeGroup created by RuntimeManager', str(group))
+            self.log.debug('RuntimeGroup created by RuntimeManager')
         except ValueError as e:
             raise NoRuntimesDetectedError(e)
 
