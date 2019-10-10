@@ -2,6 +2,7 @@
 """
 
 import time
+import warnings
 from typing import List, Union, Optional
 
 from subprocess import Popen
@@ -151,6 +152,7 @@ class HyperoptCluster(MasterWorkerCluster):
     """
 
     DEFAULT_MASTER_PORT = 27017
+    ENV_NAME_MONGO_URL = 'MONGO_CONNECTION_URL'
 
     def __init__(self, runtime_group: RuntimeGroup,
                  master_launcher: Optional[MasterLauncher] = None,
@@ -188,6 +190,9 @@ class HyperoptCluster(MasterWorkerCluster):
         Returns:
             str: URL string.
         """
+        if not self.master_port:
+            warnings.warn('HyperoptCluster.mongo_url was requested although the master_port is not yet set.')
+
         return f'mongo://localhost:{self.master_port}/{self.dbname}/jobs'
 
     @property
@@ -195,3 +200,25 @@ class HyperoptCluster(MasterWorkerCluster):
         """The name of the MongoDB database to be used for experiments.
         """
         return self._dbname
+
+    def start_master(self, master_port: Optional[int] = None, timeout: int = 3):
+        """Start the master instance.
+
+        Note:
+            How the master is actually started is determined by the the actual `MasterLauncher` implementation. Another
+            implementation adhering to the `MasterLauncher` interface can be provided in the constructor of the cluster
+            class.
+
+        Args:
+            master_port: Port of the master instance. Defaults to self.DEFAULT_MASTER_PORT, but another one is chosen if
+                         the port is not free within the group. The actual chosen port can be requested via
+                         self.master_port.
+            timeout: Timeout (s) after which an MasterStartError is raised if master instance not started yet.
+
+        Raises:
+            PortInUseError: If a single port is given and it is not free in the `RuntimeGroup`.
+            NoPortsLeftError: If there are no free ports left in the port list for instantiating the master.
+            MasterStartError: If master was not started after the specified `timeout`.
+        """
+        super().start_master(master_port, timeout)
+        self._group.set_env_variables({self.ENV_NAME_MONGO_URL: self.mongo_url})
