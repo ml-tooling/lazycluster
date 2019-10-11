@@ -389,8 +389,13 @@ class RuntimeGroup(object):
     def print_log(self):
         """Print the execution logs of each `RuntimeTask` that were executed in the group.
         """
+        i = 0
         for task in self._tasks:
+            if i > 0:
+                print('\n')
+                i += 1
             task.print_log()
+
 
     def get_free_port(self, ports: List[int], enforce_check_on_localhost: bool = False) -> int:
         """Return the first port from the list which is currently not in use in the whole group.
