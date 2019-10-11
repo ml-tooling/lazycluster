@@ -997,6 +997,7 @@ class Runtime(object):
             if key == 'memory':
                 display_value = str(self.memory_in_mb) + ' mb'
             elif isinstance(value, list):
+                display_value = ''
                 for gpu in value:
                     display_value = '{}'.format(gpu)
             else:
@@ -1136,6 +1137,11 @@ class Runtime(object):
 
         for task in self._tasks:
             task.cleanup()
+
+    def echo(self, msg: str) -> str:
+        """Convenient method for echoing a string on the `Runtime` and returning the result.
+        """
+        return self._fabric_connection.run(msg, env=self._env_variables)
 
     # - Private methods -#
 
