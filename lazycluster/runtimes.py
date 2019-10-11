@@ -1141,7 +1141,7 @@ class Runtime(object):
     def echo(self, msg: str) -> str:
         """Convenient method for echoing a string on the `Runtime` and returning the result.
         """
-        return self._fabric_connection.run(msg, env=self._env_variables)
+        return self._fabric_connection.run(f'echo {msg}', env=self._env_variables)
 
     # - Private methods -#
 
