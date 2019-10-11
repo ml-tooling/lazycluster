@@ -469,14 +469,18 @@ class RuntimeGroup(object):
             runtime.clear_tasks()
 
     def get_runtime(self, host: Optional[str] = None) -> Runtime:
-        """Returns a runtime based on the host.
+        """Returns a runtime identified by the `host` or 'the least busy one' will be returned if not host is given,
+        i.e. the one with the fewest alive processes executing a `RuntimeTask`.
+
+        Note:
+            The current behavior of the 'least busy runtime' is intended to be changed to a smarter approach as soon as
+            there will be the concrete need. So feel free to reach out to us or provide an alternative approach as PR.
 
         Args:
             host: The host which identifies the runtime.
 
         Returns:
-            Runtime: Runtime objects identified by `host`. Defaults to the least busy one, i.e. the one with the fewest
-            alive processes that execute a `RuntimeTask`.
+            Runtime: Runtime object.
 
         Raises:
             ValueError: Hostname is not contained in the group.
