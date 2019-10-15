@@ -137,10 +137,9 @@ class RuntimeTask(object):
                                            task execution.
         """
         self.log.debug(f'Start generating function returns for RuntimeTask {self.name}.')
-        if self.process:
-            self.log.debug(f'Waiting for process of RuntimeTask {self.name} to finish.')
-            self.process.join()
-            self.log.debug(f'Process of RuntimeTask {self.name} finished executing.')
+
+        # Ensure that the task finished its execution already
+        self.join()
 
         for return_pkl_path in self._function_return_pkl_paths:
 
@@ -439,7 +438,7 @@ class RuntimeTask(object):
         """Block the execution until the `RuntimeTask` finished its asynchronous execution.
 
         Note:
-
+            If self.needs_explicit_termination is set, then the execution is omitted in order to prevent a deadlock.
         """
         if self.needs_explicit_termination and self.process:
             self.log.debug(f'The execution of join() of RuntimeTask {self.name} is omitted, since this task is marked '
@@ -1133,6 +1132,13 @@ class Runtime(object):
             except:
                 self.log.warning(f'Directory {path} could not be deleted on Runtime {self.host}')
                 return False
+
+    def join(self):
+        """Blocks until `RuntimeTasks` which were started via the `runtime.execute_task()` method terminated.
+        """
+        self.log.info('Joining all processes executing a task that were started via the RuntimeGroup')
+        for task in self._tasks:
+            task.join()
 
     def cleanup(self):
         """Release all acquired resources and terminate all processes.
