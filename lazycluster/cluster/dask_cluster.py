@@ -132,7 +132,7 @@ class RoundRobinLauncher(WorkerLauncher):
         worker_port = self._group.get_free_port(self._ports)  # Raises NoPortsLeftError
         self._ports = _utils.get_remaining_ports(self._ports, worker_port)
         # 2. Start the worker on this port
-        task = RuntimeTask('launch-dask-worker-' + str(worker_index))
+        task = RuntimeTask('launch-dask-worker-' + str(worker_index), needs_explicit_termination=True)
         task.run_command(DaskCluster.PIP_INSTALL_COMMAND)
         task.run_command(self._get_launch_command(master_port, worker_port, working_dir))
         self._group.execute_task(task, host)
