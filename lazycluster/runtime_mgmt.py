@@ -593,8 +593,8 @@ class RuntimeManager(object):
             try:
                 runtime = Runtime(ssh_entry['host'])
             except InvalidRuntimeError:
-                self.log.debug(f'RuntimeManager detected host config for {ssh_entry["host"]}, that could not be '
-                               f'instantiated  as NOT a valid Runtime.')
+                self.log.debug(f'RuntimeManager detected host config for {ssh_entry["host"]}, that could NOT be '
+                               f'instantiated  as a valid Runtime.')
                 continue
             runtimes.update({runtime.host: runtime})
             self.log.info(runtime.host + ' detected as valid Runtime by the RuntimeManager.')
