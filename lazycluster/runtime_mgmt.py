@@ -386,7 +386,7 @@ class RuntimeGroup(object):
             return task
 
     def join(self):
-        """Blocks until `RuntimeTasks` which were started via the `runtime.execute_task()` method terminated.
+        """Blocks until `RuntimeTasks` which were started via the `group.execute_task()` method terminated.
         """
         self.log.info('Joining all processes executing a task that were started via the RuntimeGroup')
         for task in self._tasks:
