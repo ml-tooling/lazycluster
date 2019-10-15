@@ -147,9 +147,15 @@ class RuntimeGroup(object):
         """Function return data. Blocks thread until a `RuntimeTasks` finished executing and gives back the return data
         of the remotely executed python functions. The data is returned in the same order as the Tasks were started.
 
+        Note:
+            Only function returns from `RuntimeTasks` that were started via the `RuntimeGroup` will be returned. If a
+            contained `Runtime` executed further tasks directly, then those data will only be returned when querying the
+            respective task directly.
+
         Returns:
             Generator[object, None, None]: The unpickled return data.
         """
+        self.log.debug(f'Start generating function returns for RuntimeGroup.')
         for task in self._tasks:
             for return_data in task.function_returns:
                 yield return_data

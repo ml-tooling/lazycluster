@@ -130,9 +130,11 @@ class RuntimeTask(object):
             Generator[object, None, None]: Generator object yielding the return data of the functions executed during
                                            task execution.
         """
-        self.log.debug(f'Start generating function returns for RuntimeTask {self.name}. ')
+        self.log.debug(f'Start generating function returns for RuntimeTask {self.name}.')
         if self.process:
+            self.log.debug(f'Waiting for process of RuntimeTask {self.name} to finish.')
             self.process.join()
+            self.log.debug(f'Process of RuntimeTask {self.name} finished executing.')
 
         for return_pkl_path in self._function_return_pkl_paths:
 
@@ -588,6 +590,7 @@ class Runtime(object):
             Generator[object, None, None]: Generator object yielding the return data of the functions executed during
                                            task execution.
         """
+        self.log.debug(f'Start generating function returns for Runtime {self.host}.')
         for task in self._tasks:
             for function_return in task.function_returns:
                 yield function_return
