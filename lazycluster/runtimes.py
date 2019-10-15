@@ -55,12 +55,16 @@ class RuntimeTask(object):
         ```
     """
 
-    def __init__(self, name: Optional[str] = None):
+    def __init__(self, name: Optional[str] = None, needs_explicit_termination: bool = False):
         """Initialization method.
         
         Args:
             name: The name of the task. Defaults to None and consequently a unique identifier is generated via Python's
                   id() function.
+            needs_explicit_termination: This parameter needs to be set to True, if the RuntimeTask will not terminate
+                                        regularly. E.g. in case it starts a cluster worker instance. This information
+                                        is required in self.join(), since we call join on the executing process.
+                                        Obviously, this would block forever in such a case. Defaults to False.
         """
 
         # Create the Logger
@@ -76,7 +80,9 @@ class RuntimeTask(object):
         self._requested_files = []
         self._process = None
 
-        self._env_variables = {}  # will be passed on to the fabric connection
+        self.needs_explicit_termination = needs_explicit_termination
+
+        self._env_variables = {}  # will be passed on to the fabric connection#
 
         # Will be created if run_function is executed      
         self._temp_dir = None
@@ -431,11 +437,21 @@ class RuntimeTask(object):
 
     def join(self):
         """Block the execution until the `RuntimeTask` finished its asynchronous execution.
+
+        Note:
+
         """
-        self.log.info(f'Start joining threads of task {self.name}')
-        if self.process:
-            self.process.join()
-        self.log.info(f'Finished joining threads of task {self.name}')
+        if self.needs_explicit_termination and self.process:
+            self.log.debug(f'The execution of join() of RuntimeTask {self.name} is omitted, since this task is marked '
+                           f'as needs explicit termination.')
+            return
+
+        if not self.process:
+            self.process
+
+        self.log.info(f'Start joining the process that is executing RuntimeTask {self.name}.')
+        self.process.join()
+        self.log.info(f'Finished joining the process that is executing RuntimeTask {self.name}.')
 
     def print_log(self):
         """Print the execution log. Each log entry will be printed separately. The log index will be prepended.

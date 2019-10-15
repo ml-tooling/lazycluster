@@ -402,7 +402,6 @@ class RuntimeGroup(object):
                 i += 1
             task.print_log()
 
-
     def get_free_port(self, ports: List[int], enforce_check_on_localhost: bool = False) -> int:
         """Return the first port from the list which is currently not in use in the whole group.
 
