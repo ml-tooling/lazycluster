@@ -125,7 +125,7 @@ class RoundRobinLauncher(WorkerLauncher):
         """Launch a single worker instance in a `Runtime` in the `RuntimeGroup`.
         """
         # 2. Start the worker on this port
-        task = RuntimeTask('launch-hyperopt-worker-' + str(worker_index))
+        task = RuntimeTask('launch-hyperopt-worker-' + str(worker_index), needs_explicit_termination=True)
         task.run_command(self._get_launch_command(master_port))
         self._group.execute_task(task, host)
 
