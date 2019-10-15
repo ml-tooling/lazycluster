@@ -130,6 +130,7 @@ class RuntimeTask(object):
             Generator[object, None, None]: Generator object yielding the return data of the functions executed during
                                            task execution.
         """
+        self.log.debug(f'Start generating function returns for RuntimeTask {self.name}. ')
         if self.process:
             self.process.join()
 
