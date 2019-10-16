@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 @click.version_option()
 def cli():
     # log to sys out
-    logging.basicConfig(stream=sys.stdout, format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+    logging.basicConfig(stream=sys.stdout, format='%(asctime)s : %(levelname)s : %(message)s', level=logging.WARNING)
 
 
 @cli.command('add-runtime')
@@ -54,12 +54,17 @@ def delete_runtimes(name: str, config: Optional[str] = None):
 
 
 @cli.command('list-runtimes')
-def list_runtime():
+@click.option("--long", "-l", is_flag=True, help="Print detailed information about the Runtimes")
+def list_runtime(long: bool):
 
     try:
         runtime_group = RuntimeManager().create_group()
     except NoRuntimesDetectedError:
         print('\nNo runtimes detected!')
+        return
+
+    if not long:
+        runtime_group.print_hosts()
         return
 
     # Accessing an info attribute will enforce the actual reading of the data via ssh. Since the reading causes
