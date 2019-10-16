@@ -427,7 +427,7 @@ class RuntimeGroup(object):
             if not self.has_free_port(port):
                 continue
 
-            self.log.debug(f'Port {str(port)} is retrieved as free port in thr RuntimeGroup.')
+            self.log.debug(f'Port {str(port)} is retrieved as free port in the RuntimeGroup.')
             return port
 
         raise NoPortsLeftError()
