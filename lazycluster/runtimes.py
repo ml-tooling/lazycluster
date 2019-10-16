@@ -774,25 +774,30 @@ class Runtime(object):
         """
         self.log.debug(f'Start executing `is_valid_runtime()` on Runtime {self.host}')
 
-        task = RuntimeTask('check-python-version')
-        task.run_command('python --version')
+        # Paramiko is only used by fabric and thus not needed in our project requirements
+        from paramiko.ssh_exception import SSHException
 
         try:
-            self.execute_task(task, execute_async=False)
-        except Exception:
+            stdout = Connection(host=self.host,
+                                connect_kwargs=self._connection_kwargs,
+                                inline_ssh_env=True,
+                                connect_timeout=1).run('python --version', env=self._env_variables, warn=True).stdout
+        except SSHException:
             return False
 
-        if not task.execution_log[0]:
+        stdout = stdout.replace('\n', '').replace('\r', '')
+
+        if not stdout:
             return False
 
         # Example: `Python 3.6.8 :: Anaconda, Inc.`
-        python_version = task.execution_log[0].split()[1].split('.')
+        python_version = stdout.split()[1].split('.')
 
         if not python_version:
             return False
-        elif int(python_version[0]) > 3:  # Stay future-proof
+        elif int(python_version[0]) > 3:  # Stay future-proof?
             self.log.warning('The lib was originally created for Python 3.6 and is not yet tested for '
-                          'Python >= Python 4')
+                             'Python >= Python 4')
             return True
         elif int(python_version[0]) == 3 and int(python_version[1]) >= 6:
             return True
