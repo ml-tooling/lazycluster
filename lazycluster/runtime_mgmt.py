@@ -185,7 +185,8 @@ class RuntimeGroup(object):
             print(self.get_runtime(hostname).class_name + ': ' + hostname)
 
     def print_runtime_info(self):
-        """Print information of contained `Runtimes`. """
+        """Print information of contained `Runtimes`.
+        """
         for runtime in self.runtimes:
             runtime.print_info()
 
