@@ -666,6 +666,7 @@ class RuntimeManager(object):
         except ValueError as e:
             raise NoRuntimesDetectedError(e)
 
+        self.log.debug(f'RuntimeManager created RuntimeGroup with {str(group.runtime_count)} Runtime(s).')
         return group
 
     def print_runtime_info(self):
