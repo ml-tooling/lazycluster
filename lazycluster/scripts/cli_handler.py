@@ -14,9 +14,12 @@ log = logging.getLogger(__name__)
 
 @click.group()
 @click.version_option()
-def cli():
+@click.option('--debug/--no-debug', '-d', default=False)
+def cli(debug: bool):
     # log to sys out
-    logging.basicConfig(stream=sys.stdout, format='%(asctime)s : %(levelname)s : %(message)s', level=logging.WARNING)
+    log_level = logging.DEBUG if debug else logging.CRITICAL
+    logging.basicConfig(stream=sys.stdout, format='%(asctime)s : %(levelname)s : %(message)s', level=logging.CRITICAL)
+    logging.getLogger('lazycluster').setLevel(log_level)
 
 
 @cli.command('add-runtime')
@@ -60,19 +63,18 @@ def list_runtime(long: bool):
     try:
         runtime_group = RuntimeManager().create_group()
     except NoRuntimesDetectedError:
-        print('\nNo runtimes detected!')
+        print('\nNo runtimes detected!\n')
         return
 
     if not long:
         runtime_group.print_hosts()
+        print('\n')
         return
 
     # Accessing an info attribute will enforce the actual reading of the data via ssh. Since the reading causes
     # many prints to the console we enforce this before actually printing the desired output.json.loads
     for runtime in runtime_group.runtimes:
         runtime.info
-
-    runtime_group.cleanup()
 
     print('\n\u001b[1m')
     print(str(runtime_group.runtime_count) + ' Runtimes detected:')
@@ -81,6 +83,8 @@ def list_runtime(long: bool):
     runtime_group.print_runtime_info()
 
     print('\n')
+
+    runtime_group.cleanup()
 
 
 @cli.command('start-dask')
