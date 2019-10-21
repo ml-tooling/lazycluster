@@ -601,7 +601,7 @@ class RuntimeManager(object):
 
         try:
             self._group = RuntimeGroup(list(runtimes.values()))
-            self.log.info(f'RuntimeManager detected {len(runtimes)} valid Runtimes.')
+            self.log.info(f'RuntimeManager detected {len(runtimes)} valid Runtime(s).')
         except ValueError as err:
             raise NoRuntimesDetectedError(err)
 
