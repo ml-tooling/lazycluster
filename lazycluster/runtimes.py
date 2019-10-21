@@ -369,7 +369,8 @@ class RuntimeTask(object):
         for task_step in self._task_steps:
 
             if task_step.type == self._TaskStep.TYPE_RUN_COMMAND:
-                self.log.debug(f'Start executing step {task_step_index} (`run_command`) from RuntimeTask {self.name}')
+                self.log.debug(f'Start executing step {task_step_index} (`run_command`) from RuntimeTask {self.name} on'
+                               f' host {connection.host}. Command: `{task_step.command}`')
                 try:
                     res = connection.run(task_step.command, hide=not debug, pty=True, env=self._env_variables)
                 except UnexpectedExit as prev_excp:
@@ -377,7 +378,8 @@ class RuntimeTask(object):
 
                 stdout = res.stdout.replace('\n', '').replace('\r', '')
                 if not debug:
-                    self.log.debug(stdout)
+                    self.log.debug(f'The stdout of step {task_step_index} (`run_command`) from RuntimeTask {self.name} '
+                                   f'on host {connection.host} is `{stdout}`.')
 
                 self._execution_log.append(stdout)
 
@@ -398,13 +400,14 @@ class RuntimeTask(object):
                 # Update the path in the `_TaskStep` so that the actual used path is correctly stored
                 task_step.remote_path = remote_path
 
-                self.log.debug(f'Start executing TaskStep {task_step_index} (`send_file`) from RuntimeTask '
-                                  f'{self.name}')
+                self.log.debug(f'Start executing TaskStep {task_step_index} (`send_file`) from RuntimeTask {self.name} '
+                               f'on host {connection.host}. File: `local: {task_step.local_path}`, '
+                               f'`remote: {task_step.remote_path}`.')
                 try:
                     connection.put(task_step.local_path, task_step.remote_path)
                 except UnexpectedExit as e:
                     self.log.error(f'UnexpectedExit while executing step {task_step_index} (`send_file`) ' 
-                                   f'from RuntimeTask {self.name}')
+                                   f'from RuntimeTask {self.name} on host {connection.host}.')
 
                 self._execution_log.append('Send file ' + task_step.local_path + ' to ' + task_step.remote_path +
                                            connection.host)
@@ -424,12 +427,14 @@ class RuntimeTask(object):
                 # Update the path in the `_TaskStep` so that the actual used path is correctly stored
                 task_step.remote_path = remote_path
 
-                self.log.debug(f'Start executing step {task_step_index} (`get_file`) from RuntimeTask {self.name}')
+                self.log.debug(f'Start executing step {task_step_index} (`get_file`) from RuntimeTask {self.name} on '
+                               f'host {connection.host}. File: `local: {task_step.local_path}`, '
+                               f'`remote: {task_step.remote_path}`.')
                 try:
                     connection.get(task_step.remote_path, task_step.local_path)
                 except UnexpectedExit as e:
                     self.log.error(f'UnexpectedExit while executing step {task_step_index} (`get_file`) '
-                                      f'from RuntimeTask {self.name}', e)
+                                      f'from RuntimeTask {self.name} on host {connection.host}.', e)
                 self._execution_log.append(f'Get remote file {task_step.remote_path} to local {task_step.local_path}.')
 
             task_step_index = task_step_index + 1
@@ -778,14 +783,15 @@ class Runtime(object):
         from paramiko.ssh_exception import SSHException
 
         try:
-            stdout = Connection(host=self.host,
-                                connect_kwargs=self._connection_kwargs,
-                                inline_ssh_env=True,
-                                connect_timeout=1).run('python --version', env=self._env_variables, warn=True).stdout
+            cxn = Connection(host=self.host, connect_kwargs=self._connection_kwargs,
+                             inline_ssh_env=True, connect_timeout=1)
+            stdout = cxn.run('python --version', env=self._env_variables, warn=False, hide=True, pty=True).stdout
         except SSHException:
+            self.log.debug(f'connection.run() threw an exception during is_valid_runtime of host {self.host}.')
             return False
 
         stdout = stdout.replace('\n', '').replace('\r', '')
+        self.log.debug(f'stdout of python version check on host {self.host} is `{stdout}`.')
 
         if not stdout:
             return False
@@ -1097,7 +1103,7 @@ class Runtime(object):
         """
         with self._fabric_connection as cxn:
             cmd_str = 'python -c "import tempfile; print(tempfile.mkdtemp())"'
-            res = cxn.run(cmd_str)
+            res = cxn.run(cmd_str, hide=True)
             path = res.stdout.split("\n")[0]
             if not path:
                 path = res.stdout
