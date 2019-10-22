@@ -82,7 +82,7 @@ class RuntimeTask(object):
 
         self.needs_explicit_termination = needs_explicit_termination
 
-        self._env_variables = {}  # will be passed on to the fabric connection#
+        self._env_variables = {}  # will be passed on to the fabric connection
 
         # Will be created if run_function is executed      
         self._temp_dir = None
