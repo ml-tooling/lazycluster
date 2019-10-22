@@ -89,7 +89,7 @@ class RoundRobinLauncher(WorkerLauncher):
         super().__init__(runtime_group)
         self._ports = None
 
-        self.log.debug('RoundRobinLauncher object created.')
+        self.log.debug('RoundRobinLauncher initialized.')
 
     def start(self, worker_count: int, master_port: int, ports: List[int] = None) -> List[int]:
         """Launches the worker instances in the `RuntimeGroup`.
