@@ -453,7 +453,7 @@ class RuntimeTask(object):
         if not self.process:
             self.process
 
-        self.log.info(f'Start joining the process that is executing RuntimeTask {self.name}.')
+        self.log.infox(f'Start joining the process that is executing RuntimeTask {self.name}.')
         self.process.join()
         self.log.info(f'Finished joining the process that is executing RuntimeTask {self.name}.')
 
@@ -832,8 +832,8 @@ class Runtime(object):
         """Execute a given `RuntimeTask` in the `Runtime`.
 
         Args:
-            task: The task to be executed.
-            execute_async: The execution will be done in a separate thread if True. Defaults to True.
+            task: The RuntimeTask to be executed.
+            execute_async: The execution will be done in a separate process if True. Defaults to True.
             debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
                    the stdout/stderr will be added to python logger with level debug after each task step.
 
