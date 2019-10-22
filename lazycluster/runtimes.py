@@ -15,7 +15,7 @@ from typing import Optional, List, Dict, Generator, Union
 import shutil
 import cloudpickle as pickle
 import atexit
-
+from invoke.exceptions import UnexpectedExit
 from lazycluster import InvalidRuntimeError, NoPortsLeftError, PortInUseError, TaskExecutionError
 import lazycluster._utils as _utils
 
@@ -96,6 +96,11 @@ class RuntimeTask(object):
 
     def __str__(self):
         return type(self).__name__ + ': ' + self.name
+
+    def __deepcopy__(self, memo: Optional[dict] = None):
+        task = RuntimeTask(self.name, needs_explicit_termination=self.needs_explicit_termination)
+        task._task_steps = self._task_steps
+        task._env_variables = self._env_variables
 
     def cleanup(self):
         """Remove temporary used resources, like temporary directories if created.
@@ -182,17 +187,14 @@ class RuntimeTask(object):
             RuntimeTask: self.
         
         Raises:
-            ValueError: If file locally not found.
+            ValueError: If local_path is emtpy.
         """
         if not local_path:
-            raise ValueError("Invalid local path")
+            raise ValueError("Local path must not be empty")
 
-        if not remote_path:
-            remote_path = local_path
+        self._task_steps.append(self._TaskStep.create_send_file_instance(local_path, remote_path))
 
-        self._task_steps.append(self._TaskStep(self._TaskStep.TYPE_SEND_FILE, local_path=local_path,
-                                               remote_path=remote_path))
-        self.log.debug(f'Step for sending the file {local_path} to {remote_path} was added to RuntimeTask {self.name}')
+        self.log.debug(f'Step for sending the file {local_path} to {remote_path} was added to RuntimeTask {self.name}.')
         return self
 
     def get_file(self, remote_path: str, local_path: Optional[str] = None) -> 'RuntimeTask':
@@ -213,10 +215,10 @@ class RuntimeTask(object):
         if not remote_path:
             raise ValueError("Remote path must not be empty")
 
-        self._task_steps.append(self._TaskStep(self._TaskStep.TYPE_GET_FILE, remote_path=remote_path,
-                                               local_path=local_path))
+        self._task_steps.append(self._TaskStep.create_get_file_instance(remote_path, local_path))
         self._requested_files.append(local_path)
-        self.log.debug(f'Step for getting the file {remote_path} to {local_path} was added to RuntimeTask {self.name}')
+
+        self.log.debug(f'Step for getting the file {remote_path} to {local_path} was added to RuntimeTask {self.name}.')
         return self
 
     def run_command(self, command: str) -> 'RuntimeTask':
@@ -233,9 +235,9 @@ class RuntimeTask(object):
         """
         if not command:
             raise ValueError("Command must not be emtpy")
-        self._task_steps.append(self._TaskStep(self._TaskStep.TYPE_RUN_COMMAND, command=command))
+        self._task_steps.append(self._TaskStep.create_run_command_instance(command))
 
-        self.log.debug(f'Step for running the command `{command}` was added to RuntimeTask {self.name}')
+        self.log.debug(f'Step for running the command `{command}` was added to RuntimeTask {self.name}.')
         return self
 
     def run_function(self, function: callable, **func_kwargs) -> 'RuntimeTask':
@@ -265,7 +267,9 @@ class RuntimeTask(object):
         if not function:
             raise ValueError("Function is invalid.")
 
-        self.log.debug(f'Start adding steps to RuntimeTask {self.name} for executing function {function.__name__}')
+        self.log.debug(f'Start generating steps to RuntimeTask {self.name} for executing function {function.__name__}')
+
+        steps = []
 
         # Create a temp directory for persisting the serialized function
         if not self._temp_dir:
@@ -296,11 +300,17 @@ class RuntimeTask(object):
             pickle.dump(function_wrapper, f)
             f.close()
 
-        # Add `TaskStep` for sending the pickled function_wrapper file to the Runtime
-        self.send_file(local_pickle_file_path, remote_pickle_file_path)
+        self.log.debug(f'Function {function.__name__} locally saved as pickle file under `{local_pickle_file_path}`.')
 
-        # Ensure installation of cloudpickle 
-        self.run_command('pip install -q cloudpickle')
+        # Add `TaskStep` for sending the pickled function_wrapper file to the Runtime
+        steps.append(self._TaskStep.create_send_file_instance(local_pickle_file_path, remote_pickle_file_path))
+        self.log.debug(f'Step for sending the file {local_pickle_file_path} to {remote_pickle_file_path} was added to '
+                       f'RuntimeTask {self.name}.')
+
+        # Ensure installation of cloudpickle
+        run_cmd = 'pip install -q cloudpickle'
+        steps.append(self._TaskStep.create_run_command_instance(run_cmd))
+        self.log.debug(f'Step for running the command `{run_cmd}` was added to RuntimeTask {self.name}.')
 
         # Create commands for executing the pickled function file
         # => pickle the return data and save it as a file on the remote host so that we can get the file back to the
@@ -313,21 +323,34 @@ class RuntimeTask(object):
                             'pickle.dump(result, file); file.close();'
 
         run_cmd = 'python -c "' + run_function_code + '"'
-        self.run_command(run_cmd)
+        steps.append(self._TaskStep.create_run_command_instance(run_cmd))
+        self.log.debug(f'Step for running the command `{run_cmd}` was added to RuntimeTask {self.name}.')
 
         # Ensure the cleanup of the created function pickle file on the Runtime
         run_cmd = 'rm ' + remote_pickle_file_path
-        self.run_command(run_cmd)
+        steps.append(self._TaskStep.create_run_command_instance(run_cmd))
+        self.log.debug(f'Step for running the command `{run_cmd}` was added to RuntimeTask {self.name}.')
 
         # Get the return data back as pickled file
         self.get_file(remote_return_pickle_file_path, local_return_pickle_file_path)
+        steps.append(self._TaskStep.create_get_file_instance(remote_return_pickle_file_path,
+                                                             local_return_pickle_file_path))
+        self.log.debug(f'Step for getting the file {remote_return_pickle_file_path} to {local_return_pickle_file_path} '
+                       f'was added to RuntimeTask {self.name}.')
+        self._requested_files.append(local_return_pickle_file_path)
         self._function_return_pkl_paths.append(local_return_pickle_file_path)
 
         # Cleanup the return pickle file on the remote host
         run_cmd = 'rm ' + remote_return_pickle_file_path
-        self.run_command(run_cmd)
+        steps.append(self._TaskStep.create_run_command_instance(run_cmd))
+        self.log.debug(f'Step for running the command `{run_cmd}` was added to RuntimeTask {self.name}.')
 
-        self.log.debug(f'End adding steps to RuntimeTask {self.name} for executing function {function.__name__}')
+        self._task_steps.append(self._TaskStep.create_run_function_instance(steps, function, **func_kwargs))
+        self.log.debug(f'Successfully added the final step for running the function {function.__name__} to the '
+                       f'RuntimeTask {self.name}.')
+
+        self.log.debug(f'Finished generating steps for RuntimeTask {self.name} for executing '
+                       f'function {function.__name__}.')
         return self
 
     def execute(self, connection: Connection, debug: bool = False):
@@ -362,82 +385,43 @@ class RuntimeTask(object):
 
         self.log.debug(f'Start executing RuntimeTask {self.name} on host {connection.host}')
 
-        from invoke.exceptions import UnexpectedExit
-
         task_step_index = 0
 
         for task_step in self._task_steps:
 
             if task_step.type == self._TaskStep.TYPE_RUN_COMMAND:
-                self.log.debug(f'Start executing step {task_step_index} (`run_command`) from RuntimeTask {self.name} on'
-                               f' host {connection.host}. Command: `{task_step.command}`')
-                try:
-                    res = connection.run(task_step.command, hide=not debug, pty=True, env=self._env_variables)
-                except UnexpectedExit as prev_excp:
-                    raise TaskExecutionError(task_step_index, self, connection.host, prev_excp)
-
-                stdout = res.stdout.replace('\n', '').replace('\r', '')
-                if not debug:
-                    self.log.debug(f'The stdout of step {task_step_index} (`run_command`) from RuntimeTask {self.name} '
-                                   f'on host {connection.host} is `{stdout}`.')
-
-                self._execution_log.append(stdout)
+                self._execute_run_command_step(task_step, task_step_index, connection, debug)
 
             elif task_step.type == self._TaskStep.TYPE_SEND_FILE:
-                # Ensure that we have a valid remote path
-                remote_path = task_step.remote_path
-
-                if not remote_path:
-                    # Manually set the working directory since fabric defaults to the os
-                    # user's home directory in case of file transfer
-                    local_dir, filename = os.path.split(task_step.local_path)
-                    remote_path = os.path.join(working_dir, filename)
-
-                elif remote_path.startswith('.'):
-                    # Relative path -> in this case it will be interpreted relative to the working directory
-                    remote_path = os.path.join(working_dir, remote_path[2:])
-
-                # Update the path in the `_TaskStep` so that the actual used path is correctly stored
-                task_step.remote_path = remote_path
-
-                self.log.debug(f'Start executing TaskStep {task_step_index} (`send_file`) from RuntimeTask {self.name} '
-                               f'on host {connection.host}. File: `local: {task_step.local_path}`, '
-                               f'`remote: {task_step.remote_path}`.')
-                try:
-                    connection.put(task_step.local_path, task_step.remote_path)
-                except UnexpectedExit as e:
-                    self.log.error(f'UnexpectedExit while executing step {task_step_index} (`send_file`) ' 
-                                   f'from RuntimeTask {self.name} on host {connection.host}.')
-
-                self._execution_log.append('Send file ' + task_step.local_path + ' to ' + task_step.remote_path +
-                                           connection.host)
+                self._execute_send_file(task_step, task_step_index, working_dir, connection)
 
             elif task_step.type == self._TaskStep.TYPE_GET_FILE:
-                # Set working directory manually, so that it feels naturally for the user if he just
-                # uses the filename without a path
-                remote_path = task_step.remote_path
-                if not remote_path.startswith('/'):
-                    remote_dir, filename = os.path.split(remote_path)
-                    remote_path = os.path.join(working_dir, filename)
+                self._execute_get_file(task_step, task_step_index, working_dir, connection)
 
-                # or a relative path (-> will be interpreted relatively to the working directory)
-                elif remote_path.startswith('.'):
-                    remote_path = os.path.join(working_dir, remote_path[2:])
+            if task_step.type != self._TaskStep.TYPE_RUN_FUNCTION:
+                task_step_index = task_step_index + 1
+                continue
 
-                # Update the path in the `_TaskStep` so that the actual used path is correctly stored
-                task_step.remote_path = remote_path
+            # The remote python function execution is not an elementary TaskStep (as opposed to run_command,
+            # send_file, get_file) but is composed of these. Hence, we will execute the necessary steps here in order to
+            # execute the desired function remotely. Those steps where generated during the RuntimeTask.run_function()
+            # execution and not directly created by the user.
+            if task_step.type == self._TaskStep.TYPE_RUN_FUNCTION:
+                self.log.debug(f'Start executing the generated steps that are necessary to execute the python function '
+                               f'`{task_step.function.__name__}` remotely.')
+                for function_step in task_step.function_steps:
 
-                self.log.debug(f'Start executing step {task_step_index} (`get_file`) from RuntimeTask {self.name} on '
-                               f'host {connection.host}. File: `local: {task_step.local_path}`, '
-                               f'`remote: {task_step.remote_path}`.')
-                try:
-                    connection.get(task_step.remote_path, task_step.local_path)
-                except UnexpectedExit as e:
-                    self.log.error(f'UnexpectedExit while executing step {task_step_index} (`get_file`) '
-                                      f'from RuntimeTask {self.name} on host {connection.host}.', e)
-                self._execution_log.append(f'Get remote file {task_step.remote_path} to local {task_step.local_path}.')
+                    if function_step.type == self._TaskStep.TYPE_RUN_COMMAND:
+                        self._execute_run_command_step(function_step, task_step_index, connection, debug)
 
-            task_step_index = task_step_index + 1
+                    elif function_step.type == self._TaskStep.TYPE_SEND_FILE:
+                        self._execute_send_file(function_step, task_step_index, working_dir, connection)
+
+                    elif function_step.type == self._TaskStep.TYPE_GET_FILE:
+                        self._execute_get_file(function_step, task_step_index, working_dir, connection)
+
+                self.log.debug(f'Finished executing the generated steps that are necessary to execute the python '
+                               f'function `{task_step.function.__name__}` remotely.')
 
     def join(self):
         """Block the execution until the `RuntimeTask` finished its asynchronous execution.
@@ -451,9 +435,9 @@ class RuntimeTask(object):
             return
 
         if not self.process:
-            self.process
+            return
 
-        self.log.infox(f'Start joining the process that is executing RuntimeTask {self.name}.')
+        self.log.info(f'Start joining the process that is executing RuntimeTask {self.name}.')
         self.process.join()
         self.log.info(f'Finished joining the process that is executing RuntimeTask {self.name}.')
 
@@ -485,19 +469,116 @@ class RuntimeTask(object):
         cls._function_index += 1
         return file_prefix + str(cls._function_index) + '.' + cls._PICKLE_FILENAME_EXT
 
+    def _execute_run_command_step(self, task_step, task_step_index: int, connection: Connection, debug: bool):
+        self.log.debug(f'Start executing step {task_step_index} (`run_command`) from RuntimeTask {self.name} on'
+                       f' host {connection.host}. Command: `{task_step.command}`')
+        try:
+            res = connection.run(task_step.command, hide=not debug, pty=True, env=self._env_variables)
+        except UnexpectedExit as prev_excp:
+            raise TaskExecutionError(task_step_index, self, connection.host, prev_excp)
+
+        stdout = res.stdout.replace('\n', '').replace('\r', '')
+        if not debug:
+            self.log.debug(f'The stdout of step {task_step_index} (`run_command`) from RuntimeTask {self.name} '
+                           f'on host {connection.host} is `{stdout}`.')
+
+        self._execution_log.append(stdout)
+
+    def _execute_send_file(self, task_step, task_step_index: int, working_dir: str, connection: Connection):
+        # Ensure that we have a valid remote path
+        remote_path = task_step.remote_path
+
+        if not remote_path:
+            # Manually set the working directory since fabric defaults to the os
+            # user's home directory in case of file transfer
+            local_dir, filename = os.path.split(task_step.local_path)
+            remote_path = os.path.join(working_dir, filename)
+
+        elif remote_path.startswith('.'):
+            # Relative path -> in this case it will be interpreted relative to the working directory
+            remote_path = os.path.join(working_dir, remote_path[2:])
+
+        # Update the path in the `_TaskStep` so that the actual used path is correctly stored
+        task_step.remote_path = remote_path
+
+        self.log.debug(f'Start executing TaskStep {task_step_index} (`send_file`) from RuntimeTask {self.name} '
+                       f'on host {connection.host}. File: `local: {task_step.local_path}`, '
+                       f'`remote: {task_step.remote_path}`.')
+        try:
+            connection.put(task_step.local_path, task_step.remote_path)
+        except UnexpectedExit as e:
+            self.log.error(f'UnexpectedExit while executing step {task_step_index} (`send_file`) '
+                           f'from RuntimeTask {self.name} on host {connection.host}.')
+
+        self._execution_log.append('Send file ' + task_step.local_path + ' to ' + task_step.remote_path +
+                                   connection.host)
+
+    def _execute_get_file(self, task_step, task_step_index: int, working_dir: str, connection: Connection):
+        # Set working directory manually, so that it feels naturally for the user if he just
+        # uses the filename without a path
+        remote_path = task_step.remote_path
+        if not remote_path.startswith('/'):
+            remote_dir, filename = os.path.split(remote_path)
+            remote_path = os.path.join(working_dir, filename)
+
+        # or a relative path (-> will be interpreted relatively to the working directory)
+        elif remote_path.startswith('.'):
+            remote_path = os.path.join(working_dir, remote_path[2:])
+
+        # Update the path in the `_TaskStep` so that the actual used path is correctly stored
+        task_step.remote_path = remote_path
+
+        self.log.debug(f'Start executing step {task_step_index} (`get_file`) from RuntimeTask {self.name} on '
+                       f'host {connection.host}. File: `local: {task_step.local_path}`, '
+                       f'`remote: {task_step.remote_path}`.')
+        try:
+            connection.get(task_step.remote_path, task_step.local_path)
+        except UnexpectedExit as e:
+            self.log.error(f'UnexpectedExit while executing step {task_step_index} (`get_file`) '
+                           f'from RuntimeTask {self.name} on host {connection.host}.', e)
+        self._execution_log.append(f'Get remote file {task_step.remote_path} to local {task_step.local_path}.')
+
     class _TaskStep:
         """Represents an individual action, i.e. a `_TaskStep` within a `RuntimeTask`.
         """
         TYPE_RUN_COMMAND = 'command'
         TYPE_SEND_FILE = 'send-file'
         TYPE_GET_FILE = 'get-file'
+        TYPE_RUN_FUNCTION = 'function'
 
         def __init__(self, step_type: str, local_path: Optional[str] = None,
-                     remote_path: Optional[str] = None, command: Optional[str] = None):
+                     remote_path: Optional[str] = None, command: Optional[str] = None,
+                     function_steps: Optional[List['_TaskStep']] = None, function: Optional[callable] = None,
+                     **func_kwargs):
             self.type = step_type
+            # Related to send_ / get_file
             self.local_path = local_path
             self.remote_path = remote_path
+            # Related to run_command
             self.command = command
+            # Related to run_function
+            self.function = function
+            self.func_kwargs = func_kwargs
+            self.function_steps = function_steps
+
+        @classmethod
+        def create_get_file_instance(cls, remote_path: str, local_path: str):
+            return cls(cls.TYPE_GET_FILE, local_path, remote_path)
+
+        @classmethod
+        def create_send_file_instance(cls, local_path: str, remote_path: Optional[str] = None):
+            if not remote_path:
+                remote_path = local_path
+            return cls(cls.TYPE_SEND_FILE, local_path, remote_path)
+
+        @classmethod
+        def create_run_command_instance(cls, command: str):
+            return cls(cls.TYPE_RUN_COMMAND, command=command)
+
+        @classmethod
+        def create_run_function_instance(cls, steps: list,
+                                         function: callable, **func_kwargs):
+            return cls(cls.TYPE_RUN_FUNCTION, function_steps=steps, function=function, func_kwargs=func_kwargs)
 
         def __repr__(self):
             return "%s(%r)" % (self.__class__, self.__dict__)
