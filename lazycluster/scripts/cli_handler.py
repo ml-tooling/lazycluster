@@ -7,6 +7,7 @@ import click
 from typing import Optional, List
 import storm.__main__ as storm
 
+from click_spinner import spinner
 from lazycluster import RuntimeManager, NoRuntimesDetectedError
 
 log = logging.getLogger(__name__)
@@ -59,32 +60,33 @@ def delete_runtimes(name: str, config: Optional[str] = None):
 @cli.command('list-runtimes')
 @click.option("--long", "-l", is_flag=True, help="Print detailed information about the Runtimes")
 def list_runtime(long: bool):
+    with spinner():
 
-    try:
-        runtime_group = RuntimeManager().create_group()
-    except NoRuntimesDetectedError:
-        print('\nNo runtimes detected!\n')
-        return
+        try:
+            runtime_group = RuntimeManager().create_group()
+        except NoRuntimesDetectedError:
+            print('\nNo runtimes detected!\n')
+            return
 
-    if not long:
-        runtime_group.print_hosts()
+        if not long:
+            runtime_group.print_hosts()
+            print('\n')
+            return
+
+        # Accessing an info attribute will enforce the actual reading of the data via ssh. Since the reading causes
+        # many prints to the console we enforce this before actually printing the desired output.json.loads
+        for runtime in runtime_group.runtimes:
+            runtime.info
+
+        print('\n\u001b[1m')
+        print(str(runtime_group.runtime_count) + ' Runtime(s) detected:')
+        print('\u001b[0m')
+
+        runtime_group.print_runtime_info()
+
         print('\n')
-        return
 
-    # Accessing an info attribute will enforce the actual reading of the data via ssh. Since the reading causes
-    # many prints to the console we enforce this before actually printing the desired output.json.loads
-    for runtime in runtime_group.runtimes:
-        runtime.info
-
-    print('\n\u001b[1m')
-    print(str(runtime_group.runtime_count) + ' Runtimes detected:')
-    print('\u001b[0m')
-
-    runtime_group.print_runtime_info()
-
-    print('\n')
-
-    runtime_group.cleanup()
+        runtime_group.cleanup()
 
 
 @cli.command('start-dask')
