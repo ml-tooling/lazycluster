@@ -6,6 +6,7 @@ from multiprocessing import Process
 import warnings
 import logging
 import atexit
+from copy import deepcopy
 
 from lazycluster import RuntimeTask, Runtime
 from lazycluster import _utils
@@ -368,12 +369,16 @@ class RuntimeGroup(object):
             self.log.info(f'Start executing task {task.name} in RuntimeGroup (no broadcasting).')
         else:
             self.log.info(f'Start broadcasting task {task.name} in RuntimeGroup.')
+
         if broadcast:
             tasks = []
             for runtime in self.get_runtimes().values():  # Raises ValueError
-                runtime.execute_task(task, execute_async, debug)
-                tasks.append(task)
-                self._tasks.append(task)
+                # Create a deep copy to prevent reference errors especially for the task log.
+                # Each task will will contain its own log produced on its executing host.
+                deep_copied_task = deepcopy(task)
+                runtime.execute_task(deep_copied_task, execute_async, debug)
+                tasks.append(deep_copied_task)
+                self._tasks.append(deep_copied_task)
             return tasks
 
         else:
