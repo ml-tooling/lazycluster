@@ -98,9 +98,25 @@ class RuntimeTask(object):
         return type(self).__name__ + ': ' + self.name
 
     def __deepcopy__(self, memo: Optional[dict] = None):
-        task = RuntimeTask(self.name, needs_explicit_termination=self.needs_explicit_termination)
-        task._task_steps = self._task_steps
-        task._env_variables = self._env_variables
+        """This functions implements the deep copy logic so that all relevant data is copied or recreated with similar
+        values.
+
+        Note:
+            A custom implementation is necessary here since especially in run_function we automatically generate  pickle
+            file paths. When broadcasting a task we need to copy the task since it holds state such as logs and paths.
+            In order to circumvent the overwriting of such files, we need to ensure that new paths must be created.
+        """
+        copied_task = RuntimeTask(self.name, needs_explicit_termination=self.needs_explicit_termination)
+
+        for step in self._task_steps:
+            if step.type != self._TaskStep.TYPE_RUN_FUNCTION:
+                copied_task._task_steps.append(step)
+            else:
+                copied_task.run_function(step.function, **step.func_kwargs)
+
+        copied_task._env_variables = self._env_variables
+
+        return copied_task
 
     def cleanup(self):
         """Remove temporary used resources, like temporary directories if created.
@@ -332,12 +348,11 @@ class RuntimeTask(object):
         self.log.debug(f'Step for running the command `{run_cmd}` was added to RuntimeTask {self.name}.')
 
         # Get the return data back as pickled file
-        self.get_file(remote_return_pickle_file_path, local_return_pickle_file_path)
         steps.append(self._TaskStep.create_get_file_instance(remote_return_pickle_file_path,
                                                              local_return_pickle_file_path))
         self.log.debug(f'Step for getting the file {remote_return_pickle_file_path} to {local_return_pickle_file_path} '
                        f'was added to RuntimeTask {self.name}.')
-        self._requested_files.append(local_return_pickle_file_path)
+
         self._function_return_pkl_paths.append(local_return_pickle_file_path)
 
         # Cleanup the return pickle file on the remote host
@@ -345,7 +360,7 @@ class RuntimeTask(object):
         steps.append(self._TaskStep.create_run_command_instance(run_cmd))
         self.log.debug(f'Step for running the command `{run_cmd}` was added to RuntimeTask {self.name}.')
 
-        self._task_steps.append(self._TaskStep.create_run_function_instance(steps, function, **func_kwargs))
+        self._task_steps.append(self._TaskStep.create_run_function_instance(steps, function, func_kwargs))
         self.log.debug(f'Successfully added the final step for running the function {function.__name__} to the '
                        f'RuntimeTask {self.name}.')
 
@@ -549,7 +564,7 @@ class RuntimeTask(object):
         def __init__(self, step_type: str, local_path: Optional[str] = None,
                      remote_path: Optional[str] = None, command: Optional[str] = None,
                      function_steps: Optional[List['_TaskStep']] = None, function: Optional[callable] = None,
-                     **func_kwargs):
+                     func_kwargs: Optional[dict] = None):
             self.type = step_type
             # Related to send_ / get_file
             self.local_path = local_path
@@ -577,7 +592,7 @@ class RuntimeTask(object):
 
         @classmethod
         def create_run_function_instance(cls, steps: list,
-                                         function: callable, **func_kwargs):
+                                         function: callable, func_kwargs: Optional[dict] = None):
             return cls(cls.TYPE_RUN_FUNCTION, function_steps=steps, function=function, func_kwargs=func_kwargs)
 
         def __repr__(self):
