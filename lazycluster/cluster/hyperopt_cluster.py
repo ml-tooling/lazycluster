@@ -66,6 +66,7 @@ class LocalMongoLauncher(MasterLauncher):
             self._port = master_port
             self.log.debug('MongoDB started on localhost on port ' + str(self._port))
         else:
+            self.log.debug('MongoDB could NOT be started succesfully on port ' + str(self._port))
             raise MasterStartError('localhost', master_port)
 
         # Sets up ssh tunnel for scheduler such that all communication is routed over the
