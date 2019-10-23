@@ -58,13 +58,14 @@ class LocalMongoLauncher(MasterLauncher):
             master_port = self._group.get_free_port(ports)  # Raises NoPortsLeftError
             ports = _utils.get_remaining_ports(ports, master_port)
 
+        self.log.debug(f'Starting MongoDB on localhost on port {str(self._port)} with dbpath `{self._dbpath}`.')
         self._process = Popen(['mongod', '--dbpath', self._dbpath, '--port', str(master_port)])
 
         time.sleep(timeout)  # Needed for being able to check the port
 
         if not _utils.localhost_has_free_port(master_port):
             self._port = master_port
-            self.log.debug('MongoDB started on localhost on port ' + str(self._port))
+            self.log.info('MongoDB started on localhost on port ' + str(self._port))
         else:
             self.log.debug('MongoDB could NOT be started succesfully on port ' + str(self._port))
             raise MasterStartError('localhost', master_port)
