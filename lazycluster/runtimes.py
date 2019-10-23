@@ -77,7 +77,6 @@ class RuntimeTask(object):
         self._task_steps = []
         self._execution_log = []
         self._function_return_pkl_paths = []  # file paths to files with function's pickled return data
-        self._requested_files = []
         self._process = None
 
         self.needs_explicit_termination = needs_explicit_termination
@@ -232,7 +231,6 @@ class RuntimeTask(object):
             raise ValueError("Remote path must not be empty")
 
         self._task_steps.append(self._TaskStep.create_get_file_instance(remote_path, local_path))
-        self._requested_files.append(local_path)
 
         self.log.debug(f'Step for getting the file {remote_path} to {local_path} was added to RuntimeTask {self.name}.')
         return self
