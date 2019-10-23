@@ -596,6 +596,7 @@ class RuntimeManager(object):
                                                                                   and 'localhost' in runtimes):
                 continue
             try:
+                self.log.debug(f'RuntimeManager tries to instantiate host {ssh_entry["host"]} as Runtime.')
                 runtime = Runtime(ssh_entry['host'])
             except InvalidRuntimeError:
                 self.log.debug(f'RuntimeManager detected host config for {ssh_entry["host"]}, that could NOT be '
