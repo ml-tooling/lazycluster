@@ -58,7 +58,7 @@ class LocalMongoLauncher(MasterLauncher):
             master_port = self._group.get_free_port(ports)  # Raises NoPortsLeftError
             ports = _utils.get_remaining_ports(ports, master_port)
 
-        self.log.debug(f'Starting MongoDB on localhost on port {str(self._port)} with dbpath `{self._dbpath}`.')
+        self.log.debug(f'Starting MongoDB on localhost on port {str(master_port)} with dbpath `{self._dbpath}`.')
         #self._process = Popen(['mongod', '--dbpath', self._dbpath, '--port', str(master_port)])
         self._process = Popen(['mongod'])
 
