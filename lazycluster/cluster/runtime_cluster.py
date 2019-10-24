@@ -232,6 +232,15 @@ class MasterWorkerCluster(RuntimeCluster):
         """
         return self._master_launcher.port
 
+    @property
+    def runtime_group(self) -> RuntimeGroup:
+        """The RuntimeGroup.
+
+        Returns:
+            RuntimeGroup: The used group.
+        """
+        return self._group
+
     def start(self, worker_count: Optional[int] = None, master_port: Optional[int] = None):
         """Convenient method for launching the cluster.
 
