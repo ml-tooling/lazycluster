@@ -380,18 +380,22 @@ class RuntimeGroup(object):
             tasks = []
             task_index = 0
             for runtime in self.get_runtimes().values():  # Raises ValueError
-                # Create a deep copy to prevent reference errors especially for the task log.
-                # Each task will will contain its own log produced on its executing host.
-                deep_copied_task = deepcopy(task)
 
-                # Increment the task index and append the index to the end of the newly copied task name
-                # -> simplifies debugging
-                task_index = task_index + 1
-                deep_copied_task.name = deep_copied_task.name + '-' + str(task_index)
+                if task_index == 0:
+                    current_task = task
+                else:
+                    # Create a deep copy to prevent reference errors especially for the task log.
+                    # Each task will will contain its own log produced on its executing host.
+                    current_task = deepcopy(task)
 
-                runtime.execute_task(deep_copied_task, execute_async, debug)
-                tasks.append(deep_copied_task)
-                self._tasks.append(deep_copied_task)
+                    # Increment the task index and append the index to the end of the newly copied task name
+                    # -> simplifies debugging
+                    task_index = task_index + 1
+                    current_task.name = current_task.name + '-' + str(task_index)
+
+                runtime.execute_task(current_task, execute_async, debug)
+                tasks.append(current_task)
+                self._tasks.append(current_task)
             return tasks
 
         else:
