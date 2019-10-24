@@ -116,6 +116,8 @@ class RuntimeTask(object):
 
         copied_task._env_variables = self._env_variables
 
+        self.log.debug(f'Deep copy of RuntimeTask {self.name} created by using its custom __deepcopy__ implementation.')
+
         return copied_task
 
     def cleanup(self):
