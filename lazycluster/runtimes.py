@@ -86,6 +86,10 @@ class RuntimeTask(object):
         # Will be created if run_function is executed      
         self._temp_dir = None
 
+        # This indicates how many deep copies were created based on this task.
+        # E.g. if this task was deep copied tiwce, then the index would be 2.
+        self._copy_index = 0
+
         # Cleanup will be done atexit since usage of destructor may lead to exceptions
         atexit.register(self.cleanup)
 
@@ -106,8 +110,15 @@ class RuntimeTask(object):
             file paths. When broadcasting a task we need to copy the task since it holds state such as logs and paths.
             In order to circumvent the overwriting of such files, we need to ensure that new paths must be created.
         """
-        copied_task = RuntimeTask(self.name, needs_explicit_termination=self.needs_explicit_termination)
+        # Increment the task index and append the index to the end of the task name
+        # -> simplifies debugging
+        self._copy_index += 1
+        new_name = f'{self.name}-{self._copy_index}'
 
+        copied_task = RuntimeTask(new_name, needs_explicit_termination=self.needs_explicit_termination)
+
+        # Copy the task steps and re-execute run_function on the copied task,
+        # since there will be individual file paths created among others.
         for step in self._task_steps:
             if step.type != self._TaskStep.TYPE_RUN_FUNCTION:
                 copied_task._task_steps.append(step)
@@ -116,7 +127,8 @@ class RuntimeTask(object):
 
         copied_task._env_variables = self._env_variables
 
-        self.log.debug(f'Deep copy of RuntimeTask {self.name} created by using its custom __deepcopy__ implementation.')
+        self.log.debug(f'Deep copy [{self._copy_index}] of RuntimeTask {self.name} created by using its custom '
+                       f'__deepcopy__ implementation.')
 
         return copied_task
 

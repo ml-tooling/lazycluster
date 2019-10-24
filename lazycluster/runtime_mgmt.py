@@ -347,10 +347,9 @@ class RuntimeGroup(object):
         """Execute a `RuntimeTask` in the whole group or in a single `Runtime`.
 
         Note:
-            When broadcasting a task in the group, then actually deep copies of the RuntimeTask (by using its custom
-            deep copy implementation) are created and an index is appended at the end of the task's name in the format:
-            taskname-index, whereas the original task remains unchanged. The original task w/o index can be interpreted
-            as 0 and the first copy will have index 1 at the end of its name.
+            When broadcasting a task in the group then actually deep copies of the RuntimeTask are created (by using
+            its custom __deepcopy__ implementation), since each task holds state related to its own execution. Thus,
+            multiple tasks will be returned in this case.
         
         Args:
             task: The task to be executed.
@@ -378,25 +377,21 @@ class RuntimeGroup(object):
 
         if broadcast:
             tasks = []
-            task_index = 0
+            needs_to_create_copy = False
+
             for runtime in self.get_runtimes().values():  # Raises ValueError
 
-                if task_index == 0:
+                if not needs_to_create_copy:
                     current_task = task
                 else:
                     # Create a deep copy to prevent reference errors especially for the task log.
                     # Each task will will contain its own log produced on its executing host.
                     current_task = deepcopy(task)
 
-                    # Increment the task index and append the index to the end of the newly copied task name
-                    # -> simplifies debugging
-                    current_task.name = current_task.name + '-' + str(task_index)
-
                 runtime.execute_task(current_task, execute_async, debug)
+
                 tasks.append(current_task)
                 self._tasks.append(current_task)
-
-                task_index = task_index + 1
 
             return tasks
 
