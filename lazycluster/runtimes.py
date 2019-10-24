@@ -70,9 +70,9 @@ class RuntimeTask(object):
         # Create the Logger
         self.log = logging.getLogger(__name__)
 
-        self._name = name
-        if not self._name:
-            self._name = str(id(self))
+        self.name = name
+        if not self.name:
+            self.name = str(id(self))
 
         self._task_steps = []
         self._execution_log = []
@@ -85,6 +85,7 @@ class RuntimeTask(object):
 
         # Will be created if run_function is executed      
         self._temp_dir = None
+
         # Cleanup will be done atexit since usage of destructor may lead to exceptions
         atexit.register(self.cleanup)
 
@@ -125,15 +126,6 @@ class RuntimeTask(object):
             shutil.rmtree(self._temp_dir)
             self.log.debug(f'Temporary directory {self._temp_dir} of RuntimeTask {self.name} on localhost removed.')
             self._temp_dir = None
-
-    @property
-    def name(self) -> str:
-        """The task name.
-        
-        Returns:
-            str: Task name
-        """
-        return self._name
 
     @property
     def execution_log(self) -> List[str]:
