@@ -344,11 +344,17 @@ class RuntimeGroup(object):
 
     def execute_task(self, task: RuntimeTask, host: Optional[str] = None, broadcast: bool = False,
                      execute_async: bool = True, debug: bool = False) -> RuntimeTask or List[RuntimeTask]:
-        """Execute a `RuntimeTask` in the whole group or in a single `Runtime`. 
+        """Execute a `RuntimeTask` in the whole group or in a single `Runtime`.
+
+        Note:
+            When broadcasting a task in the group, then actually deep copies of the RuntimeTask (by using its custom
+            deep copy implementation) are created and an index is appended at the end of the task's name in the format:
+            taskname-index, whereas the original task remains unchanged. The original task w/o index can be interpreted
+            as 0 and the first copy will have index 1 at the end of its name.
         
         Args:
             task: The task to be executed.
-            host: If task should be executed in ine Runtime. Optionally, the host could be set in order to ensure
+            host: If task should be executed in one Runtime. Optionally, the host could be set in order to ensure
                   the execution in a specific Runtime. Defaults to None. Consequently, the least busy `Runtime` will be
                   chosen.
             broadcast: True, if the task will be executed on all `Runtimes`. Defaults to False.
@@ -372,10 +378,12 @@ class RuntimeGroup(object):
 
         if broadcast:
             tasks = []
+            task_index = 1
             for runtime in self.get_runtimes().values():  # Raises ValueError
                 # Create a deep copy to prevent reference errors especially for the task log.
                 # Each task will will contain its own log produced on its executing host.
                 deep_copied_task = deepcopy(task)
+                deep_copied_task.name = deep_copied_task.name + '-' + str(task_index)
                 runtime.execute_task(deep_copied_task, execute_async, debug)
                 tasks.append(deep_copied_task)
                 self._tasks.append(deep_copied_task)
