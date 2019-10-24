@@ -390,12 +390,14 @@ class RuntimeGroup(object):
 
                     # Increment the task index and append the index to the end of the newly copied task name
                     # -> simplifies debugging
-                    task_index = task_index + 1
                     current_task.name = current_task.name + '-' + str(task_index)
 
                 runtime.execute_task(current_task, execute_async, debug)
                 tasks.append(current_task)
                 self._tasks.append(current_task)
+
+                task_index = task_index + 1
+
             return tasks
 
         else:
