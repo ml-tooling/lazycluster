@@ -970,7 +970,8 @@ class Runtime(object):
 
         self._tasks.append(task)
 
-    def send_file(self, local_path: str, remote_path: Optional[str] = None, execute_async: Optional[bool] = True):
+    def send_file(self, local_path: str, remote_path: Optional[str] = None, execute_async: Optional[bool] = True) \
+            -> 'RuntimeTask':
         """Send either a single file or a folder from localhost to the Runtime.
 
         Note:
@@ -993,6 +994,7 @@ class Runtime(object):
         task = RuntimeTask(f'send-file-{local_path}-to-{self.host}')
         task.send_file(local_path, remote_path)
         self.execute_task(task, execute_async)
+        return task
 
     def _create_working_dir_if_not_exists(self):
         if not self._working_dir:

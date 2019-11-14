@@ -426,7 +426,8 @@ class RuntimeGroup(object):
             TaskExecutionError: If an executed task step can't be executed successfully.
         """
         for runtime in self._runtimes.values():
-            runtime.send_file(local_path, remote_path, execute_async)
+            executed_task = runtime.send_file(local_path, remote_path, execute_async)
+            self._tasks.append(executed_task)
 
     def join(self):
         """Blocks until `RuntimeTasks` which were started via the `group.execute_task()` method terminated.
