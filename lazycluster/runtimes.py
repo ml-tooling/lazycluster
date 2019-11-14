@@ -589,8 +589,6 @@ class RuntimeTask(object):
 
         @classmethod
         def create_send_file_instance(cls, local_path: str, remote_path: Optional[str] = None):
-            if not remote_path:
-                remote_path = local_path
             return cls(cls.TYPE_SEND_FILE, local_path, remote_path)
 
         @classmethod
