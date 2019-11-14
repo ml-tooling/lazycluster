@@ -623,7 +623,8 @@ class Runtime(object):
         Runtime('host-1').expose_port_from_runtime(8787)
         ```
     """
-
+    # The working directory will be set as environment variable with this env variable name
+    WORKING_DIR_ENV_VAR_NAME = 'WORKING_DIR'
     LOCALHOST = 'localhost'
 
     # Constants used for generating process keys
@@ -635,13 +636,18 @@ class Runtime(object):
     def __init__(self, host: str, working_dir: Optional[str] = None, connection_kwargs: Optional[Dict] = None):
         """Initialization method.
 
+        Note:
+            The working directory will also be set as environment variable on the Runtime. It is accessible via the
+            env variable name stated in the constant `Runtime.WORKING_DIR_ENV_VAR_NAME`. This might be especially of
+            interest when executing functions remotely.
+
         Args:
             host: The host of the `Runtime`.
-            working_dir: The directory which shall act as workind directory. All individual Steps of a
-                                         `RuntimeTask` will be executed relatively to this directory. Defaults to None.
-                                         Consequently, a temporary directory will be created and used as working dir.
-                                         If the working directory is a temporary one it will be cleaned up either
-                                         `atexit` or when calling `cleanup()` manually.
+            working_dir: The directory which shall act as working directory. All individual Steps of a
+                         `RuntimeTask` will be executed relatively to this directory. Defaults to None.
+                         Consequently, a temporary directory will be created and used as working dir.
+                         If the working directory is a temporary one it will be cleaned up either
+                         `atexit` or when calling `cleanup()` manually.
 
             connection_kwargs: kwargs that will be passed on to the fabric connection. Please check the fabric docs
                                  for further details.
@@ -655,8 +661,14 @@ class Runtime(object):
 
         self._host = host
         self._connection_kwargs = connection_kwargs
-        self._working_dir = working_dir
+
         self._working_dir_is_temp = False  # Indicates that a temp directory acts as working directory
+        self._working_dir = working_dir
+        if working_dir:
+            self.set_env_variables({self.WORKING_DIR_ENV_VAR_NAME: self._working_dir})
+            self.log.debug(f'The working directory  `{working_dir}` of Runtime {self.host} was set as environment '
+                           f'variable with the name {self.WORKING_DIR_ENV_VAR_NAME}.')
+
         self._processes = {}  # The dict key is a generated process identifier and the value contains the process
         self._info = {}
         self._process_manager = Manager()
@@ -682,8 +694,13 @@ class Runtime(object):
     def working_directory(self) -> str:
         """The path of the working directory that was set during object initialization.
 
+        Note:
+            The working directory will also be set as environment variable on the Runtime. It is accessible via the
+            env variable name stated in the constant `Runtime.WORKING_DIR_ENV_VAR_NAME`. This might be especially of
+            interest when executing functions remotely.
+
         Returns:
-            str: The path of thw working directory.
+            str: The path of the working directory.
         """
         self._create_working_dir_if_not_exists()
         return self._working_dir
@@ -1000,7 +1017,11 @@ class Runtime(object):
         if not self._working_dir:
             self._working_dir = self.create_tempdir()
             self._working_dir_is_temp = True
-            self.log.debug(f'Temporary directory {self._working_dir} created on {self._host}')
+            self.log.debug(f'Temporary directory {self._working_dir} created as working directory on Runtime '
+                           f'{self._host}')
+            self.set_env_variables({self.WORKING_DIR_ENV_VAR_NAME: self._working_dir})
+            self.log.debug(f'The working directory of Runtime {self.host} was set as environment variable with the name'
+                           f'{self.WORKING_DIR_ENV_VAR_NAME}.')
 
     def print_log(self):
         """Print the execution logs of each `RuntimeTask` that was executed in the `Runtime`.
