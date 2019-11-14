@@ -405,6 +405,29 @@ class RuntimeGroup(object):
             self._tasks.append(task)
             return task
 
+    def send_file(self, local_path: str, remote_path: Optional[str] = None, execute_async: Optional[bool] = True):
+        """Send either a single file or a folder from localhost to all Runtimes of the group.
+
+        Note:
+            This method is a convenient wrapper around the Runtime's send file functionality. See Runtime.send_file()
+            for further details.
+
+        Args:
+            local_path: Path to file on local machine.
+            remote_path: Path on the Runtime. Defaults to the Runtime.working_directory. See
+                         `RuntimeTask.execute()` docs for further details.
+            execute_async: Each individual sending will be done in a separate process if True. Defaults to True.
+
+        Returns:
+            RuntimeTask: self.
+
+        Raises:
+            ValueError: If local_path is emtpy.
+            TaskExecutionError: If an executed task step can't be executed successfully.
+        """
+        for runtime in self._runtimes:
+            runtime.send_file(local_path, remote_path, execute_async)
+
     def join(self):
         """Blocks until `RuntimeTasks` which were started via the `group.execute_task()` method terminated.
         """
