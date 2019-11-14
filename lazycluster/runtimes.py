@@ -399,6 +399,7 @@ class RuntimeTask(object):
         from socket import gaierror
         try:
             working_dir = connection.run('pwd', hide=True, warn=True).stdout.replace('\n', '').replace('\r', '')
+            self.log.debug(f'Current directory of connection to host {connection.host} is `{working_dir}`.')
         except gaierror:
             raise ValueError('Connection cannot be established. connection: ' + str(connection))
 
