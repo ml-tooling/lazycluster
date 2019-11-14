@@ -54,7 +54,7 @@ pip install lazycluster
 ``` 
 ```bash
 # Most up-to-date development version
-pip install git+https://github.com/ml-tooling/lazycluster.git@develop
+pip install --upgrade git+https://github.com/ml-tooling/lazycluster.git@develop
 ``` 
 
 ### Prerequisites
