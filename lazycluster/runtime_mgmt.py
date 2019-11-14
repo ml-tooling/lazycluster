@@ -425,7 +425,7 @@ class RuntimeGroup(object):
             ValueError: If local_path is emtpy.
             TaskExecutionError: If an executed task step can't be executed successfully.
         """
-        for runtime in self._runtimes:
+        for runtime in self._runtimes.values():
             runtime.send_file(local_path, remote_path, execute_async)
 
     def join(self):
