@@ -969,6 +969,30 @@ class Runtime(object):
 
         self._tasks.append(task)
 
+    def send_file(self, local_path: str, remote_path: Optional[str] = None, execute_async: Optional[bool] = True):
+        """Send either a single file or a folder from localhost to the Runtime.
+
+        Note:
+            This method is a convenient wrapper around the RuntimeTask's send file functionality. But it directly
+            executes the file sending in contrast to the send_file() method of the RuntimeTask.
+
+        Args:
+            local_path: Path to file on local machine.
+            remote_path: Path on the Runtime. Defaults to the self.working_directory. See
+                         `RuntimeTask.execute()` docs for further details.
+            execute_async: The execution will be done in a separate process if True. Defaults to True.
+
+        Returns:
+            RuntimeTask: self.
+
+        Raises:
+            ValueError: If local_path is emtpy.
+            TaskExecutionError: If an executed task step can't be executed successfully.
+        """
+        task = RuntimeTask(f'send-file-{local_path}-to-{self.host}')
+        task.send_file(local_path, remote_path)
+        self.execute_task(task, execute_async)
+
     def _create_working_dir_if_not_exists(self):
         if not self._working_dir:
             self._working_dir = self.create_tempdir()
