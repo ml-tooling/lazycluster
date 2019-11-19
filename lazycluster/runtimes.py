@@ -513,7 +513,7 @@ class RuntimeTask(object):
             # user's home directory in case of file transfer
             local_dir, filename = os.path.split(task_step.local_path)
             remote_path = os.path.join(working_dir, filename)
-            self.log.debug(f'Remote path was not given and manually set to the working directory.')
+            self.log.debug(f'Remote path was not given and manually set to the working directory {remote_path}.')
 
         elif remote_path.startswith('.'):
             # Relative path -> in this case it will be interpreted relative to the working directory
