@@ -224,4 +224,4 @@ class HyperoptCluster(MasterWorkerCluster):
             MasterStartError: If master was not started after the specified `timeout`.
         """
         super().start_master(master_port, timeout)
-        self._group.set_env_variables({self.ENV_NAME_MONGO_URL: self.mongo_url})
+        self._group.add_env_variables({self.ENV_NAME_MONGO_URL: self.mongo_url})
