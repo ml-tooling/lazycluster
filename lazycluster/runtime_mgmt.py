@@ -701,7 +701,7 @@ class RuntimeManager(object):
 
         for runtime in runtimes_dict.values():
             if runtime.check_filter(gpu_required, min_memory, min_cpu_cores, installed_executables, filter_commands):
-                runtime._working_dir = working_dir
+                runtime.working_directory = working_dir
                 final_runtimes.append(runtime)
 
         try:
