@@ -877,8 +877,7 @@ class Runtime(object):
         self._env_variables = env_variables
 
     def add_env_variables(self, env_variables: Dict):
-        """Updated the env variables dictionary. If a variable already exists it
-        gets updated and if not it will be added.
+        """Update the environment variables. If a variable already exists it gets updated and if not it will be added.
 
         Args:
             env_variables: The env variables used for the update.
