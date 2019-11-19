@@ -883,7 +883,7 @@ class Runtime(object):
         Args:
             env_variables: The env variables used for the update.
         """
-        self._env_variables = env_variables
+        self._env_variables.update(env_variables)
 
     @classmethod
     def is_runtime_task_process(cls, process_key: str) -> bool:
