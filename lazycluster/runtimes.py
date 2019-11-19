@@ -868,19 +868,20 @@ class Runtime(object):
         return self._env_variables
 
     @env_variables.setter
-    def env_variables(self, vars: Dict[str, str]):
+    def env_variables(self, env_variables: Dict[str, str]):
         """Setter for the environment variables.
 
         Args:
-            vars: The new env var dictionary.
+            env_variables: The new env var dictionary.
         """
-        self._env_variables = vars
+        self._env_variables = env_variables
 
-    def set_env_variables(self, env_variables: Dict):
-        """Set environment parameters used when executing a task.
+    def add_env_variables(self, env_variables: Dict):
+        """Updated the env variables dictionary. If a variable already exists it
+        gets updated and if not it will be added.
 
         Args:
-            env_variables: The env variables as dictionary.
+            env_variables: The env variables used for the update.
         """
         self._env_variables = env_variables
 
