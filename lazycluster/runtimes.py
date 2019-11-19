@@ -618,7 +618,7 @@ class Runtime(object):
         # Expose a port from localhost to the remote host so that a service running on localhost
         # is accessible from the remote host as well.
         Runtime('host-1').expose_port_to_runtime(8786)
-        # Expose a port from a remote `Runtime` to to localhost so that a service running on the `Runtime`
+        # Expose a port from a remote `Runtime` to localhost so that a service running on the `Runtime`
         # is accessible from localhost as well.
         Runtime('host-1').expose_port_from_runtime(8787)
         ```
@@ -952,6 +952,9 @@ class Runtime(object):
     def execute_task(self, task: RuntimeTask, execute_async: Optional[bool] = True, debug: bool = False):
         """Execute a given `RuntimeTask` in the `Runtime`.
 
+        Note:
+            Each execution will initialize the execution log of the `RuntimeTask`.
+
         Args:
             task: The RuntimeTask to be executed.
             execute_async: The execution will be done in a separate process if True. Defaults to True.
@@ -983,6 +986,7 @@ class Runtime(object):
             self._processes.update({self._create_process_key_for_task_execution(task): process})
             task._process = process
         else:
+            task._execution_log = []
             execute_remote_wrapper()
 
         self._tasks.append(task)
@@ -1012,6 +1016,25 @@ class Runtime(object):
         task.send_file(local_path, remote_path)
         self.execute_task(task, execute_async)
         return task
+
+    def execute_run_function(self, function: callable, **func_kwargs) -> 'RuntimeTask':
+        """Create a task step for executing a given python function on a remote host. The function will be transferred
+        to the remote host via ssh and cloudpickle. The return data can be requested via the property `function_returns`
+
+        Note:
+            Hence, the function must be serializable via cloudpickle and all dependencies must be available in its
+            correct versions on the remote host for now. We are planning to improve the dependency handling.
+
+        Args:
+            function: The function to be executed remotely.
+            func_kwargs: kwargs which will be passed to the function.
+
+        Returns:
+            RuntimeTask: self.
+
+        Raises:
+            ValueError: If function is empty.
+        """
 
     def _create_working_dir_if_not_exists(self):
         if not self._working_dir:
