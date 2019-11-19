@@ -188,7 +188,8 @@ class RuntimeTask(object):
     def env_variables(self) -> Dict:
         return self._env_variables
 
-    def set_env_variables(self, env_variables: Dict):
+    @env_variables.setter
+    def env_variables(self, env_variables: Dict):
         """Set environment parameters used when executing a task.
 
         Args:
@@ -990,7 +991,7 @@ class Runtime(object):
         self.log.info(f'Start executing task {task.name} {async_str} on {self.host}')
 
         # Pass env parameters on to the RuntimeTask
-        task.set_env_variables(self._env_variables)
+        task.env_variables = self._env_variables
 
         # Wrapper needed to ensure execution from the Runtime's working directory
         def execute_remote_wrapper():
