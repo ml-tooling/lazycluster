@@ -492,6 +492,7 @@ class RuntimeTask(object):
     def _execute_run_command_step(self, task_step, task_step_index: int, connection: Connection, debug: bool):
         self.log.debug(f'Start executing step {task_step_index} (`run_command`) from RuntimeTask {self.name} on'
                        f' host {connection.host}. Command: `{task_step.command}`')
+        self.log.debug(f'Used environment vars on host {connection.host}: {self._env_variables}')
         try:
             res = connection.run(task_step.command, hide=not debug, pty=True, env=self._env_variables)
         except UnexpectedExit as prev_excp:
