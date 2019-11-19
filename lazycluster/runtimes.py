@@ -639,7 +639,8 @@ class Runtime(object):
         Note:
             The working directory will also be set as environment variable on the Runtime. It is accessible via the
             env variable name stated in the constant `Runtime.WORKING_DIR_ENV_VAR_NAME`. This might be especially of
-            interest when executing functions remotely.
+            interest when executing functions remotely. Moreover, if the working_dir is set manually you need to ensure
+            in advance that this directors is actually present on the host.
 
         Args:
             host: The host of the `Runtime`.
