@@ -165,13 +165,26 @@ class RuntimeGroup(object):
         """Set environment variables used when executing a task.
 
         Note:
-            This is a convenient wrapper and internally calls Runtime.set_env_variables().
+            This is a convenient wrapper and internally uses Runtime.env_variables.
 
         Args:
             env_variables: The env variables as dictionary.
         """
         for runtime in self._runtimes.values():
-            runtime.set_env_variables(env_variables)
+            runtime.env_variables =  env_variables
+
+    def add_env_variables(self, env_variables: Dict):
+        """Update the environment variables of all contained Runtimes. If a variable already
+        exists it gets updated and if not it will be added.
+
+        Note:
+            This is a convenient wrapper and internally calls Runtime.add_env_variables().
+
+        Args:
+            env_variables: The env variables used for the update.
+        """
+        for runtime in self._runtimes.values():
+            runtime.add_env_variables(env_variables)
 
     def print_hosts(self):
         """Print the hosts of the group.
