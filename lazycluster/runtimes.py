@@ -664,11 +664,9 @@ class Runtime(object):
         self._connection_kwargs = connection_kwargs
 
         self._working_dir_is_temp = False  # Indicates that a temp directory acts as working directory
-        self._working_dir = working_dir
+        self._working_dir = None
         if working_dir:
-            self.set_env_variables({self.WORKING_DIR_ENV_VAR_NAME: self._working_dir})
-            self.log.debug(f'The working directory  `{working_dir}` of Runtime {self.host} was set as environment '
-                           f'variable with the name {self.WORKING_DIR_ENV_VAR_NAME}.')
+            self.working_directory = working_dir  # This will use the setter of self._working_dir
 
         self._processes = {}  # The dict key is a generated process identifier and the value contains the process
         self._info = {}
@@ -705,6 +703,18 @@ class Runtime(object):
         """
         self._create_working_dir_if_not_exists()
         return self._working_dir
+
+    @working_directory.setter
+    def working_directory(self, working_dir: str):
+        """ Setter of the working directory. This will also update the related env variable.
+
+        Args:
+            working_dir: The full path to the working directory.
+        """
+        self._working_dir = working_dir
+        self._env_variables.update({self.WORKING_DIR_ENV_VAR_NAME: self._working_dir})
+        self.log.debug(f'The working directory  `{self._working_dir}` of Runtime {self.host} was set as environment '
+                       f'variable with the name {self.WORKING_DIR_ENV_VAR_NAME}.')
 
     @property
     def task_processes(self) -> List[Process]:
@@ -1039,13 +1049,11 @@ class Runtime(object):
 
     def _create_working_dir_if_not_exists(self):
         if not self._working_dir:
-            self._working_dir = self.create_tempdir()
+            working_dir = self.create_tempdir()
             self._working_dir_is_temp = True
-            self.log.debug(f'Temporary directory {self._working_dir} created as working directory on Runtime '
+            self.log.debug(f'Temporary directory {working_dir} created as working directory on Runtime '
                            f'{self._host}')
-            self.set_env_variables({self.WORKING_DIR_ENV_VAR_NAME: self._working_dir})
-            self.log.debug(f'The working directory of Runtime {self.host} was set as environment variable with the name'
-                           f'{self.WORKING_DIR_ENV_VAR_NAME}.')
+            self.working_directory = working_dir  # This will call the setter of self._working_dir
 
     def print_log(self):
         """Print the execution logs of each `RuntimeTask` that was executed in the `Runtime`.
