@@ -104,3 +104,22 @@ class NoPortsLeftError(LazyclusterError):
         """
         msg = 'No free port could be determined. No more ports left in port list.'
         super().__init__(msg)
+
+
+class PathCreationError(LazyclusterError):
+    """Error indicating that a given path could not be created.
+    """
+
+    def __init__(self, path: str, host: Optional[str] = None):
+        """Constructor method.
+
+        Args:
+            path: The path which should be created.
+        """
+        self.path = path
+        self.host = host
+
+        if host:
+            super().__init__(f'The path {path} could not be created on host {host}')
+        else:
+            super().__init__(f'The path {path} could not be created')
