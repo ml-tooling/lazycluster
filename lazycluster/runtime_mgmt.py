@@ -427,7 +427,7 @@ class RuntimeGroup(object):
 
         Args:
             local_path: Path to file on local machine.
-            remote_path: Path on the Runtime. Defaults to the Runtime.working_directory. See
+            remote_path: Path on the Runtime. Defaults to the Runtime.working_dir. See
                          `RuntimeTask.execute()` docs for further details.
             execute_async: Each individual sending will be done in a separate process if True. Defaults to True.
 
@@ -714,7 +714,7 @@ class RuntimeManager(object):
 
         for runtime in runtimes_dict.values():
             if runtime.check_filter(gpu_required, min_memory, min_cpu_cores, installed_executables, filter_commands):
-                runtime.working_directory = working_dir
+                runtime.working_dir = working_dir
                 final_runtimes.append(runtime)
 
         try:

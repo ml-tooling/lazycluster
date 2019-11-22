@@ -675,7 +675,7 @@ class Runtime(object):
         self._working_dir_is_temp = False  # Indicates that a temp directory acts as working directory
         self._working_dir = None
         if working_dir:
-            self.working_directory = working_dir  # raises PathCreationError
+            self.working_dir = working_dir  # raises PathCreationError
 
         self._processes = {}  # The dict key is a generated process identifier and the value contains the process
         self._info = {}
@@ -694,7 +694,7 @@ class Runtime(object):
         return self.class_name + ': ' + self.host
 
     @property
-    def working_directory(self) -> str:
+    def working_dir(self) -> str:
         """The path of the working directory that was set during object initialization.
 
         Note:
@@ -708,8 +708,8 @@ class Runtime(object):
         self._create_working_dir_if_not_exists()
         return self._working_dir
 
-    @working_directory.setter
-    def working_directory(self, working_dir: str):
+    @working_dir.setter
+    def working_dir(self, working_dir: str):
         """ Setter of the working directory. This will also update the related env variable.
 
         Note:
@@ -1032,7 +1032,7 @@ class Runtime(object):
 
         Args:
             local_path: Path to file on local machine.
-            remote_path: Path on the Runtime. Defaults to the self.working_directory. See
+            remote_path: Path on the Runtime. Defaults to the self.working_dir. See
                          `RuntimeTask.execute()` docs for further details.
             execute_async: The execution will be done in a separate process if True. Defaults to True.
 
@@ -1073,7 +1073,7 @@ class Runtime(object):
             self._working_dir_is_temp = True
             self.log.debug(f'Temporary directory {working_dir} created as working directory on Runtime '
                            f'{self._host}')
-            self.working_directory = working_dir  # This will call the setter of self._working_dir
+            self.working_dir = working_dir  # This will call the setter of self._working_dir
 
     def print_log(self):
         """Print the execution logs of each `RuntimeTask` that was executed in the `Runtime`.
@@ -1371,11 +1371,11 @@ class Runtime(object):
         if self._working_dir_is_temp and self._working_dir:
             success = self.delete_dir(self._working_dir)
             if success:
-                self.log.debug(f'Temporary directory {self.working_directory} of Runtime {self.host} removed.')
+                self.log.debug(f'Temporary directory {self.working_dir} of Runtime {self.host} removed.')
                 self._working_dir = None
                 self._working_dir_is_temp = False
             else:
-                self.log.warning(f'Temporary directory {self.working_directory} of Runtime {self.host} could not be'
+                self.log.warning(f'Temporary directory {self.working_dir} of Runtime {self.host} could not be'
                                  f' removed.')
 
         for task in self._tasks:

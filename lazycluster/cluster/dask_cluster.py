@@ -105,7 +105,7 @@ class RoundRobinLauncher(WorkerLauncher):
             runtime_index = (self._group.runtime_count + worker_index) % self._group.runtime_count
             # Get the actual host corresponding to the index
             host = hosts[runtime_index]
-            working_dir = runtimes[runtime_index].working_directory
+            working_dir = runtimes[runtime_index].working_dir
             assert host == runtimes[runtime_index].host
 
             self.log.debug(f'Launch Dask worker with index {worker_index} on Runtime {host}')
