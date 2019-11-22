@@ -59,7 +59,7 @@ class LocalMongoLauncher(MasterLauncher):
             ports = _utils.get_remaining_ports(ports, master_port)
 
         self.log.debug(f'Starting MongoDB on localhost on port {str(master_port)} with dbpath `{self._dbpath}`.')
-        self._process = Popen(['mongod', '--dbpath', self._dbpath, '--port', str(master_port)])
+        self._process = Popen(['mongod', f'--dbpath={self._dbpath}', f'--port={str(master_port)}'])
 
         time.sleep(timeout)  # Needed for being able to check the port
 
