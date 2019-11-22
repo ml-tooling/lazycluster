@@ -1322,14 +1322,17 @@ class Runtime(object):
         Raises:
             PathCreationError: If the path could not be created successfully.
         """
-        with self._fabric_connection as cxn:
-            cmd_str = 'mkdir -p ' + path
-            res = cxn.run(cmd_str, hide=True)
-            if res.stderr:
-                from lazycluster.exceptions import PathCreationError
-                raise PathCreationError(path, self.host)
-            else:
-                self.log.debug(f'Directory {path} created on Runtime {self.host}')
+        try:
+            with self._fabric_connection as cxn:
+                cmd_str = 'mkdir -p ' + path
+                res = cxn.run(cmd_str, hide=True)
+                if res.stderr:
+                    from lazycluster.exceptions import PathCreationError
+                    raise PathCreationError(path, self.host)
+                else:
+                    self.log.debug(f'Directory {path} created on Runtime {self.host}')
+        except Exception:
+            raise PathCreationError(path, self.host)
 
     def delete_dir(self, path: str) -> bool:
         """Delete a directory recursively. If at least one contained file could not be removed then False is returned.
