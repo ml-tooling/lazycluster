@@ -1313,7 +1313,7 @@ class Runtime(object):
             self.log.debug(f'Temporary directory {path} created on Runtime {self.host}')
             return path
 
-    def create_dir(self, path):
+    def create_dir(self, path: str):
         """Create a directory. All folders in the path will be created if not existing.
 
         Args:
