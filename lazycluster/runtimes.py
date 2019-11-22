@@ -646,42 +646,44 @@ class Runtime(object):
 
         Args:
             host: The host of the `Runtime`.
-            working_dir: The directory which shall act as working directory. All individual Steps of a
-                         `RuntimeTask` will be executed relatively to this directory. Defaults to None.
-                         Consequently, a temporary directory will be created and used as working dir.
-                         If the working directory is a temporary one it will be cleaned up either
-                         `atexit` or when calling `cleanup()` manually.
+            working_dir: The directory which shall act as working directory. If set, then the full path will be created
+                         on the remote host in case it does not exist. All individual Steps of a `RuntimeTask` will be
+                         executed relatively to this directory. Defaults to None. Consequently, a temporary directory
+                         will be created and used as working dir. If the working directory is a temporary one it will be
+                         cleaned up either `atexit` or when calling `cleanup()` manually.
 
             connection_kwargs: kwargs that will be passed on to the fabric connection. Please check the fabric docs
                                  for further details.
 
         Raises:
-            InvalidRuntimeError: If `Runtime` could not be instantiated successfully.
+            InvalidRuntimeError: If is_valid_runtime() check fails.
+            PathCreationError: If the working_dir path could not be created successfully.
         """
 
         # Create the Logger
         self.log = logging.getLogger(__name__)
 
+        # All attributes that need to be present before executing the valid Runtime check must be put here !!!!!
         self._host = host
         self._connection_kwargs = connection_kwargs
+        self._env_variables = {}  # Will be passed on to fabric connect, so that they are available on the remote host
+
+        # This checks relies on some attributes, which must be declared above
+        if not self.is_valid_runtime():
+            raise InvalidRuntimeError(host)
 
         self._working_dir_is_temp = False  # Indicates that a temp directory acts as working directory
         self._working_dir = None
         if working_dir:
-            self.working_directory = working_dir  # This will use the setter of self._working_dir
+            self.working_directory = working_dir  # raises PathCreationError
 
         self._processes = {}  # The dict key is a generated process identifier and the value contains the process
         self._info = {}
         self._process_manager = Manager()
         self._tasks = []
-        self._env_variables = {}  # will be passed on to the RuntimeTasks
 
         # Cleanup will be done atexit since usage of destructor may lead to exceptions
         atexit.register(self.cleanup)
-
-        # The check shall be executed at the end of the method, since it relies on some attributes like _working_dir etc
-        if not self.is_valid_runtime():
-            raise InvalidRuntimeError(host)
 
         self.log.debug(f'Runtime {self.host} initialized.')
 
@@ -710,9 +712,16 @@ class Runtime(object):
     def working_directory(self, working_dir: str):
         """ Setter of the working directory. This will also update the related env variable.
 
+        Note:
+            The full path will be created on the remote host in case it does not exist.
+
         Args:
             working_dir: The full path to the working directory.
+
+        Raises:
+            PathCreationError: If the working_dir path could not be created successfully.
         """
+        self.create_dir(working_dir)  # raises PathCreationError
         self._working_dir = working_dir
         self._env_variables.update({self.WORKING_DIR_ENV_VAR_NAME: self._working_dir})
         self.log.debug(f'The working directory  `{self._working_dir}` of Runtime {self.host} was set as environment '
@@ -1309,13 +1318,16 @@ class Runtime(object):
 
         Args:
             path: The full path of the directory to be created.
+
+        Raises:
+            PathCreationError: If the path could not be created successfully.
         """
         with self._fabric_connection as cxn:
             cmd_str = 'mkdir -p ' + path
             res = cxn.run(cmd_str, hide=True)
             if res.stderr:
-                from lazycluster.exceptions import LazyclusterError
-                raise LazyclusterError('The directory ' + path + ' could not be created!')
+                from lazycluster.exceptions import PathCreationError
+                raise PathCreationError(path, self.host)
             else:
                 self.log.debug(f'Directory {path} created on Runtime {self.host}')
 
