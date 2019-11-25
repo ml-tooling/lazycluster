@@ -418,29 +418,35 @@ class RuntimeGroup(object):
             self._tasks.append(task)
             return task
 
-    def send_file(self, local_path: str, remote_path: Optional[str] = None, execute_async: Optional[bool] = True):
-        """Send either a single file or a folder from localhost to all Runtimes of the group.
+    def send_file(self, local_path: str, remote_path: Optional[str] = None, execute_async: Optional[bool] = True) \
+            -> List[RuntimeTask]:
+        """Send either a single file or a folder from localhost to all `Runtimes` of the group.
 
         Note:
-            This method is a convenient wrapper around the Runtime's send file functionality. See Runtime.send_file()
+            This method is a convenient wrapper around the Runtime's send file functionality. See `Runtime.send_file()´
             for further details.
 
         Args:
             local_path: Path to file on local machine.
-            remote_path: Path on the Runtime. Defaults to the Runtime.working_dir. See
+            remote_path: Path on the `Runtime`. Defaults to the `Runtime.working_dir`. See
                          `RuntimeTask.execute()` docs for further details.
             execute_async: Each individual sending will be done in a separate process if True. Defaults to True.
 
         Returns:
-            RuntimeTask: self.
+            List[RuntimeTask]: The tasks that were internally created by the respective `Runtimes`.
 
         Raises:
             ValueError: If local_path is emtpy.
             TaskExecutionError: If an executed task step can't be executed successfully.
         """
+        tasks = []
+
         for runtime in self._runtimes.values():
             executed_task = runtime.send_file(local_path, remote_path, execute_async)
             self._tasks.append(executed_task)
+            tasks.append(executed_task)
+
+        return tasks
 
     def join(self):
         """Blocks until `RuntimeTasks` which were started via the `group.execute_task()` method terminated.
