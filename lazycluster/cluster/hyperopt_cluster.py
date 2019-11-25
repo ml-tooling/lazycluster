@@ -189,6 +189,9 @@ class HyperoptCluster(MasterWorkerCluster):
     def mongo_url(self) -> str:
         """The MongoDB url indicating what mongod process and which database to use.
 
+        Note:
+            The format is the format required by the hyperopt MongoTrials object.
+
         Returns:
             str: URL string.
         """
