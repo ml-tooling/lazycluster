@@ -1037,7 +1037,7 @@ class Runtime(object):
             execute_async: The execution will be done in a separate process if True. Defaults to True.
 
         Returns:
-            RuntimeTask: self.
+            RuntimeTask: The task that were internally created for the file transfer.
 
         Raises:
             ValueError: If local_path is emtpy.
