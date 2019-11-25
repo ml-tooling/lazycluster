@@ -439,6 +439,10 @@ class RuntimeGroup(object):
             ValueError: If local_path is emtpy.
             TaskExecutionError: If an executed task step can't be executed successfully.
         """
+        async_str = ' asynchronously ' if execute_async else ' synchronously '
+        self.log.debug(f'Start sending local file `{local_path}` to RuntimeGroup {async_str}. Given remote path: '
+                       f'`{remote_path}`.')
+
         tasks = []
 
         for runtime in self._runtimes.values():

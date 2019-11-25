@@ -1043,6 +1043,9 @@ class Runtime(object):
             ValueError: If local_path is emtpy.
             TaskExecutionError: If an executed task step can't be executed successfully.
         """
+        async_str = ' asynchronously ' if execute_async else ' synchronously '
+        self.log.debug(f'Start sending local file `{local_path}` to Runtime {self.host} {async_str}. Given remote path:'
+                       f' {remote_path}`.')
         task = RuntimeTask(f'send-file-{local_path}-to-{self.host}')
         task.send_file(local_path, remote_path)
         self.execute_task(task, execute_async)
