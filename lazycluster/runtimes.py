@@ -16,7 +16,7 @@ import shutil
 import cloudpickle as pickle
 import atexit
 from invoke.exceptions import UnexpectedExit
-from lazycluster import InvalidRuntimeError, NoPortsLeftError, PortInUseError, TaskExecutionError
+from lazycluster import InvalidRuntimeError, NoPortsLeftError, PortInUseError, TaskExecutionError, PathCreationError
 import lazycluster._utils as _utils
 
 import json
