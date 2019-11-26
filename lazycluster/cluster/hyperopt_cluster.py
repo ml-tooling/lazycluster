@@ -82,14 +82,27 @@ class RoundRobinLauncher(WorkerLauncher):
     """WorkerLauncher implementation for launching hyperopt workers in a round robin manner.
     """
 
-    def __init__(self, runtime_group: RuntimeGroup):
+    def __init__(self, runtime_group: RuntimeGroup, dbname: str, poll_interval: float):
         """Initialization method.
 
         Args:
             runtime_group: The group where the workers will be started.
+            dbname: The name of the mongodb instance.
+            poll_interval: The poll interval of the hyperopt worker.
+
+        Raises.
+            ValueError: In case dbname is empty.
         """
         super().__init__(runtime_group)
         self._ports = None
+
+        if not dbname:
+            raise ValueError('dbname must not be empty')
+        self._dbname = dbname
+
+        if not poll_interval:
+            raise ValueError('poll_interval must not be empty')
+        self._poll_interval = poll_interval
 
         self.log.debug('RoundRobinLauncher initialized.')
 
@@ -128,17 +141,18 @@ class RoundRobinLauncher(WorkerLauncher):
         """
         # 2. Start the worker on this port
         task = RuntimeTask('launch-hyperopt-worker-' + str(worker_index), needs_explicit_termination=True)
-        task.run_command(self._get_launch_command(master_port))
+        task.run_command(self._get_launch_command(master_port, self._dbname, self._poll_interval))
         self._group.execute_task(task, host)
 
     @classmethod
-    def _get_launch_command(cls, master_port: int, db: str = 'hyperopt', poll_intervall: float = 0.1) -> str:
+    def _get_launch_command(cls, master_port: int, dbname: str, poll_interval: float = 0.1) -> str:
         """Get the shell command for starting a worker instance.
 
         Returns:
              str: The launch command.
         """
-        return f'hyperopt-mongo-worker --mongo=localhost:{str(master_port)}/{db} --poll-interval={str(0.1)}'
+        return f'hyperopt-mongo-worker --mongo=localhost:{str(master_port)}/{dbname} ' \
+               f'--poll-interval={str(poll_interval)}'
 
 
 class HyperoptCluster(MasterWorkerCluster):
@@ -160,7 +174,8 @@ class HyperoptCluster(MasterWorkerCluster):
                  master_launcher: Optional[MasterLauncher] = None,
                  worker_launcher: Optional[WorkerLauncher] = None,
                  dbpath: str = '/data/db',
-                 dbname: str = 'hyperopt'):
+                 dbname: str = 'hyperopt',
+                 worker_poll_intervall: float = 0.1):
         """Initialization method.
 
         Args:
@@ -171,9 +186,10 @@ class HyperoptCluster(MasterWorkerCluster):
             worker_launcher: Optionally, an instance implementing the `WorkerLauncher` interface can be given, which
                              implements the strategy for launching the worker instances. If None, then
                              `RoundRobinLauncher` is used.
-            dbpath: The directory where the db files will be kept. Defaults to /data/db.
+            dbpath: The directory where the db files will be kept. Defaults to `/data/db`.
             dbname: The name of the database to be used for experiments. See MongoTrials url scheme in hyperopt
-                    documentation for more details.
+                    documentation for more details. Defaults to ´hyperopt´.
+            worker_poll_intervall: The poll interval of the hyperopt worker. Defaults to `0.1`.
         """
         super().__init__(runtime_group)
 
@@ -181,7 +197,8 @@ class HyperoptCluster(MasterWorkerCluster):
         self._master_launcher._dbpath = dbpath
         self._dbname = dbname
 
-        self._worker_launcher = worker_launcher if worker_launcher else RoundRobinLauncher(runtime_group)
+        self._worker_launcher = worker_launcher if worker_launcher else RoundRobinLauncher(runtime_group, dbname,
+                                                                                           worker_poll_intervall)
 
         self.log.debug('HyperoptCluster initialized.')
 
