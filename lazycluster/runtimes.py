@@ -1491,4 +1491,6 @@ class Runtime(object):
         task.run_command(_utils.get_pip_install_cmd())
         task.run_function(_utils.print_localhost_info)
         self.execute_task(task, execute_async=False)
-        return json.loads(task.execution_log[3])
+        runtime_info = json.loads(task.execution_log[3])
+        runtime_info['host'] = self.host
+        return runtime_info
