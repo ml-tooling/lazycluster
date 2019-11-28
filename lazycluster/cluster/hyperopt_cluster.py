@@ -69,7 +69,8 @@ class LocalMongoLauncher(MasterLauncher):
             self.log.info('MongoDB started on localhost on port ' + str(self._port))
         else:
             self.log.debug('MongoDB could NOT be started successfully on port ' + str(self._port))
-            raise MasterStartError('localhost', master_port)
+            cause = f'The master port {master_port} is still free when checking after the timeout of {timeout} seconds.'
+            raise MasterStartError('localhost', master_port, cause)
 
         # Sets up ssh tunnel for scheduler such that all communication is routed over the
         # local machine and all entities can talk to each the scheduler on localhost.
