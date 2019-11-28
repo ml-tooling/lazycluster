@@ -932,8 +932,9 @@ class Runtime(object):
         from paramiko.ssh_exception import SSHException, NoValidConnectionsError
 
         try:
+            # use a relatively high timeout to prevent errors when sshing with slow network connections
             cxn = Connection(host=self.host, connect_kwargs=self._connection_kwargs,
-                             inline_ssh_env=True, connect_timeout=1)
+                             inline_ssh_env=True, connect_timeout=10)
             stdout = cxn.run('python --version', env=self._env_variables, warn=False, hide=True, pty=True).stdout
         except NoValidConnectionsError:
             self.log.debug(f'No valid ssh connection to host {self.host}.')
