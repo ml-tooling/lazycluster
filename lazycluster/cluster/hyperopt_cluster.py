@@ -36,7 +36,8 @@ class LocalMongoLauncher(MasterLauncher):
         Args:
             ports: Port where the DB should be started. If a list is given then the first port that is free in the
                    `RuntimeGroup` will be used. The actual chosen port can be requested via the property `port`.
-            timeout: Timeout (s) after which an MasterStartError is raised if DB instance not started yet.
+            timeout: Timeout (s) after which an MasterStartError is raised if DB instance not started yet. Defaults to
+                     3 seconds.
 
         Returns:
             List[int]: In case a port list was given the updated port list will be returned. Otherwise an empty list.
