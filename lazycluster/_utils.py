@@ -97,12 +97,31 @@ def localhost_has_free_port(port: int) -> bool:
     is_success = sock.connect_ex(('localhost', port))
     return True if is_success else False
 
+
 def get_pip_install_cmd() -> str:
 
     if not settings.BRANCH:
         return 'pip install -q --upgrade ' + settings.PIP_PROJECT_NAME
 
     return 'pip install -q --upgrade git+' + settings.GITHUB_URL + '@' + settings.BRANCH
+
+
+def read_host_info(host: str) -> dict:
+    """ Read information of a remote host.
+
+    Args:
+        host: The host from which the info will be read.
+    """
+    from lazycluster import RuntimeTask
+    from fabric import Connection
+    import json
+    task = RuntimeTask('get-host-info')
+    task.run_command(get_pip_install_cmd())
+    task.run_function(print_localhost_info)
+    task.execute(Connection(host))
+    runtime_info = json.loads(task.execution_log[3])
+    runtime_info['host'] = host
+    return runtime_info
 
 
 """ Private module level utils """

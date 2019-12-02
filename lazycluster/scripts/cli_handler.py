@@ -75,8 +75,8 @@ def list_runtime(long: bool):
 
         # Accessing an info attribute will enforce the actual reading of the data via ssh. Since the reading causes
         # many prints to the console we enforce this before actually printing the desired output.json.loads
-        for runtime in runtime_group.runtimes:
-            runtime.info
+        #for runtime in runtime_group.runtimes:
+        #    runtime.info
 
         print('\n\u001b[1m')
         print(str(runtime_group.runtime_count) + ' Runtime(s) detected:')

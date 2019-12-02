@@ -2,7 +2,7 @@
 
 from typing import Optional, List, Dict, Generator, Union
 from storm import Storm
-from multiprocessing import Process
+from multiprocessing import Process, Pool
 import warnings
 import logging
 import atexit
@@ -201,6 +201,25 @@ class RuntimeGroup(object):
     def print_runtime_info(self):
         """Print information of contained `Runtimes`.
         """
+        # Ensure that all runtime info are read asynchronously before printing.
+        # Otherwise each runtime will read its information synchronously.
+        with Pool(self.runtime_count) as pool:
+            results = []
+            for runtime in self._runtimes.values():
+                if runtime._info:
+                    # If the runtime info is already present, we do not need to re-read it
+                    continue
+                self.log.debug(f'Start reading runtime info asynchronously of host {runtime.host} ***')
+                results.append(pool.apply_async(_utils.read_host_info, (runtime.host, )))
+
+            index = 0
+            for result in results:
+                self.log.debug(f'Waiting fo result {index} ***')
+                index += 1
+                runtime_info = result.get()
+                self.log.debug(f'Result for host {runtime_info["host"]} retrieved ***')
+                self.get_runtime(runtime_info['host'])._info = runtime_info
+
         for runtime in self.runtimes:
             runtime.print_info()
 

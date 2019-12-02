@@ -19,7 +19,6 @@ from invoke.exceptions import UnexpectedExit
 from lazycluster import InvalidRuntimeError, NoPortsLeftError, PortInUseError, TaskExecutionError, PathCreationError
 import lazycluster._utils as _utils
 
-import json
 import warnings
 import logging
 import os
@@ -1331,7 +1330,6 @@ class Runtime(object):
                 cmd_str = 'mkdir -p ' + path
                 res = cxn.run(cmd_str, hide=True)
                 if res.stderr:
-                    from lazycluster.exceptions import PathCreationError
                     raise PathCreationError(path, self.host)
                 else:
                     self.log.debug(f'Directory {path} created on Runtime {self.host}')
@@ -1487,10 +1485,4 @@ class Runtime(object):
         """Read the host machine information.
         """
         self.log.debug(f'Read Runtime information of Runtime {self.host}')
-        task = RuntimeTask('get-host-info')
-        task.run_command(_utils.get_pip_install_cmd())
-        task.run_function(_utils.print_localhost_info)
-        self.execute_task(task, execute_async=False)
-        runtime_info = json.loads(task.execution_log[3])
-        runtime_info['host'] = self.host
-        return runtime_info
+        return _utils.read_host_info(self.host)
