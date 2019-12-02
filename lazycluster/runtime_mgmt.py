@@ -189,20 +189,34 @@ class RuntimeGroup(object):
     def print_hosts(self):
         """Print the hosts of the group.
         """
-        print('\n')
         if not self.hosts:
             print('The group is empty!')
             return
-        else:
-            print('\u001b[1mRuntimes contained in Group:\u001b[0m')
+
         for hostname in self.hosts:
-            print(self.get_runtime(hostname).class_name + ': ' + hostname)
+            print(hostname)
 
     def print_runtime_info(self):
         """Print information of contained `Runtimes`.
         """
         # Ensure that all runtime info are read asynchronously before printing.
         # Otherwise each runtime will read its information synchronously.
+        self.fill_runtime_info_buffers_async()
+
+        for runtime in self.runtimes:
+            runtime.print_info()
+            print('\n')
+
+    def fill_runtime_info_buffers_async(self):
+        """Trigger the reading of runtime information asynchronously and buffer the result.
+
+        Note:
+            The actual reading of Runtime.info data takes place when requesting the attribute the first time.
+            Consequently, the result gets buffered in the respective Runtime instance. The actual reading of the data
+            takes places on the remote host takes some seconds. This method enables you to read the information in
+            seperate processes so that the execution time stays more or less the same independent of the actual amount
+            of Runtimes used.
+        """
         with Pool(self.runtime_count) as pool:
             results = []
             for runtime in self._runtimes.values():
@@ -214,14 +228,11 @@ class RuntimeGroup(object):
 
             index = 0
             for result in results:
-                self.log.debug(f'Waiting fo result {index} ***')
+                self.log.debug(f'Waiting fo result {index}.')
                 index += 1
                 runtime_info = result.get()
-                self.log.debug(f'Result for host {runtime_info["host"]} retrieved ***')
+                self.log.debug(f'Result for host {runtime_info["host"]} retrieved')
                 self.get_runtime(runtime_info['host'])._info = runtime_info
-
-        for runtime in self.runtimes:
-            runtime.print_info()
 
     def add_runtime(self, host: Optional[str] = None, runtime: Optional[Runtime] = None):
         """Add a `Runtime` to the group either by host or as a `Runtime` object.
@@ -664,6 +675,7 @@ class RuntimeManager(object):
         self.log = logging.getLogger(__name__)
 
         runtimes = {}
+        self.inactive_hosts = []
 
         # Iterate over ssh configuration entries and look for valid RemoteRuntimes
         ssh_util = Storm()
@@ -679,6 +691,7 @@ class RuntimeManager(object):
                 self.log.debug(f'RuntimeManager tries to instantiate host {ssh_entry["host"]} as Runtime.')
                 runtime = Runtime(ssh_entry['host'])
             except InvalidRuntimeError:
+                self.inactive_hosts.append(ssh_entry['host'])
                 self.log.debug(f'RuntimeManager detected host config for {ssh_entry["host"]}, that could NOT be '
                                f'instantiated  as a valid Runtime.')
                 continue
@@ -757,10 +770,37 @@ class RuntimeManager(object):
         return group
 
     def print_runtime_info(self):
-        """Print information of detected `Runtimes`.
+        """Print detailed information of detected `Runtimes` and moreover the names of inactive hosts.
 
         Note:
-            This function is a wrapper for `RuntimeGroup.print_runtime_info()`, since the detected `Runtimes` are
-            internally kept as a 'RuntimeGroup`.
+            Inactive means that the host is not reachable via ssh or the check vie Runtime.is_valid_runtime() failed.
         """
+        print('\n\u001b[1m')
+        print(f'{str(self._group.runtime_count)} Runtime(s) and {str(len(self.inactive_hosts))} inactive '
+              f'host(s) detected:')
+        print('\u001b[0m')
+
         self._group.print_runtime_info()
+        self.print_inactive_hosts()
+        print('\n')
+
+    def print_hosts(self):
+        """Print detected hosts incl. the inactive ones.
+
+        Note:
+            Inactive means that the host is not reachable via ssh or the check vie Runtime.is_valid_runtime() failed.
+        """
+        print('\n\u001b[1m')
+        print(f'{str(self._group.runtime_count)} Runtime(s) and {str(len(self.inactive_hosts))} inactive '
+              f'host(s) detected:')
+        print('\u001b[0m')
+
+        self._group.print_hosts()
+        self.print_inactive_hosts()
+        print('\n')
+
+    def print_inactive_hosts(self):
+        """Print the inactive hosts.
+        """
+        for host in self.inactive_hosts:
+            print(f'{host} (inactive)')

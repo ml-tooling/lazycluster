@@ -63,30 +63,21 @@ def list_runtime(long: bool):
     with spinner():
 
         try:
-            runtime_group = RuntimeManager().create_group()
+            runtime_mgr = RuntimeManager()
         except NoRuntimesDetectedError:
             print('\nNo runtimes detected!\n')
             return
 
-        if not long:
-            runtime_group.print_hosts()
-            print('\n')
-            return
+        if long:
+            # Ensure that all runtime info are read asynchronously before printing.
+            # Otherwise each runtime will read its information synchronously.
+            runtime_mgr._group.fill_runtime_info_buffers_async()
 
-        # Accessing an info attribute will enforce the actual reading of the data via ssh. Since the reading causes
-        # many prints to the console we enforce this before actually printing the desired output.json.loads
-        #for runtime in runtime_group.runtimes:
-        #    runtime.info
-
-        print('\n\u001b[1m')
-        print(str(runtime_group.runtime_count) + ' Runtime(s) detected:')
-        print('\u001b[0m')
-
-        runtime_group.print_runtime_info()
-
-        print('\n')
-
-        runtime_group.cleanup()
+    if long:
+        runtime_mgr.print_runtime_info()
+    else:
+        # Only printing the hosts is much faster than reading the detailed host information
+        runtime_mgr.print_hosts()
 
 
 @cli.command('start-dask')

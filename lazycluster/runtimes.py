@@ -1226,7 +1226,6 @@ class Runtime(object):
         """Print the Runtime info formatted as table.
         """
         info = self.info
-        print('\n')
         print('\u001b[1mInformation of `' + self.class_name + '` ' + self.host + ':\u001b[0m')
         for key, value in info.items():
 
