@@ -57,7 +57,7 @@ class LocalMongoLauncher(MasterLauncher):
                 raise PortInUseError(ports, self._group)
 
         else:
-            master_port = self._group.get_free_port(ports)  # Raises NoPortsLeftError
+            self._port = master_port = self._group.get_free_port(ports)  # Raises NoPortsLeftError
             ports = _utils.get_remaining_ports(ports, master_port)
 
         self.log.debug(f'Starting MongoDB on localhost on port {str(master_port)} with dbpath `{self._dbpath}` and '
@@ -67,7 +67,6 @@ class LocalMongoLauncher(MasterLauncher):
         time.sleep(timeout)  # Needed for being able to check the port
 
         if not _utils.localhost_has_free_port(master_port):
-            self._port = master_port
             self.log.info('MongoDB started on localhost on port ' + str(self._port))
         else:
             self.log.debug('MongoDB could NOT be started successfully on port ' + str(self._port))
