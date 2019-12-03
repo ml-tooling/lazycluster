@@ -4,9 +4,7 @@
 import time
 import warnings
 from typing import List, Union, Optional
-
-from subprocess import Popen
-import os, signal
+import os
 
 from lazycluster import RuntimeTask, Runtime, RuntimeGroup
 from lazycluster.cluster import MasterWorkerCluster, MasterLauncher, WorkerLauncher
@@ -21,6 +19,8 @@ class LocalMongoLauncher(MasterLauncher):
     This class implements the logic for starting a MongoDB instance on localhost. Hence, we simply treat the MongoDB
     instance as master node.
     """
+
+    LOGFILE = 'hyperopt_mongo.log'
 
     def __init__(self, runtime_group: RuntimeGroup):
         """Initialization method.
@@ -60,8 +60,9 @@ class LocalMongoLauncher(MasterLauncher):
             master_port = self._group.get_free_port(ports)  # Raises NoPortsLeftError
             ports = _utils.get_remaining_ports(ports, master_port)
 
-        self.log.debug(f'Starting MongoDB on localhost on port {str(master_port)} with dbpath `{self._dbpath}`.')
-        self._process = Popen(['mongod', f'--dbpath={self._dbpath}', f'--port={str(master_port)}'])
+        self.log.debug(f'Starting MongoDB on localhost on port {str(master_port)} with dbpath `{self._dbpath}` and '
+                       f'logfile `{self._dbpath}/{self.LOGFILE}`.')
+        os.system(self.get_mongod_start_cmd())
 
         time.sleep(timeout)  # Needed for being able to check the port
 
@@ -79,6 +80,22 @@ class LocalMongoLauncher(MasterLauncher):
         self._group.expose_port_to_runtimes(self._port)
 
         return ports
+
+    def get_mongod_start_cmd(self) -> str:
+        """Get the shell command for starting mongod as a deamon process.
+
+            Returns:
+                str: The shell command.
+        """
+        return f'mongod --fork --logpath={self._dbpath}/{self.LOGFILE} --dbpath={self._dbpath} --port={self._port}'
+
+    def get_mongod_stop_cmd(self) -> str:
+        """Get the shell command for stopping the currently running mongod process.
+
+            Returns:
+                str: The shell command.
+        """
+        return f'mongod --shutdown --dbpath={self._dbpath}'
 
 
 class RoundRobinLauncher(WorkerLauncher):
@@ -253,6 +270,6 @@ class HyperoptCluster(MasterWorkerCluster):
         """
         self.log.info('Shutting down the HyperoptCluster...')
         if self._master_launcher.process:
-            os.kill(self._master_launcher.process.pid, signal.SIGTERM)
+            os.system(self._master_launcher.get_mongod_stop_cmd())
             self.log.debug('The process of the mongod instance was killed.')
         super().cleanup()
