@@ -52,7 +52,7 @@ class LocalMongoLauncher(MasterLauncher):
         if not isinstance(ports, list):
             if _utils.localhost_has_free_port(ports) and \
                self._group.has_free_port(ports, exclude_hosts=Runtime.LOCALHOST):
-                master_port = ports
+                self._port = master_port = ports
             else:
                 raise PortInUseError(ports, self._group)
 
