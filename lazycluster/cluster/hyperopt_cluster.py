@@ -6,6 +6,7 @@ import warnings
 from typing import List, Union, Optional
 
 from subprocess import Popen
+import os, signal
 
 from lazycluster import RuntimeTask, Runtime, RuntimeGroup
 from lazycluster.cluster import MasterWorkerCluster, MasterLauncher, WorkerLauncher
@@ -246,3 +247,12 @@ class HyperoptCluster(MasterWorkerCluster):
         """
         super().start_master(master_port, timeout)
         self._group.add_env_variables({self.ENV_NAME_MONGO_URL: self.mongo_url})
+
+    def cleanup(self):
+        """Release all resources.
+        """
+        self.log.info('Shutting down the HyperoptCluster...')
+        if self._master_launcher.process:
+            os.kill(self._master_launcher.process.pid, signal.SIGTERM)
+            self.log.debug('The process of the mongod instance was killed.')
+        super().cleanup()
