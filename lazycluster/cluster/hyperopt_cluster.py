@@ -96,6 +96,14 @@ class LocalMongoLauncher(MasterLauncher):
         """
         return f'mongod --shutdown --dbpath={self._dbpath}'
 
+    def cleanup(self):
+        """Release all resources.
+        """
+        self.log.info('Cleanup the LocalMongoLauncher ...')
+        self.log.debug('Stop the mongod deamon process')
+        os.system(self.get_mongod_stop_cmd())
+        super().cleanup()
+
 
 class RoundRobinLauncher(WorkerLauncher):
     """WorkerLauncher implementation for launching hyperopt workers in a round robin manner.
@@ -172,6 +180,12 @@ class RoundRobinLauncher(WorkerLauncher):
         """
         return f'hyperopt-mongo-worker --mongo=localhost:{str(master_port)}/{dbname} ' \
                f'--poll-interval={str(poll_interval)}'
+
+    def cleanup(self):
+        """Release all resources.
+        """
+        self.log.info('Cleanup the RoundRobinLauncher ...')
+        super().cleanup()
 
 
 class HyperoptCluster(MasterWorkerCluster):
@@ -268,7 +282,4 @@ class HyperoptCluster(MasterWorkerCluster):
         """Release all resources.
         """
         self.log.info('Shutting down the HyperoptCluster...')
-        if self._master_launcher.get_mongod_stop_cmd():
-            os.system(self._master_launcher.get_mongod_stop_cmd())
-            self.log.debug('The process of the mongod instance was killed.')
         super().cleanup()
