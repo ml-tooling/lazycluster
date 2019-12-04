@@ -62,7 +62,13 @@ class LocalMongoLauncher(MasterLauncher):
 
         self.log.debug(f'Starting MongoDB on localhost on port {str(master_port)} with dbpath `{self._dbpath}` and '
                        f'logfile `{self._dbpath}/{self.LOGFILE}`.')
-        os.system(self.get_mongod_start_cmd())
+
+        # Start the mongod deamon process
+        return_code = os.system(self.get_mongod_start_cmd())
+
+        if return_code != 0:
+            cause = f'Please verify that the dbpath `{self._dbpath}` exists with the rights required by mongod.'
+            raise MasterStartError('localhost', master_port, cause)
 
         time.sleep(timeout)  # Needed for being able to check the port
 
@@ -101,7 +107,11 @@ class LocalMongoLauncher(MasterLauncher):
         """
         self.log.info('Cleanup the LocalMongoLauncher ...')
         self.log.debug('Stop the mongod deamon process')
-        os.system(self.get_mongod_stop_cmd())
+        return_code = os.system(self.get_mongod_stop_cmd())
+        if return_code == 0:
+            self.log.info('MongoDB successfully stopped.')
+        else:
+            self.log.warning('MongoDB deamon could NOT be stopped.')
         super().cleanup()
 
 
