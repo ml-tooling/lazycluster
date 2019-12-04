@@ -344,7 +344,7 @@ class MasterWorkerCluster(RuntimeCluster):
     def cleanup(self):
         """Release all resources.
         """
-        self.log.info('Shutting down the cluster...')
+        self.log.info('Shutting down the MasterWorkerCluster ...')
         self._worker_launcher.cleanup()
         self._master_launcher.cleanup()
         self._group.cleanup()
