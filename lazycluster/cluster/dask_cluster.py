@@ -66,6 +66,12 @@ class LocalMasterLauncher(MasterLauncher):
 
         return ports
 
+    def cleanup(self):
+        """Release all resources.
+        """
+        self.log.info('Cleanup the LocalMasterLauncher ...')
+        super().cleanup()
+
 
 class RoundRobinLauncher(WorkerLauncher):
     """WorkerLauncher implementation for launching DASK workers in a round robin manner.
@@ -149,6 +155,12 @@ class RoundRobinLauncher(WorkerLauncher):
         return 'dask-worker --worker-port=' + str(worker_port) + ' --local-directory=' + working_directory \
                + ' localhost:' + str(master_port)
 
+    def cleanup(self):
+        """Release all resources.
+        """
+        self.log.info('Cleanup the RoundRobinLauncher ...')
+        super().cleanup()
+
 
 class DaskCluster(MasterWorkerCluster):
     """Convenient class for launching a Dask cluster in a `RuntimeGroup`. 
@@ -199,3 +211,9 @@ class DaskCluster(MasterWorkerCluster):
             TimeoutError: If client connection `timeout` expires.
         """
         return Client('localhost:' + str(self.master_port), timeout=timeout)  # Raises TimeoutError
+
+    def cleanup(self):
+        """Release all resources.
+        """
+        self.log.info('Cleanup the RoundRobinLauncher ...')
+        super().cleanup()
