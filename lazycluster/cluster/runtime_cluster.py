@@ -70,6 +70,13 @@ class MasterLauncher(object):
 
         raise NotImplementedError
 
+    def cleanup(self):
+        """Release all resources.
+        """
+        self.log.debug('Cleaning up MasterLauncher ...')
+        if self._process:
+            self.process.terminate()
+
 
 class WorkerLauncher(object):
     """Abstract class for implementing the strategy for launching worker instances within a RuntimeGroup.
@@ -198,8 +205,7 @@ class MasterWorkerCluster(RuntimeCluster):
             runtime_group: The `RuntimeGroup` contains all `Runtimes` which can be used for starting the cluster
                            entities.
             ports: The list of ports which will be used to instantiate a cluster. Defaults to
-                                        list(range(self.DEFAULT_PORT_RANGE_START,
-                                                   self.DEFAULT_PORT_RANGE_END).)
+                   list(range(self.DEFAULT_PORT_RANGE_START, self.DEFAULT_PORT_RANGE_END).)
             master_launcher: Optionally, an instance implementing the `MasterLauncher` interface can be given, which
                              implements the strategy for launching the master instances in the cluster. If None, then
                              the default of the concrete cluster implementation will be chosen.
