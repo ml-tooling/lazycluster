@@ -156,6 +156,12 @@ class WorkerLauncher(object):
             for worker_port in ports:
                 self._group.expose_port_from_runtime_to_group(host, worker_port)  # Raises all errors
 
+    def cleanup(self):
+        """Release all resources.
+        """
+        self.log.debug('Cleaning up WorkerLauncher ...')
+        self.log.debug('No WorkerLauncher resources to be released')
+
 
 class RuntimeCluster(object):
     """Abstract cluster class.
@@ -339,7 +345,6 @@ class MasterWorkerCluster(RuntimeCluster):
         """Release all resources.
         """
         self.log.info('Shutting down the cluster...')
+        self._worker_launcher.cleanup()
+        self._master_launcher.cleanup()
         self._group.cleanup()
-        if self._master_launcher.process:
-            self._master_launcher.process.terminate()
-            self.log.debug('The process of the master node was terminated.')
