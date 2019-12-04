@@ -296,7 +296,10 @@ class MasterWorkerCluster(RuntimeCluster):
         # starting the master to ensure correct behavior of MasterWorkerCluster
         # => indicates a wrong implementation of the given launcher class
         assert self._master_launcher.port
-        assert self._master_launcher.process
+        if not self._master_launcher.process:
+            self.log.debug('No self._master_launcher.process is set after starting the cluster master. If the master'
+                           'instance was not started as a deamon, then this could indicate buggy implementation. The'
+                           'variable should be set to be able to eventually shutdown the cluster.')
 
         self.log.info(f'Master instance started on port {str(self.master_port)}.')
 
