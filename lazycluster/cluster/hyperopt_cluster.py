@@ -268,7 +268,7 @@ class HyperoptCluster(MasterWorkerCluster):
         """Release all resources.
         """
         self.log.info('Shutting down the HyperoptCluster...')
-        if self._master_launcher.process:
+        if self._master_launcher.get_mongod_stop_cmd():
             os.system(self._master_launcher.get_mongod_stop_cmd())
             self.log.debug('The process of the mongod instance was killed.')
         super().cleanup()
