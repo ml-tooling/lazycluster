@@ -172,4 +172,29 @@ Constructor method.
 
 
 
+-------------------
+<span style="float:right;">[[source]](/lazycluster/exceptions.py#L109)</span>
+
+## PathCreationError class
+
+Error indicating that a given path could not be created.
+  
+
+-------------------
+<span style="float:right;">[[source]](/lazycluster/exceptions.py#L113)</span>
+
+### PathCreationError.`__init__`
+
+```python
+__init__(self, path:  str, host:  Union[str, NoneType]  =  None)
+```
+
+Constructor method.
+
+**Args:**
+
+ - `path`:  The path which should be created.
+
+
+
 

@@ -7,7 +7,8 @@
 
 ## LocalMasterLauncher class
 
-Concrete implementation of the `MasterLauncher` interface.
+Concrete implementation of the `MasterLauncher` interface. See its documentation to get a list of the
+inherited methods and attributes.
 
 This class implements the logic for starting a the DASK master instance (i.e. scheduler in DASK terms) on localhost.
 
@@ -28,7 +29,7 @@ The process object where the master instance was started in.
  - `Popen`:  The process object.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L16)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L17)</span>
 
 ### LocalMasterLauncher.`__init__`
 
@@ -36,7 +37,7 @@ The process object where the master instance was started in.
 __init__(self, runtime_group:  lazycluster.runtime_mgmt.RuntimeGroup)
 ```
 
-Constructor method.
+Initialization method.
 
 **Args:**
 
@@ -44,7 +45,18 @@ Constructor method.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L23)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L70)</span>
+
+### LocalMasterLauncher.cleanup
+
+```python
+cleanup(self)
+```
+
+Release all resources.
+  
+-------------------
+<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L24)</span>
 
 ### LocalMasterLauncher.start
 
@@ -62,7 +74,7 @@ Launch a master instance.
 **Args:**
 
  - `ports`:  Port where the master should be started. If a list is given then the first port that is free in the
-  `RuntimeGroup` will be used. The actual chosen port can requested via the property `port`.
+  `RuntimeGroup` will be used. The actual chosen port can be requested via the property `port`.
  - `timeout`:  Timeout (s) after which an MasterStartError is raised if master instance not started yet.
 
 **Returns:**
@@ -76,12 +88,12 @@ List[int]: In case a port list was given the updated port list will be returned.
  - `MasterStartError`:  If master was not started after the specified `timeout`.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L68)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L77)</span>
 
 ## RoundRobinLauncher class
 
-WorkerLauncher implementation for launching DASK workers in a round robin manner.
-  
+WorkerLauncher implementation for launching DASK workers in a round robin manner. See its documentation to get
+a list of the inherited methods and attributes.
 
 #### RoundRobinLauncher.ports_per_host
  
@@ -93,7 +105,7 @@ is reachable on the respective host.
   Dict[str, List[int]]: The ports per host as a dictionary.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L72)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L82)</span>
 
 ### RoundRobinLauncher.`__init__`
 
@@ -109,7 +121,18 @@ Initialization method.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L81)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L160)</span>
+
+### RoundRobinLauncher.cleanup
+
+```python
+cleanup(self)
+```
+
+Release all resources.
+  
+-------------------
+<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L93)</span>
 
 ### RoundRobinLauncher.start
 
@@ -139,11 +162,14 @@ List[int]: The updated port list after starting the workers, i.e. the used ones 
  - `NoPortsLeftError`:  If there are not enough free ports for starting all workers.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L148)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L167)</span>
 
 ## DaskCluster class
 
-Convenient class for launching a Dask cluster in a `RuntimeGroup`. 
+Convenient class for launching a Dask cluster in a `RuntimeGroup`.
+
+DaskCluster inherits from MasterWorkerCluster. See its documentation to get a list of the inherited methods
+and attributes.
 
 The number of DASK workers defaults to the number of `Runtimes` in the used `RuntimeGroup`. This number can be
 adjusted so that more or less workers than available `Runtimes` can be used. Per default the desired number of
@@ -161,8 +187,16 @@ The port where the master instance was started. None, if not yet started.
 
  - `int`:  The master port.
 
+#### DaskCluster.runtime_group
+ 
+The RuntimeGroup.
+
+**Returns:**
+
+ - `RuntimeGroup`:  The used group.
+
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L163)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L185)</span>
 
 ### DaskCluster.`__init__`
 
@@ -196,7 +230,18 @@ Initialization method.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L185)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L220)</span>
+
+### DaskCluster.cleanup
+
+```python
+cleanup(self)
+```
+
+Release all resources.
+  
+-------------------
+<span style="float:right;">[[source]](/lazycluster/cluster/dask_cluster.py#L209)</span>
 
 ### DaskCluster.get_client
 

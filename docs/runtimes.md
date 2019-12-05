@@ -3,7 +3,7 @@
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L28)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L27)</span>
 
 ## RuntimeTask class
 
@@ -36,6 +36,10 @@ details.
   log = task.execution_log
   ```
 
+#### RuntimeTask.env_variables
+ 
+
+
 #### RuntimeTask.execution_log
  
 The execution log as list. The list is empty as long as a task was not yet executed. Each log entry
@@ -57,26 +61,23 @@ executed.
    task execution.
 
 
-#### RuntimeTask.name
- 
-The task name.
-
-**Returns:**
-
- - `str`:  Task name
-
 #### RuntimeTask.process
  
 The process object in which the task were executed. None, if not yet or synchronously executed.
   
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L58)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L57)</span>
 
 ### RuntimeTask.`__init__`
 
 ```python
-__init__(self, name:  Union[str, NoneType]  =  None)
+__init__(
+    self,
+    name:  Union[str,
+    NoneType]  =  None,
+    needs_explicit_termination:  bool  =  False
+)
 ```
 
 Initialization method.
@@ -85,10 +86,14 @@ Initialization method.
 
  - `name`:  The name of the task. Defaults to None and consequently a unique identifier is generated via Python's
   id() function.
+ - `needs_explicit_termination`:  This parameter needs to be set to True, if the RuntimeTask will not terminate
+  regularly. E.g. in case it starts a cluster worker instance. This information
+  is required in self.join(), since we call join on the executing process.
+  Obviously, this would block forever in such a case. Defaults to False.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L90)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L134)</span>
 
 ### RuntimeTask.cleanup
 
@@ -99,7 +104,7 @@ cleanup(self)
 Remove temporary used resources, like temporary directories if created.
   
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L297)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L375)</span>
 
 ### RuntimeTask.execute
 
@@ -133,7 +138,7 @@ debug : If `True`, stdout/stderr from the remote host will be printed to stdout 
  - `ValueError`:  If cxn is broken and connection can not be established.
  - `TaskExecutionError`:  If an executed task step can't be executed successfully.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L172)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L221)</span>
 
 ### RuntimeTask.get_file
 
@@ -163,7 +168,7 @@ Create a task step for getting either a single file or a folder from another hos
 
  - `ValueError`:  If remote path is emtpy.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L392)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L446)</span>
 
 ### RuntimeTask.join
 
@@ -172,9 +177,12 @@ join(self)
 ```
 
 Block the execution until the `RuntimeTask` finished its asynchronous execution.
-  
+
+**Note:**
+
+  If self.needs_explicit_termination is set, then the execution is omitted in order to prevent a deadlock.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L398)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L464)</span>
 
 ### RuntimeTask.print_log
 
@@ -185,7 +193,7 @@ print_log(self)
 Print the execution log. Each log entry will be printed separately. The log index will be prepended.
   
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L195)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L244)</span>
 
 ### RuntimeTask.run_command
 
@@ -207,7 +215,7 @@ Create a task step for running a given shell command.
 
  - `ValueError`:  If command is emtpy.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L213)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L263)</span>
 
 ### RuntimeTask.run_function
 
@@ -240,7 +248,7 @@ to the remote host via ssh and cloudpickle. The return data can be requested via
 
  - `ValueError`:  If function is empty.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L148)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L199)</span>
 
 ### RuntimeTask.send_file
 
@@ -267,10 +275,10 @@ Create a task step for sending either a single file or a folder from localhost t
 
 **Raises:**
 
- - `ValueError`:  If file locally not found.
+ - `ValueError`:  If local_path is emtpy.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L444)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L608)</span>
 
 ## Runtime class
 
@@ -279,7 +287,7 @@ Runtime for executing `RuntimeTasks` in it or exposing ports from / to localhost
 **Note:**
 
   Passwordless ssh access should be be setup in advance. Otherwise the connection kwargs of fabric must be used
-  for setting up the ssh connection. See prerequisites in project README.
+  for setting up the ssh connection. See project README.
 
 **Examples:**
 
@@ -289,7 +297,7 @@ Runtime for executing `RuntimeTasks` in it or exposing ports from / to localhost
   # Expose a port from localhost to the remote host so that a service running on localhost
   # is accessible from the remote host as well.
   Runtime('host-1').expose_port_to_runtime(8786)
-  # Expose a port from a remote `Runtime` to to localhost so that a service running on the `Runtime`
+  # Expose a port from a remote `Runtime` to localhost so that a service running on the `Runtime`
   # is accessible from localhost as well.
   Runtime('host-1').expose_port_from_runtime(8787)
   ```
@@ -323,6 +331,10 @@ on the host machine is given.
 **Returns:**
 
  - `str`:  CPU quota.
+
+#### Runtime.env_variables
+ 
+
 
 #### Runtime.function_returns
  
@@ -381,7 +393,7 @@ Memory information in mb.
 
 **Returns:**
 
- - `str`:  Total memory in mega bytes.
+ - `int`:  Total memory in mega bytes.
 
 #### Runtime.os
  
@@ -411,12 +423,18 @@ All processes that were started to execute a `RuntimeTask` asynchronously.
  
 The path of the working directory that was set during object initialization.
 
+**Note:**
+
+  The working directory will also be set as environment variable on the Runtime. It is accessible via the
+  env variable name stated in the constant `Runtime.WORKING_DIR_ENV_VAR_NAME`. This might be especially of
+  interest when executing functions remotely.
+
 **Returns:**
 
- - `str`:  The path of thw working directory.
+ - `str`:  The path of the working directory.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L472)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L637)</span>
 
 ### Runtime.`__init__`
 
@@ -426,31 +444,54 @@ __init__(
     host:  str,
     working_dir:  Union[str,
     NoneType]  =  None,
-    **connection_kwargs
+    connection_kwargs:  Union[Dict,
+    NoneType]  =  None
 )
 ```
 
 Initialization method.
 
+**Note:**
+
+  The working directory will also be set as environment variable on the Runtime. It is accessible via the
+  env variable name stated in the constant `Runtime.WORKING_DIR_ENV_VAR_NAME`. This might be especially of
+  interest when executing functions remotely. Moreover, if the working_dir is set manually you need to ensure
+  in advance that this directors is actually present on the host.
+
 **Args:**
 
  - `host`:  The host of the `Runtime`.
- - `working_dir`:  The directory which shall act as workind directory. All individual Steps of a
-  `RuntimeTask` will be executed relatively to this directory. Defaults to None.
-  Consequently, a temporary directory will be created and used as working dir.
-  If the working directory is a temporary one it will be cleaned up either
-  `atexit` or when calling `cleanup()` manually.
+ - `working_dir`:  The directory which shall act as working directory. If set, then the full path will be created
+  on the remote host in case it does not exist. All individual Steps of a `RuntimeTask` will be
+  executed relatively to this directory. Defaults to None. Consequently, a temporary directory
+  will be created and used as working dir. If the working directory is a temporary one it will be
+  cleaned up either `atexit` or when calling `cleanup()` manually.
 
  - `connection_kwargs`:  kwargs that will be passed on to the fabric connection. Please check the fabric docs
   for further details.
 
 **Raises:**
 
- - `InvalidRuntimeError`:  If `Runtime` could not be instantiated successfully.
+ - `InvalidRuntimeError`:  If is_valid_runtime() check fails.
+ - `PathCreationError`:  If the working_dir path could not be created successfully.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L943)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L888)</span>
+
+### Runtime.add_env_variables
+
+```python
+add_env_variables(self, env_variables:  Dict)
+```
+
+Update the environment variables. If a variable already exists it gets updated and if not it will be added.
+
+**Args:**
+
+ - `env_variables`:  The env variables used for the update.
+-------------------
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1243)</span>
 
 ### Runtime.check_filter
 
@@ -499,7 +540,7 @@ filter_str = '[ ! -z "$WORKSPACE_VERSION" ] && echo "true" || echo "false"'
 check_passed = runtime.check_filter(filer_commands=filter_str)
 ```
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1051)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1364)</span>
 
 ### Runtime.cleanup
 
@@ -510,7 +551,7 @@ cleanup(self)
 Release all acquired resources and terminate all processes.
   
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L790)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1087)</span>
 
 ### Runtime.clear_tasks
 
@@ -521,12 +562,12 @@ clear_tasks(self)
 Clears all internal state related to `RuntimeTasks`.
   
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1021)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1318)</span>
 
 ### Runtime.create_dir
 
 ```python
-create_dir(self, path)
+create_dir(self, path:  str)
 ```
 
 Create a directory. All folders in the path will be created if not existing.
@@ -534,8 +575,12 @@ Create a directory. All folders in the path will be created if not existing.
 **Args:**
 
  - `path`:  The full path of the directory to be created.
+
+**Raises:**
+
+ - `PathCreationError`:  If the path could not be created successfully.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1007)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1303)</span>
 
 ### Runtime.create_tempdir
 
@@ -549,7 +594,7 @@ Create a temporary directory and return its name/path.
 
  - `str`:  The name/path of the directory.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1034)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1338)</span>
 
 ### Runtime.delete_dir
 
@@ -567,7 +612,51 @@ Delete a directory recursively. If at least one contained file could not be remo
 
  - `bool`:  True if the directory could be deleted successfully.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L743)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1388)</span>
+
+### Runtime.echo
+
+```python
+echo(self, msg:  str) → str
+```
+
+Convenient method for echoing a string on the `Runtime` and returning the result.
+  
+-------------------
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1054)</span>
+
+### Runtime.execute_run_function
+
+```python
+execute_run_function(
+    self,
+    function:  <built-in function callable>,
+    **func_kwargs
+) → 'RuntimeTask'
+```
+
+Create a task step for executing a given python function on a remote host. The function will be transferred
+to the remote host via ssh and cloudpickle. The return data can be requested via the property `function_returns`
+
+**Note:**
+
+  Hence, the function must be serializable via cloudpickle and all dependencies must be available in its
+  correct versions on the remote host for now. We are planning to improve the dependency handling.
+
+**Args:**
+
+ - `function`:  The function to be executed remotely.
+ - `func_kwargs`:  kwargs which will be passed to the function.
+
+**Returns:**
+
+ - `RuntimeTask`:  self.
+
+**Raises:**
+
+ - `ValueError`:  If function is empty.
+-------------------
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L983)</span>
 
 ### Runtime.execute_task
 
@@ -583,10 +672,14 @@ execute_task(
 
 Execute a given `RuntimeTask` in the `Runtime`.
 
+**Note:**
+
+  Each execution will initialize the execution log of the `RuntimeTask`.
+
 **Args:**
 
- - `task`:  The task to be executed.
- - `execute_async`:  The execution will be done in a separate thread if True. Defaults to True.
+ - `task`:  The RuntimeTask to be executed.
+ - `execute_async`:  The execution will be done in a separate process if True. Defaults to True.
  - `debug`:  If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
   the stdout/stderr will be added to python logger with level debug after each task step.
 
@@ -594,7 +687,7 @@ Execute a given `RuntimeTask` in the `Runtime`.
 
  - `TaskExecutionError`:  If an executed task step can't be executed successfully.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L827)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1125)</span>
 
 ### Runtime.expose_port_from_runtime
 
@@ -619,7 +712,7 @@ Expose a port from a `Runtime` to localhost so that all traffic to the `local_po
 
  - `str`:  Process key, which can be used for manually stopping the process running the port exposure.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L797)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1095)</span>
 
 ### Runtime.expose_port_to_runtime
 
@@ -644,7 +737,7 @@ Expose a port from localhost to the `Runtime` so that all traffic on the `runtim
 
  - `str`:  Process key, which can be used for manually stopping the process running the port exposure for example.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L725)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L965)</span>
 
 ### Runtime.get_free_port
 
@@ -666,7 +759,7 @@ Returns the first port from the list which is currently not in use in the `Runti
 
  - `NoPortsLeftError`:  If the port list is empty and no free port was found yet.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L857)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1155)</span>
 
 ### Runtime.get_process
 
@@ -688,7 +781,7 @@ Get an individual process by process key.
 
  - `ValueError`:  Unknown process key.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L873)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1171)</span>
 
 ### Runtime.get_processes
 
@@ -709,8 +802,9 @@ individual process can be retrieved by key via `get_process()`.
 **Returns:**
 
 Dict[str, Process]: Dictionary with process keys as dict keys and the respective processes as dict values.
+
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L908)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1207)</span>
 
 ### Runtime.has_free_port
 
@@ -728,7 +822,7 @@ Checks if the port is available on the runtime.
 
  - `bool`:  True if port is free, else False.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L693)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L922)</span>
 
 ### Runtime.is_valid_runtime
 
@@ -742,7 +836,18 @@ Checks if a given host is a valid `Runtime`.
 
  - `bool`:  True, if it is a valid remote runtime.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L924)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1357)</span>
+
+### Runtime.join
+
+```python
+join(self)
+```
+
+Blocks until `RuntimeTasks` which were started via the `runtime.execute_task()` method terminated.
+  
+-------------------
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1225)</span>
 
 ### Runtime.print_info
 
@@ -753,7 +858,7 @@ print_info(self)
 Print the Runtime info formatted as table.
   
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L784)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1081)</span>
 
 ### Runtime.print_log
 
@@ -764,7 +869,45 @@ print_log(self)
 Print the execution logs of each `RuntimeTask` that was executed in the `Runtime`.
   
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtimes.py#L895)</span>
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1025)</span>
+
+### Runtime.send_file
+
+```python
+send_file(
+    self,
+    local_path:  str,
+    remote_path:  Union[str,
+    NoneType]  =  None,
+    execute_async:  Union[bool,
+    NoneType]  =  True
+) → 'RuntimeTask'
+```
+
+Send either a single file or a folder from localhost to the Runtime.
+
+**Note:**
+
+  This method is a convenient wrapper around the RuntimeTask's send file functionality. But it directly
+  executes the file sending in contrast to the send_file() method of the RuntimeTask.
+
+**Args:**
+
+ - `local_path`:  Path to file on local machine.
+ - `remote_path`:  Path on the Runtime. Defaults to the self.working_dir. See
+  `RuntimeTask.execute()` docs for further details.
+ - `execute_async`:  The execution will be done in a separate process if True. Defaults to True.
+
+**Returns:**
+
+ - `RuntimeTask`:  The task that were internally created for the file transfer.
+
+**Raises:**
+
+ - `ValueError`:  If local_path is emtpy.
+ - `TaskExecutionError`:  If an executed task step can't be executed successfully.
+-------------------
+<span style="float:right;">[[source]](/lazycluster/runtimes.py#L1193)</span>
 
 ### Runtime.stop_process
 

@@ -15,7 +15,7 @@ Error indicating that the cluster master instance could not be started successfu
 ### MasterStartError.`__init__`
 
 ```python
-__init__(self, host:  str, port:  int)
+__init__(self, host:  str, port:  int, cause:  str)
 ```
 
 Initialization method.
@@ -24,6 +24,7 @@ Initialization method.
 
  - `host`:  The host where the cluster master instance should be started.
  - `port`:  The port of the cluster master instance.
+ - `cause`:  More detailed information of the actual root
 
 
 
