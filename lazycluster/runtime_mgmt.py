@@ -216,6 +216,7 @@ class RuntimeGroup(object):
             takes places on the remote host takes some seconds. This method enables you to read the information in
             seperate processes so that the execution time stays more or less the same independent of the actual amount
             of Runtimes used.
+
         """
         with Pool(self.runtime_count) as pool:
             results = []
@@ -774,6 +775,7 @@ class RuntimeManager(object):
 
         Note:
             Inactive means that the host is not reachable via ssh or the check vie Runtime.is_valid_runtime() failed.
+
         """
         print('\n\u001b[1m')
         print(f'{str(self._group.runtime_count)} Runtime(s) and {str(len(self.inactive_hosts))} inactive '
@@ -789,6 +791,7 @@ class RuntimeManager(object):
 
         Note:
             Inactive means that the host is not reachable via ssh or the check vie Runtime.is_valid_runtime() failed.
+
         """
         print('\n\u001b[1m')
         print(f'{str(self._group.runtime_count)} Runtime(s) and {str(len(self.inactive_hosts))} inactive '

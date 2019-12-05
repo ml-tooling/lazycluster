@@ -15,7 +15,8 @@ from lazycluster.exceptions import PortInUseError
 
 
 class LocalMasterLauncher(MasterLauncher):
-    """Concrete implementation of the `MasterLauncher` interface.
+    """Concrete implementation of the `MasterLauncher` interface. See its documentation to get a list of the
+    inherited methods and attributes.
 
     This class implements the logic for starting a the DASK master instance (i.e. scheduler in DASK terms) on localhost.
     """
@@ -74,7 +75,8 @@ class LocalMasterLauncher(MasterLauncher):
 
 
 class RoundRobinLauncher(WorkerLauncher):
-    """WorkerLauncher implementation for launching DASK workers in a round robin manner.
+    """WorkerLauncher implementation for launching DASK workers in a round robin manner. See its documentation to get
+    a list of the inherited methods and attributes.
     """
 
     def __init__(self, runtime_group: RuntimeGroup):
@@ -163,7 +165,10 @@ class RoundRobinLauncher(WorkerLauncher):
 
 
 class DaskCluster(MasterWorkerCluster):
-    """Convenient class for launching a Dask cluster in a `RuntimeGroup`. 
+    """Convenient class for launching a Dask cluster in a `RuntimeGroup`.
+
+    DaskCluster inherits from MasterWorkerCluster. See its documentation to get a list of the inherited methods
+    and attributes.
 
     The number of DASK workers defaults to the number of `Runtimes` in the used `RuntimeGroup`. This number can be
     adjusted so that more or less workers than available `Runtimes` can be used. Per default the desired number of

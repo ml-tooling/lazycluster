@@ -14,7 +14,8 @@ from lazycluster.exceptions import PortInUseError
 
 
 class LocalMongoLauncher(MasterLauncher):
-    """Concrete implementation of the `MasterLauncher` interface.
+    """Concrete implementation of the `MasterLauncher` interface. See its documentation to get a list of the inherited
+    methods and attributes.
 
     This class implements the logic for starting a MongoDB instance on localhost. Hence, we simply treat the MongoDB
     instance as master node.
@@ -116,7 +117,8 @@ class LocalMongoLauncher(MasterLauncher):
 
 
 class RoundRobinLauncher(WorkerLauncher):
-    """WorkerLauncher implementation for launching hyperopt workers in a round robin manner.
+    """Concrete WorkerLauncher implementation for launching hyperopt workers in a round robin manner. See its
+    documentation to get a list of the inherited methods and attributes.
     """
 
     def __init__(self, runtime_group: RuntimeGroup, dbname: str, poll_interval: float):
@@ -200,6 +202,9 @@ class RoundRobinLauncher(WorkerLauncher):
 
 class HyperoptCluster(MasterWorkerCluster):
     """Convenient class for launching a Hyperopt cluster in a `RuntimeGroup`.
+
+    HyperoptCluster inherits from MasterWorkerCluster. See its documentation to get a list of the inherited methods
+    and attributes.
 
     The number of hyperopt workers defaults to the number of `Runtimes` in the used `RuntimeGroup`. This number can be
     adjusted so that more or less workers than available `Runtimes` can be used. Per default the desired number of
