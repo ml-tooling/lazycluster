@@ -82,6 +82,10 @@ import lazycluster.cluster.dask_cluster
 markdown_str = generator.module2md(lazycluster.cluster.dask_cluster)
 gd.to_md_file(markdown_str, './docs/cluster.dask_cluster')
 
+import lazycluster.cluster.hyperopt_cluster
+markdown_str = generator.module2md(lazycluster.cluster.hyperopt_cluster)
+gd.to_md_file(markdown_str, './docs/cluster.hyperopt_cluster')
+
 import lazycluster.cluster.exceptions
 markdown_str = generator.module2md(lazycluster.cluster.exceptions)
 gd.to_md_file(markdown_str, './docs/cluster.exceptions')
