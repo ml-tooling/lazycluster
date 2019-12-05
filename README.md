@@ -325,10 +325,10 @@ cluster.start()
 </details>
 
 ### Easily Launch a [Hyperopt Cluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class)
-Most simple way to launch a cluster based on a `RuntimeGroup` created by the `RuntimeManager`.
+Most simple way to launch a cluster based on a `RuntimeGroup` created by the `RuntimeManager`. A MongoDB instance gets started on localhost and multiple hyperopt worker get started in the `RuntimeGroup`.
 
 **Prerequisites:** 
-- MongoDB must be installed on localhost
+- MongoDB must be installed on localhost (and no instance must be running on the port and dbpath used by the `HyperoptCluster`)
 - Hyperopt must be installed on localhost as well as on all Runtimes
 
 <details>
@@ -344,7 +344,7 @@ cluster.start()
 
 Test the cluster setup using the simple [example](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB) to minimize the sin function. 
 
-**Note:** The call to fmin is also done on localhost. The objective function gets sent to the hyperopt workers by fmin. So there is no need to trigger the execution of fmin or the objective function on the individual Runtimes. See hyperopt docs for detailed explanation.  
+**Note:** The call to `fmin` is also done on localhost. The `objective_function` gets sent to the hyperopt workers by fmin via MongoDB. So there is no need to trigger the execution of `fmin` or the `objective_function` on the individual `Runtimes`. See hyperopt docs for detailed explanation.  
 
 ```python
 import math
@@ -359,8 +359,7 @@ best = fmin(objective_function, hp.uniform('x', -2, 2), trials=trials, algo=tpe.
 </details>
 <br/>
 
-Use different strategies for launching the master and the worker instance by providing custom implementation of 
-`MasterLauncher` and `WorkerLauncher`.
+Use different strategies for launching the master and the worker instance by providing custom implementation of `MasterLauncher` and `WorkerLauncher`.
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
