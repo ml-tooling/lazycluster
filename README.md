@@ -31,7 +31,7 @@ and convenient cluster setup with Python for various distributed machine learnin
 
 - **High-Level API for starting clusters:** 
     - [DASK](./docs/cluster.dask_cluster.md#daskcluster-class)
-    - [Hyperopt](#) *(WIP)* 
+    - [Hyperopt](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class) 
     - *More *lazyclusters* (e.g. PyTorch, Tensorflow, Horovod, Spark) to come ...*
 - **Lower-level API for:**
     - Managing [Runtimes](./docs/runtimes.md#runtime-class) or [RuntimeGroups](./docs/runtime_mgmt.md#runtimegroup-class) to:
@@ -131,8 +131,10 @@ lazycluster add-runtime localhost root@localhost:22 --id_file ~/.ssh/id_rsa
 ```
 ![Runtime Added](./docs/img/cli-runtime-added.png)
 #### List all available runtimes incl. additional information like cpu, memory, etc.
+Moreover, also incative hosts will be shown. Inactive means, that the host could not be reached via ssh and instantiated as a vlaid Runtime.
 ```bash
-lazycluster list-runtimes
+lazycluster list-runtimes     # will give short list with hosts
+lazycluster list-runtimes -l  # will give print additional host information
 ```
 ![List Runtimes](./docs/img/cli-list-runtimes.png)
 
@@ -160,6 +162,7 @@ runtime_group = RuntimeGroup(hosts=['host-1', 'host-2'])
 </details>
 
 ### Use [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) to Create a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) Based on the Local ssh Config
+The [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on your local ssh config and eventually create a necessary [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) for you.
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
@@ -272,9 +275,7 @@ for chunk in runtime_group.function_returns:
 </details>
 
 ### Easily Launch a [Dask Cluster](./docs/cluster.dask_cluster.md#daskcluster-class)
-The [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) can automatically detect all available 
-[Runtimes](./docs/runtimes.md#runtime-class) based on your local ssh config and eventually create a necessary 
-[RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) for you.
+
 Most simple way to launch a cluster based on a `RuntimeGroup` created by the `RuntimeManager`.
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
@@ -309,6 +310,54 @@ res = total.result()
 print('Result: ' + str(res))
 ```
 </details>
+<br/>
+
+Use different strategies for launching the master and the worker instance by providing custom implementation of `MasterLauncher` and `WorkerLauncher`.
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
+```python
+cluster = DaskCluster(RuntimeManager().create_group(),
+                      MyMasterLauncherImpl(),
+                      MyWorkerLauncherImpl())
+cluster.start()
+```
+</details>
+
+### Easily Launch a [Hyperopt Cluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class)
+Most simple way to launch a cluster based on a `RuntimeGroup` created by the `RuntimeManager`.
+
+**Prerequisites:** 
+- MongoDB must be installed on localhost
+- Hyperopt must be installed on localhost as well as on all Runtimes
+
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
+```python
+from lazycluster import RuntimeManager
+from lazycluster.cluster.hyperopt_cluster import HyperoptCluster
+
+cluster = HyperoptCluster(RuntimeManager().create_group())
+cluster.start()
+```
+
+Test the cluster setup using the simple [example](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB) to minimize the sin function. 
+
+**Note:** The call to fmin is also done on localhost. The objective function gets sent to the hyperopt workers by fmin. So there is no need to trigger the execution of fmin or the objective function on the individual Runtimes. See hyperopt docs for detailed explanation.  
+
+```python
+import math
+from hyperopt import fmin, tpe, hp
+from hyperopt.mongoexp import MongoTrials
+
+# You can retrieve the the actual url required by MongoTrials form the cluster instance
+trials = MongoTrials(cluster.mongo_url, exp_key='exp1')
+objective_function = math.sin
+best = fmin(objective_function, hp.uniform('x', -2, 2), trials=trials, algo=tpe.suggest, max_evals=10)
+```
+</details>
+<br/>
 
 Use different strategies for launching the master and the worker instance by providing custom implementation of 
 `MasterLauncher` and `WorkerLauncher`.
@@ -316,9 +365,9 @@ Use different strategies for launching the master and the worker instance by pro
 <summary><b>Details</b> (click to expand...)</summary>
 
 ```python
-cluster = DaskCluster(RuntimeManager().create_group(),
-                      MyMasterLauncherImpl(),
-                      MyWorkerLauncherImpl)
+cluster = HyperoptCluster(RuntimeManager().create_group(),
+                          MyMasterLauncherImpl(),
+                          MyWorkerLauncherImpl())
 cluster.start()
 ```
 </details>
