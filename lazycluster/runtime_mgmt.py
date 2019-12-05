@@ -223,7 +223,7 @@ class RuntimeGroup(object):
                 if runtime._info:
                     # If the runtime info is already present, we do not need to re-read it
                     continue
-                self.log.debug(f'Start reading runtime info asynchronously of host {runtime.host} ***')
+                self.log.debug(f'Start reading runtime info asynchronously of host {runtime.host}')
                 results.append(pool.apply_async(_utils.read_host_info, (runtime.host, )))
 
             index = 0
