@@ -250,7 +250,7 @@ class HyperoptCluster(MasterWorkerCluster):
         self.log.debug('HyperoptCluster initialized.')
 
     @property
-    def mongo_url(self) -> str:
+    def mongo_trial_url(self) -> str:
         """The MongoDB url indicating what mongod process and which database to use.
 
         Note:
@@ -260,7 +260,7 @@ class HyperoptCluster(MasterWorkerCluster):
             str: URL string.
         """
         if not self.master_port:
-            warnings.warn('HyperoptCluster.mongo_url was requested although the master_port is not yet set.')
+            self.log.warning('HyperoptCluster.mongo_trial_url was requested although the master_port is not yet set.')
 
         return f'mongo://localhost:{self.master_port}/{self.dbname}/jobs'
 
@@ -290,7 +290,7 @@ class HyperoptCluster(MasterWorkerCluster):
             MasterStartError: If master was not started after the specified `timeout`.
         """
         super().start_master(master_port, timeout)
-        self._group.add_env_variables({self.ENV_NAME_MONGO_URL: self.mongo_url})
+        self._group.add_env_variables({self.ENV_NAME_MONGO_URL: self.mongo_trial_url})
 
     def cleanup(self):
         """Release all resources.
