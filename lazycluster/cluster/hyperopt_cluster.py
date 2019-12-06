@@ -60,7 +60,7 @@ class LocalMongoLauncher(MasterLauncher):
             ports = _utils.get_remaining_ports(ports, master_port)
 
         self.log.debug(f'Starting MongoDB on localhost on port {str(master_port)} with dbpath `{self._dbpath}` and '
-                       f'logfile `{self._dbpath}/{HyperoptCluster.LOGFILE}`.')
+                       f'logfile `{self._dbpath}/{HyperoptCluster.MONGO_LOG_FILENAME}`.')
 
         # Start the mongod deamon process
         return_code = os.system(self.get_mongod_start_cmd())
@@ -213,7 +213,7 @@ class HyperoptCluster(MasterWorkerCluster):
     behavior can also be changed by providing a custom implementation inheriting from the `MasterLauncher`.
     """
 
-    LOGFILE = 'hyperopt_mongo.log'
+    MONGO_LOG_FILENAME = 'hyperopt_mongo.log'
     DEFAULT_MASTER_PORT = 27017
     ENV_NAME_MONGO_URL = 'MONGO_CONNECTION_URL'
 
