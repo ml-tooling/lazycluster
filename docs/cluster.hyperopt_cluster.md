@@ -3,7 +3,7 @@
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L16)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L15)</span>
 
 ## LocalMongoLauncher class
 
@@ -30,7 +30,7 @@ The process object where the master instance was started in.
  - `Popen`:  The process object.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L26)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L23)</span>
 
 ### LocalMongoLauncher.`__init__`
 
@@ -46,7 +46,7 @@ Initialization method.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L106)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L104)</span>
 
 ### LocalMongoLauncher.cleanup
 
@@ -57,7 +57,7 @@ cleanup(self)
 Release all resources.
   
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L90)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L87)</span>
 
 ### LocalMongoLauncher.get_mongod_start_cmd
 
@@ -71,7 +71,7 @@ Get the shell command for starting mongod as a deamon process.
 
  - `str`:  The shell command.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L98)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L96)</span>
 
 ### LocalMongoLauncher.get_mongod_stop_cmd
 
@@ -85,7 +85,7 @@ Get the shell command for stopping the currently running mongod process.
 
  - `str`:  The shell command.
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L35)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L32)</span>
 
 ### LocalMongoLauncher.start
 
@@ -118,7 +118,7 @@ List[int]: In case a port list was given the updated port list will be returned.
  - `MasterStartError`:  If master was not started after the specified `timeout`.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L119)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L117)</span>
 
 ## RoundRobinLauncher class
 
@@ -135,7 +135,7 @@ is reachable on the respective host.
   Dict[str, List[int]]: The ports per host as a dictionary.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L124)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L122)</span>
 
 ### RoundRobinLauncher.`__init__`
 
@@ -161,7 +161,7 @@ Raises.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L196)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L194)</span>
 
 ### RoundRobinLauncher.cleanup
 
@@ -172,7 +172,7 @@ cleanup(self)
 Release all resources.
   
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L148)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L146)</span>
 
 ### RoundRobinLauncher.start
 
@@ -198,7 +198,7 @@ Launches the worker instances in the `RuntimeGroup`.
 List[int]: The updated port list after starting the workers, i.e. the used ones were removed.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L203)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L201)</span>
 
 ## HyperoptCluster class
 
@@ -228,13 +228,25 @@ The port where the master instance was started. None, if not yet started.
 
  - `int`:  The master port.
 
-#### HyperoptCluster.mongo_url
+#### HyperoptCluster.mongo_trial_url
  
 The MongoDB url indicating what mongod process and which database to use.
 
 **Note:**
 
   The format is the format required by the hyperopt MongoTrials object.
+
+**Returns:**
+
+ - `str`:  URL string.
+
+#### HyperoptCluster.mongo_url
+ 
+The MongoDB url indicating what mongod process and which database to use.
+
+**Note:**
+
+  The format is `mongo://host:port/dbname`.
 
 **Returns:**
 
@@ -249,7 +261,7 @@ The RuntimeGroup.
  - `RuntimeGroup`:  The used group.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L221)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L220)</span>
 
 ### HyperoptCluster.`__init__`
 
@@ -285,7 +297,7 @@ Initialization method.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L296)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L310)</span>
 
 ### HyperoptCluster.cleanup
 
@@ -296,7 +308,7 @@ cleanup(self)
 Release all resources.
   
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L274)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L288)</span>
 
 ### HyperoptCluster.start_master
 
