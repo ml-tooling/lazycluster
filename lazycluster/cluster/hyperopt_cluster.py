@@ -2,7 +2,6 @@
 """
 
 import time
-import warnings
 from typing import List, Union, Optional
 import os
 
@@ -91,7 +90,8 @@ class LocalMongoLauncher(MasterLauncher):
             Returns:
                 str: The shell command.
         """
-        return f'mongod --fork --logpath={self._dbpath}/{self.LOGFILE} --dbpath={self._dbpath} --port={self._port}'
+        return f'mongod --fork --logpath={self._dbpath}/{HyperoptCluster.MONGO_LOG_FILENAME} --dbpath={self._dbpath} ' \
+               f'--port={self._port}'
 
     def get_mongod_stop_cmd(self) -> str:
         """Get the shell command for stopping the currently running mongod process.
@@ -263,6 +263,21 @@ class HyperoptCluster(MasterWorkerCluster):
             self.log.warning('HyperoptCluster.mongo_trial_url was requested although the master_port is not yet set.')
 
         return f'mongo://localhost:{self.master_port}/{self.dbname}/jobs'
+
+    @property
+    def mongo_url(self) -> str:
+        """The MongoDB url indicating what mongod process and which database to use.
+
+        Note:
+            The format is `mongo://host:port/dbname`.
+
+        Returns:
+            str: URL string.
+        """
+        if not self.master_port:
+            self.log.warning('HyperoptCluster.mongo_trial_url was requested although the master_port is not yet set.')
+
+        return f'mongo://localhost:{self.master_port}/{self.dbname}'
 
     @property
     def dbname(self):
