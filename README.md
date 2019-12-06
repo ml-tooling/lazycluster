@@ -30,8 +30,8 @@ and convenient cluster setup with Python for various distributed machine learnin
 ## Highlights
 
 - **High-Level API for starting clusters:** 
-    - [DASK](./docs/cluster.dask_cluster.md#daskcluster-class)
-    - [Hyperopt](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class) 
+    - [DASK](https://distributed.dask.org/en/latest/)
+    - [Hyperopt](https://github.com/hyperopt/hyperopt) 
     - *More *lazyclusters* (e.g. PyTorch, Tensorflow, Horovod, Spark) to come ...*
 - **Lower-level API for:**
     - Managing [Runtimes](./docs/runtimes.md#runtime-class) or [RuntimeGroups](./docs/runtime_mgmt.md#runtimegroup-class) to:
@@ -66,7 +66,7 @@ pip install --upgrade git+https://github.com/ml-tooling/lazycluster.git@develop
 **Runtime Host Requirements:**
 - Python >= 3.6
 - ssh server (e.g. openssh-server)
-- passwordless ssh to the host (recommended)
+- [passwordless ssh](https://linuxize.com/post/how-to-setup-passwordless-ssh-login/) to the host (recommended)
 
 **Note:**
 
@@ -274,9 +274,8 @@ for chunk in runtime_group.function_returns:
 ```
 </details>
 
-### Easily Launch a [Dask Cluster](./docs/cluster.dask_cluster.md#daskcluster-class)
-
-Most simple way to launch a cluster based on a `RuntimeGroup` created by the `RuntimeManager`.
+### Scalable Analytics w/ [Dask]([./docs/cluster.dask_cluster.md#daskcluster-class](https://distributed.dask.org/en/latest/))
+Most simple way to use DASK in a cluster based on a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) created by the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class). The `RuntimeManager` can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on your local ssh config and eventually create a necessary `RuntimeGroup` for you. This `RuntimeGroup` is then handed over to [DaskCluster](./docs/cluster.dask_cluster.md#daskcluster-class) during initialization.
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
@@ -324,12 +323,16 @@ cluster.start()
 ```
 </details>
 
-### Easily Launch a [Hyperopt Cluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class)
-Most simple way to launch a cluster based on a `RuntimeGroup` created by the `RuntimeManager`. A MongoDB instance gets started on localhost and multiple hyperopt worker get started in the `RuntimeGroup`.
+### Distributed Hyperparameter Tuning w/ lazycluster and [Hyperopt](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB)
+Most simple way to use Hyperopt in a cluster based on a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) created by the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class). The `RuntimeManager` can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on your local ssh config and eventually create a necessary `RuntimeGroup` for you. This `RuntimeGroup` is then handed over to [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class) during initialization.
+
+A MongoDB instance gets started on the host where the [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class) class will be instantiated. We call this host the `master` inspired by the naming of master-worker architectures. Additionally, multiple hyperopt worker processes get started in the `RuntimeGroup`. The default number of workers is equal to the number of `Runtimes` contained in the `RuntimeGroup`.
 
 **Prerequisites:** 
-- MongoDB must be installed on localhost (and no instance must be running on the port and dbpath used by the `HyperoptCluster`)
-- Hyperopt must be installed on localhost as well as on all Runtimes
+- [MongoDB server must be installed](https://docs.mongodb.com/manual/administration/install-on-linux/) on the `master` host.  Moreover, no existing MongoDB instance must be running on the `master` on the port (Default: `27017`) and the dbpath (Default: `/data/db`) used by the `HyperoptCluster`.
+  - **Note:** When using the [ml-workspace](https://github.com/ml-tooling/ml-workspace) as the `master` then you can use the provided install script for MongoDB which can be found under `/resources/tools`.
+- [Hyperopt must be installed ](https://github.com/hyperopt/hyperopt) on all `Runtimes` where hyperopt workers will be started
+    - **Note:** When using the [ml-workspace](https://github.com/ml-tooling/ml-workspace) as hosts for the `Runtimes` then hyperopt is already pre-installed.
 
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
@@ -338,13 +341,26 @@ Most simple way to launch a cluster based on a `RuntimeGroup` created by the `Ru
 from lazycluster import RuntimeManager
 from lazycluster.cluster.hyperopt_cluster import HyperoptCluster
 
-cluster = HyperoptCluster(RuntimeManager().create_group())
+# 1st: Create a RuntimeGroup, e.g. by letting the RuntimeManager detect 
+#      available hosts (i.e. Runtimes) and create the group for you. 
+runtime_group = RuntimeManager().create_group()
+
+# 2nd: Create the HyperoptCluster instance with the RuntimeGroup.
+cluster = HyperoptCluster(runtime_group)
+
+# 3rd: Let the HyperoptCluster instantiate all entities on Runtimes 
+#      contained in the RuntimeGroup using default values. For custom 
+#      configuration check the HyperoptCluster API documentation.
 cluster.start()
+
+# => Now, all cluster entities should be started and you can simply use 
+#    it as documented in the hyperopt documentation.
+
 ```
 
 Test the cluster setup using the simple [example](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB) to minimize the sin function. 
 
-**Note:** The call to `fmin` is also done on localhost. The `objective_function` gets sent to the hyperopt workers by fmin via MongoDB. So there is no need to trigger the execution of `fmin` or the `objective_function` on the individual `Runtimes`. See hyperopt docs for detailed explanation.  
+**Note:** The call to `fmin` is also done on localhost (more specifially, on the host acting as). The `objective_function` gets sent to the hyperopt workers by fmin via MongoDB. So there is no need to trigger the execution of `fmin` or the `objective_function` on the individual `Runtimes`. See hyperopt docs for detailed explanation.  
 
 ```python
 import math
@@ -352,7 +368,7 @@ from hyperopt import fmin, tpe, hp
 from hyperopt.mongoexp import MongoTrials
 
 # You can retrieve the the actual url required by MongoTrials form the cluster instance
-trials = MongoTrials(cluster.mongo_url, exp_key='exp1')
+trials = MongoTrials(cluster.mongo_trial_url, exp_key='exp1')
 objective_function = math.sin
 best = fmin(objective_function, hp.uniform('x', -2, 2), trials=trials, algo=tpe.suggest, max_evals=10)
 ```
