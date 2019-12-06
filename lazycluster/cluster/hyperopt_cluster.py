@@ -105,12 +105,12 @@ class LocalMongoLauncher(MasterLauncher):
         """Release all resources.
         """
         self.log.info('Cleanup the LocalMongoLauncher ...')
-        self.log.debug('Stop the mongod deamon process')
+        self.log.debug('Stop the mongod daemon process')
         return_code = os.system(self.get_mongod_stop_cmd())
         if return_code == 0:
             self.log.info('MongoDB successfully stopped.')
         else:
-            self.log.warning('MongoDB deamon could NOT be stopped.')
+            self.log.warning('MongoDB daemon could NOT be stopped.')
         super().cleanup()
 
 
