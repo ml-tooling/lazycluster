@@ -403,7 +403,7 @@ class RuntimeTask(object):
         except gaierror:
             raise ValueError('Connection cannot be established. connection: ' + str(connection))
 
-        self.log.debug(f'Start executing RuntimeTask {self.name} on host {connection.host}')
+        self.log.info(f'Start executing RuntimeTask {self.name} on host {connection.host}')
 
         task_step_index = 0
 
@@ -442,6 +442,8 @@ class RuntimeTask(object):
 
                 self.log.debug(f'Finished executing the generated steps that are necessary to execute the python '
                                f'function `{task_step.function.__name__}` remotely.')
+
+        self.log.info(f'Finished executing RuntimeTask {self.name} on host {connection.host}')
 
     def join(self):
         """Block the execution until the `RuntimeTask` finished its asynchronous execution.
