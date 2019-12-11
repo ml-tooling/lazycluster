@@ -283,7 +283,7 @@ for chunk in runtime_group.function_returns:
 ```
 </details>
 
-### Scalable Analytics w/ [Dask]([./docs/cluster.dask_cluster.md#daskcluster-class](https://distributed.dask.org/en/latest/))
+### Scalable Analytics w/ [Dask](https://dask.org/)
 Most simple way to use DASK in a cluster based on a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) created by the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class). The `RuntimeManager` can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on your local ssh config and eventually create a necessary `RuntimeGroup` for you. This `RuntimeGroup` is then handed over to [DaskCluster](./docs/cluster.dask_cluster.md#daskcluster-class) during initialization.
 
 The DASK `scheduler` instance gets started on the host where the `DaskCluster` class will be instantiated. We call this host the `master` inspired by the naming of master-worker architectures. Additionally, multiple DASK `worker` processes get started in the `RuntimeGroup`. The default number of workers is equal to the number of `Runtimes` contained in the `RuntimeGroup`.
