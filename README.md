@@ -42,6 +42,15 @@ and convenient cluster setup with Python for various distributed machine learnin
     - Add a [Runtime](./docs/runtimes.md#runtime-class) configuration
     - Delete a [Runtime](./docs/runtimes.md#runtime-class) configuration
 
+> **Concept Definition:** *[RuntimeTask](./docs/runtimes.md#runtimetask-class)* 
+> A `RuntimeTask` is a composition of multiple elemantary task steps, such as `send file`, `get file`, `run shell command`, `run python function`. A `RuntimeTask` can be executed on a remote host either by handing it over to a `Runtime` object or standalone by handing over a [fabric Connection](http://docs.fabfile.org/en/2.5/api/connection.html) object to the execute method of the `RuntimeTask`. Consequently, all invididual task steps are executed sequentially. Moreover, a `RuntimeTask` object captures the stdout of the remote execution as logs. An example for a `RuntimeTask` could be to send a csv file to a `Runtime`, execute a python function that is transforming the csv file and finally get the file back. 
+
+> **Concept Definition:** *[Runtime](./docs/runtimes.md#runtime-class)* 
+> A `Runtime` is the logical representation of a remote host. Typically, the host is another server or a virtual machine / container on another server. This python class provides several methods for utilizing remote resources such as the port exposure from / to a `Runtime` as well as the execution of `RuntimeTasks`. A `Runtime` has a working directory. Usually, the execution of a `RuntimeTask` is conducted relatively to this directory if no other path is explicitly given. The working directory can be manually set during the initialization. Otherwise, a temporary directory gets created that might eventually be removed.
+ 
+
+> **Concept Definition:** *[RuntimeGroup](./docs/runtimes.md#runtimetask-class)* 
+> A `RuntimeGroup` is the representation of logically related `Runtimes` and provides convenient methods for managing those related `Runtimes`. Most methods are wrappers around their counterparts in the `Runtime` class. Typical usage examples are exposing a port (i.e. a service such as a DB) in the `RuntimeGroup`, transfer files, or execute  a `RuntimeTask` on the contained `Runtimes`. Additionally, all concrete [RuntimeCluster](./docs/cluster.runtime_cluster.md#runtimecluster-class) (e.g. the [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class))implementations rely on `RuntimeGroups` for example.
 ---
 
 <br>
@@ -276,6 +285,9 @@ for chunk in runtime_group.function_returns:
 
 ### Scalable Analytics w/ [Dask]([./docs/cluster.dask_cluster.md#daskcluster-class](https://distributed.dask.org/en/latest/))
 Most simple way to use DASK in a cluster based on a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) created by the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class). The `RuntimeManager` can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on your local ssh config and eventually create a necessary `RuntimeGroup` for you. This `RuntimeGroup` is then handed over to [DaskCluster](./docs/cluster.dask_cluster.md#daskcluster-class) during initialization.
+
+The DASK `scheduler` instance gets started on the host where the `DaskCluster` class will be instantiated. We call this host the `master` inspired by the naming of master-worker architectures. Additionally, multiple DASK `worker` processes get started in the `RuntimeGroup`. The default number of workers is equal to the number of `Runtimes` contained in the `RuntimeGroup`.
+
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
@@ -283,8 +295,20 @@ Most simple way to use DASK in a cluster based on a [RuntimeGroup](./docs/runtim
 from lazycluster import RuntimeManager
 from lazycluster.cluster.dask_cluster import DaskCluster
 
-cluster = DaskCluster(RuntimeManager().create_group())
+# 1st: Create a RuntimeGroup, e.g. by letting the RuntimeManager detect 
+#      available hosts (i.e. Runtimes) and create the group for you. 
+runtime_group = RuntimeManager().create_group()
+
+# 2nd: Create the DaskCluster instance with the RuntimeGroup.
+cluster = DaskCluster(runtime_group)
+
+# 3rd: Let the DaskCluster instantiate all entities on Runtimes 
+#      contained in the RuntimeGroup using default values. For custom 
+#      configuration check the DaskCluster API documentation.
 cluster.start()
+
+# => Now, all cluster entities should be started and you can simply use 
+#    it as documented in the hyperopt documentation.
 ```
 
 Test the cluster setup
@@ -323,10 +347,10 @@ cluster.start()
 ```
 </details>
 
-### Distributed Hyperparameter Tuning w/ lazycluster and [Hyperopt](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB)
+### Distributed Hyperparameter Tuning w/ [Hyperopt](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB)
 Most simple way to use Hyperopt in a cluster based on a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) created by the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class). The `RuntimeManager` can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on your local ssh config and eventually create a necessary `RuntimeGroup` for you. This `RuntimeGroup` is then handed over to [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class) during initialization.
 
-A MongoDB instance gets started on the host where the [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class) class will be instantiated. We call this host the `master` inspired by the naming of master-worker architectures. Additionally, multiple hyperopt worker processes get started in the `RuntimeGroup`. The default number of workers is equal to the number of `Runtimes` contained in the `RuntimeGroup`.
+A MongoDB instance gets started on the host where the [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class) class will be instantiated. We call this host the `master` inspired by the naming of master-worker architectures. Additionally, multiple hyperopt `worker` processes get started in the `RuntimeGroup`. The default number of workers is equal to the number of `Runtimes` contained in the `RuntimeGroup`.
 
 **Prerequisites:** 
 - [MongoDB server must be installed](https://docs.mongodb.com/manual/administration/install-on-linux/) on the `master` host.  Moreover, no existing MongoDB instance must be running on the `master` on the port (Default: `27017`) and the dbpath (Default: `/data/db`) used by the `HyperoptCluster`.
