@@ -55,7 +55,7 @@ and convenient cluster setup with Python for various distributed machine learnin
 
 <br>
 
-## Getting Started
+## Getting started
 
 ### Installation
 ```bash
@@ -72,7 +72,7 @@ pip install --upgrade git+https://github.com/ml-tooling/lazycluster.git@develop
 - Python >= 3.6
 - ssh client (e.g. openssh-client)
 
-**Runtime Host Requirements:**
+**Runtime host requirements:**
 - Python >= 3.6
 - ssh server (e.g. openssh-server)
 - [passwordless ssh](https://linuxize.com/post/how-to-setup-passwordless-ssh-login/) to the host (recommended)
@@ -81,7 +81,7 @@ pip install --upgrade git+https://github.com/ml-tooling/lazycluster.git@develop
 
   Passwordless ssh needs to be setup for the hosts to be used as [Runtimes](./docs/runtimes.md#runtime-class) for the most convenient user experience. Otherwise, you need to pass the connection details to Runtime.\_\_init__ via connection_kwargs. These parameters will be passed on to the [fabric.Connection](http://docs.fabfile.org/en/2.4/api/connection.html#connect-kwargs-arg).
 
-### Usage Example
+### Usage example
 ```python
 from lazycluster import RuntimeTask, Runtime
 
@@ -127,11 +127,11 @@ valuable if it's shared publicly so that more people can benefit from it.
 
 ## Features
 
-### Use CLI to Manage Local SSH Configuration to Enable [Runtime](./docs/runtimes.md#runtime-class) Use
+### Use CLI to manage local ssh configuration to enable [Runtime](./docs/runtimes.md#runtime-class) use
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
-#### Add Host to SSH config 
+#### Add host to ssh config 
 The host is named `localhost` for user `root` accessible on `localhost` port `22` using the private key file found under 
 ~/.ssh/id_rsa.
 
@@ -147,10 +147,10 @@ lazycluster list-runtimes -l  # will give print additional host information
 ```
 ![List Runtimes](./docs/img/cli-list-runtimes.png)
 
-#### Delete the ssh config for 
+#### Delete the ssh config of `Runtime`
 *Note:* Corresponding remote ikernel will be deleted too if present.
 ```bash
-lazycluster delete-runtime localhost
+lazycluster delete-runtime host-1
 ```
 ![Runtime Deleted](./docs/img/cli-runtime-deleted.png)
 </details>
@@ -170,7 +170,7 @@ runtime_group = RuntimeGroup(hosts=['host-1', 'host-2'])
 ```
 </details>
 
-### Use [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) to Create a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) Based on the Local ssh Config
+### Use [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) to create a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) based on the local ssh config
 The [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on your local ssh config and eventually create a necessary [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) for you.
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
@@ -224,7 +224,7 @@ runtime.expose_port_to_runtime(40000)
 ```
 </details>
 
-### Expose a Service to a Whole [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) or From One Contained [Runtime](./docs/runtimes.md#runtime-class) in the [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class)
+### Expose a service to a whole [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) or from one contained [Runtime](./docs/runtimes.md#runtime-class) in the [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class)
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
@@ -243,7 +243,7 @@ runtime_group.expose_port_from_runtime_to_group('host-1', 40000)
 ```
 </details>
 
-### Simple Preprocessing Example
+### Simple preprocessing example
 Read a local CSV and upper case chunks in parallel using [RuntimeTasks](./docs/runtimes.md#runtimetask-class)
 and a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class).
 <details>
@@ -283,7 +283,7 @@ for chunk in runtime_group.function_returns:
 ```
 </details>
 
-### Scalable Analytics w/ [Dask](https://dask.org/)
+### Scalable analytics with [Dask](https://dask.org/)
 Most simple way to use DASK in a cluster based on a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) created by the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class). The `RuntimeManager` can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on your local ssh config and eventually create a necessary `RuntimeGroup` for you. This `RuntimeGroup` is then handed over to [DaskCluster](./docs/cluster.dask_cluster.md#daskcluster-class) during initialization.
 
 The DASK `scheduler` instance gets started on the host where the `DaskCluster` class will be instantiated. We call this host the `master` inspired by the naming of master-worker architectures. Additionally, multiple DASK `worker` processes get started in the `RuntimeGroup`. The default number of workers is equal to the number of `Runtimes` contained in the `RuntimeGroup`.
@@ -347,7 +347,7 @@ cluster.start()
 ```
 </details>
 
-### Distributed Hyperparameter Tuning w/ [Hyperopt](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB)
+### Distributed hyperparameter tuning with [Hyperopt](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB)
 Most simple way to use Hyperopt in a cluster based on a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) created by the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class). The `RuntimeManager` can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on your local ssh config and eventually create a necessary `RuntimeGroup` for you. This `RuntimeGroup` is then handed over to [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class) during initialization.
 
 A MongoDB instance gets started on the host where the [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class) class will be instantiated. We call this host the `master` inspired by the naming of master-worker architectures. Additionally, multiple hyperopt `worker` processes get started in the `RuntimeGroup`. The default number of workers is equal to the number of `Runtimes` contained in the `RuntimeGroup`.
