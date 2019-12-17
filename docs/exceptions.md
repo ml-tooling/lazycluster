@@ -194,6 +194,7 @@ Constructor method.
 **Args:**
 
  - `path`:  The path which should be created.
+ - `host`:  The host where the path should be created.
 
 
 

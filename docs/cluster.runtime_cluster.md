@@ -213,14 +213,14 @@ class as an abstract class or an interface.
 **Examples:**
 
   Create a cluster with all `Runtimes` detected by the `RuntimeManager`.
-  ```python
+  ´´´python
   from lazycluster import RuntimeManager
   cluster = MyMasterWorkerClusterImpl(RuntimeManager().create_group())
   cluster.start()
-  ```
+  ´´´
   Use different strategies for launching the master and the worker instance as the default ones by providing
   custom implementation of `MasterLauncher` and `WorkerLauncher`.
-  ```python
+  ´´´python
   cluster = MyMasterWorkerClusterImpl(RuntimeManager().create_group(),
   MyMasterLauncherImpl(),
   MyWorkerLauncherImpl)

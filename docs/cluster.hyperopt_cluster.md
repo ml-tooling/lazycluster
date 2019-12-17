@@ -172,6 +172,28 @@ cleanup(self)
 Release all resources.
   
 -------------------
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L141)</span>
+
+### RoundRobinLauncher.setup_worker_ssh_tunnels
+
+```python
+setup_worker_ssh_tunnels(self)
+```
+
+Set up ssh tunnel for workers such that all communication is routed over the
+local machine and all entities can talk to each other on localhost.
+
+**Note:**
+
+  This method needs to be called if the communication between the worker instances is necessary, e.g. in case
+  of DASK or Apache Flink, where data needs to be shuffled between the different entities.
+
+**Raises:**
+
+ - `ValueError`:  If host is not contained.
+ - `PortInUseError`:  If `group_port` is occupied on the local machine.
+ - `NoPortsLeftError`:  If `group_ports` was given and none of the ports was free.
+-------------------
 <span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L146)</span>
 
 ### RoundRobinLauncher.start
@@ -308,6 +330,31 @@ cleanup(self)
 Release all resources.
   
 -------------------
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L256)</span>
+
+### HyperoptCluster.start
+
+```python
+start(
+    self,
+    worker_count:  Union[int,
+    NoneType]  =  None,
+    master_port:  Union[int,
+    NoneType]  =  None
+)
+```
+
+Convenient method for launching the cluster.
+
+Internally, `self.start_master()` and `self.start_workers()` will be called.
+
+**Args:**
+
+ - `master_port`:  Port of the cluster master. Will be passed on to `self.start()`, hence see respective method
+  for further details.
+ - `worker_count`:  The number of worker instances to be started in the cluster. Will be passed on to
+  `self.start()`, hence see respective method for further details.
+-------------------
 <span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L288)</span>
 
 ### HyperoptCluster.start_master
@@ -341,5 +388,29 @@ Start the master instance.
  - `PortInUseError`:  If a single port is given and it is not free in the `RuntimeGroup`.
  - `NoPortsLeftError`:  If there are no free ports left in the port list for instantiating the master.
  - `MasterStartError`:  If master was not started after the specified `timeout`.
+-------------------
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L318)</span>
+
+### HyperoptCluster.start_workers
+
+```python
+start_workers(self, count:  Union[int, NoneType]  =  None)
+```
+
+Start the worker instances.
+
+**Note:**
+
+  How workers are actually started is determined by the the actual `WorkerLauncher` implementation. Another
+  implementation adhering to the `WorkerLauncher` interface can be provided in the constructor of the cluster
+  class.
+
+**Args:**
+
+ - `count`:  The number of worker instances to be started in the cluster. Defaults to the number of runtimes in
+  the cluster.
+**Raises:**
+
+  - `NoPortsLeftError`:  If there are no free ports left in the port list for instantiating new worker entities.
 
 

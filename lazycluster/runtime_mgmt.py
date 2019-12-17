@@ -20,7 +20,7 @@ class RuntimeGroup(object):
     within a `RuntimeGroup`.
 
     Examples:
-            Execute a `RuntimeTask` in a `RuntimGroup`
+            Execute a `RuntimeTask` in a `RuntimeGroup`
             ```python
             # Create instances
             group = RuntimeGroup([Runtime('host-1'), Runtime('host-2')])
@@ -31,10 +31,10 @@ class RuntimeGroup(object):
             single_task = group.execute_task(my_task)
             print(single_task.execution_log[0])
 
-            # Execute a RuntimeTask in the whole RuntimGroup
+            # Execute a RuntimeTask in the whole RuntimeGroup
             task_list = group.execute_task(my_task, broadcast=True)
 
-            # Execute RuntimeTask via RuntimGroup either on a single Runtime
+            # Execute RuntimeTask via RuntimeGroup either on a single Runtime
             my_task = RuntimeTask('group-demo').run_command('echo Hello Group!')
             task = group.execute_task(my_task)
             ```

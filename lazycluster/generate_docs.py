@@ -308,14 +308,14 @@ class MarkdownAPIGenerator(object):
 
         handlers = []
         for name, obj in getmembers(cls, inspect.ismethoddescriptor):
-            if not name.startswith("_") and hasattr(obj, "__module__") and obj.__module__ == modname:
+            if not name.startswith("_") and hasattr(obj, "__module__"): # and obj.__module__ == modname:
                 handlers.append("\n%s %s.%s\n *Handler*" % (subsection, clsname, name))
 
         methods = []
         for name, obj in getmembers(cls, inspect.isfunction):
             print(name)
             if not name.startswith("_") and hasattr(obj,
-                                                    "__module__") and obj.__module__ == modname and name not in handlers:
+                                                    "__module__") and name not in handlers: #and obj.__module__ == modname and :
                 methods.append(self.func2md(obj, clsname=clsname, depth=depth + 1))
 
         string = CLASS_TEMPLATE.format(section=section,
