@@ -10,6 +10,9 @@ class FileLogger(object):
     def __init__(self, runtime_host, taskname):
         """Initialization method.
 
+        Note:
+            The log file file be placed in directory named `runtime_host` within the `Environment.main_directory`.
+
         Args:
             runtime_host: The host of the `Runtime`, where the execution takes place.
             taskname: The name of the `RuntimeTask` to be executed.
@@ -18,6 +21,8 @@ class FileLogger(object):
         self.taskname = taskname
         self.file_extension = 'log'
         self.log = logging.getLogger(__name__)
+        self._main_dir = Environment.main_directory
+        self._creation_timestamp = get_current_timestamp()
 
     @property
     def file_path(self) -> str:
@@ -28,14 +33,14 @@ class FileLogger(object):
             gets written when the execution of the `RuntimeTask` is started.
 
         """
-        return os.path.join(Environment.main_directory, f'{self.runtime_host}/{self.taskname}_{get_current_timestamp()}'
+        return os.path.join(self._main_dir, f'{self.runtime_host}/{self.taskname}_{self._creation_timestamp}'
                                                         f'.{self.file_extension}')
 
     @property
     def directory_path(self) -> str:
         """Get the full path to the directory where this logfile gets written to.
         """
-        return os.path.join(Environment.main_directory, f'{self.runtime_host}')
+        return os.path.join(self._main_dir, f'{self.runtime_host}')
 
     def append_message(self, message: str):
         """Add a message at the end of the log file.
