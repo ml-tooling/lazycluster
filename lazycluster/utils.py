@@ -22,7 +22,7 @@ class FileLogger(object):
         self.file_extension = 'log'
         self.log = logging.getLogger(__name__)
         self._main_dir = Environment.main_directory
-        self._creation_timestamp = get_current_timestamp()
+        self._creation_timestamp = Timestamp()
 
     @property
     def file_path(self) -> str:
@@ -33,8 +33,8 @@ class FileLogger(object):
             gets written when the execution of the `RuntimeTask` is started.
 
         """
-        return os.path.join(self._main_dir, f'{self.runtime_host}/{self._creation_timestamp}_{self.taskname}'
-                                                        f'.{self.file_extension}')
+        return os.path.join(self._main_dir, f'{self.runtime_host}/{self.taskname}_'
+                                            f'{self._creation_timestamp.get_unformatted()}.{self.file_extension}')
 
     @property
     def directory_path(self) -> str:
@@ -59,8 +59,9 @@ class FileLogger(object):
         with open(path, mode) as file:
             file.write('\n' + message)
 
-    def _create_log_msg(self, message) -> str:
-        pass
+    @classmethod
+    def _create_log_msg(cls, message) -> str:
+        return f'{Timestamp().get_formatted()} {message}'
 
     def _get_write_mode(self) -> str:
         # Append if file exists otherwise create the file
@@ -96,9 +97,12 @@ def get_current_timestamp() -> str:
 
 
 class Timestamp(object):
+    """Custom Timestamp class with convenient methods.
+    """
 
     def __init__(self):
-
+        """ Initializes the object with the current date/time.
+        """
         self._seconds_since_epoch = time.time()
 
         # Convert seconds since epoch to struct_time
@@ -114,7 +118,9 @@ class Timestamp(object):
         self.sec = str(self._time_obj.tm_sec) if len(str(self._time_obj.tm_sec)) == 2 else f'0{str(self._time_obj.tm_sec)}'
 
     def get_unformatted(self) -> str:
+        """Fixed length representation w/o delimiters in format: yyyymmddhhmmss."""
         return self.year + self.month + self.day + self.hour + self.min + self.sec
 
     def get_formatted(self) -> str:
+        """Formatted fixed length representation with delimiters in format: yyyy-mm-dd hh:mm:ss."""
         return f'{self.year}-{self.month}-{self.day} {self.hour}:{self.min}:{self.sec}'
