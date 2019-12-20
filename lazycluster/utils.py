@@ -33,7 +33,7 @@ class FileLogger(object):
             gets written when the execution of the `RuntimeTask` is started.
 
         """
-        return os.path.join(self._main_dir, f'{self.runtime_host}/{self.taskname}_{self._creation_timestamp}'
+        return os.path.join(self._main_dir, f'{self.runtime_host}/{self._creation_timestamp}_{self.taskname}'
                                                         f'.{self.file_extension}')
 
     @property
