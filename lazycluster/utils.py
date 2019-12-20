@@ -57,7 +57,10 @@ class FileLogger(object):
         self.log.debug(f'Add log message to file {path} with file mode {mode}')
 
         with open(path, mode) as file:
-            file.write(message)
+            file.write('\n' + message)
+
+    def _create_log_msg(self, message) -> str:
+        pass
 
     def _get_write_mode(self) -> str:
         # Append if file exists otherwise create the file
@@ -85,9 +88,33 @@ class Environment(object):
 
 def get_current_timestamp() -> str:
     """Get the current timestamp."""
-    # Get the seconds since epoch
     seconds_since_epoch = time.time()
     # Convert seconds since epoch to struct_time
-    time_obj = time.localtime(seconds_since_epoch)
+    time_obj = time.localtime(self._seconds_since_epoch)
     return f'{time_obj.tm_year}{time_obj.tm_mon}{time_obj.tm_mday}_{time_obj.tm_hour}_{time_obj.tm_min}_' \
            f'{time_obj.tm_sec}'
+
+
+class Timestamp(object):
+
+    def __init__(self):
+
+        self._seconds_since_epoch = time.time()
+
+        # Convert seconds since epoch to struct_time
+        self._time_obj = time.localtime(self._seconds_since_epoch)
+
+        # Ensure that each field has a fixed number of letters, so needed for representations w/o delimiters
+        self.year = str(self._time_obj.tm_year)
+        self.month = str(self._time_obj.tm_mon) if len(str(self._time_obj.tm_mon)) == 2 else f'0{str(self._time_obj.tm_mon)}'
+        self.day = str(self._time_obj.tm_mday) if len(str(self._time_obj.tm_mday)) == 2 else f'0{str(self._time_obj.tm_mday)}'
+
+        self.hour = str(self._time_obj.tm_hour) if len(str(self._time_obj.tm_hour)) == 2 else f'0{str(self._time_obj.tm_hour)}'
+        self.min = str(self._time_obj.tm_min) if len(str(self._time_obj.tm_min)) == 2 else f'0{str(self._time_obj.tm_min)}'
+        self.sec = str(self._time_obj.tm_sec) if len(str(self._time_obj.tm_sec)) == 2 else f'0{str(self._time_obj.tm_sec)}'
+
+    def get_unformatted(self) -> str:
+        return self.year + self.month + self.day + self.hour + self.min + self.sec
+
+    def get_formatted(self) -> str:
+        return f'{self.year}-{self.month}-{self.day} {self.hour}:{self.min}:{self.sec}'
