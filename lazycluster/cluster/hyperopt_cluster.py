@@ -65,8 +65,9 @@ class LocalMongoLauncher(MasterLauncher):
         return_code = os.system(self.get_mongod_start_cmd())
 
         if return_code != 0:
-            cause = f'Please verify that the dbpath `{self._dbpath}` exists with the rights required by mongod and ' \
-                    f'that no other MongoDB instance is using and consequently locking the respective files.'
+            cause = f'Please verify that (1) MongoDB is installed, (2) the dbpath `{self._dbpath}` exists with the ' \
+                    f'rights required by mongod and (3) that no other MongoDB instance is using and consequently ' \
+                    f'locking the respective files.'
             raise MasterStartError('localhost', master_port, cause)
 
         time.sleep(timeout)  # Needed for being able to check the port
