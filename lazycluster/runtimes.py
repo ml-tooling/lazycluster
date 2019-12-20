@@ -18,6 +18,7 @@ import atexit
 from invoke.exceptions import UnexpectedExit
 from lazycluster import InvalidRuntimeError, NoPortsLeftError, PortInUseError, TaskExecutionError, PathCreationError
 import lazycluster._utils as _utils
+from lazycluster.utils import FileLogger
 
 import warnings
 import logging
@@ -392,31 +393,35 @@ class RuntimeTask(object):
             ValueError: If cxn is broken and connection can not be established.
             TaskExecutionError: If an executed task step can't be executed successfully.
         """
+        file_log = FileLogger(connection.host, self.name)
+
         # The Fabric connection will only consider the manually set working directory for connection.run()
         # but not fur connection.put() & connection.get(). Thus, we need to set the path in
         # these cases manually.
-
         from socket import gaierror
         try:
             working_dir = connection.run('pwd', hide=True, warn=True).stdout.replace('\n', '').replace('\r', '')
             self.log.debug(f'Current directory of connection to host {connection.host} is `{working_dir}`.')
+            file_log.append_message(f'Current working directory of connection to host {connection.host} is '
+                                    f'`{working_dir}`.')
         except gaierror:
             raise ValueError('Connection cannot be established. connection: ' + str(connection))
 
         self.log.info(f'Start executing RuntimeTask {self.name} on host {connection.host}')
+        file_log.append_message(f'Start executing RuntimeTask {self.name} on host {connection.host}')
 
         task_step_index = 0
 
         for task_step in self._task_steps:
 
             if task_step.type == self._TaskStep.TYPE_RUN_COMMAND:
-                self._execute_run_command_step(task_step, task_step_index, connection, debug)
+                self._execute_run_command_step(task_step, task_step_index, connection, debug, file_log)
 
             elif task_step.type == self._TaskStep.TYPE_SEND_FILE:
-                self._execute_send_file(task_step, task_step_index, working_dir, connection)
+                self._execute_send_file(task_step, task_step_index, working_dir, connection, file_log)
 
             elif task_step.type == self._TaskStep.TYPE_GET_FILE:
-                self._execute_get_file(task_step, task_step_index, working_dir, connection)
+                self._execute_get_file(task_step, task_step_index, working_dir, connection, file_log)
 
             if task_step.type != self._TaskStep.TYPE_RUN_FUNCTION:
                 task_step_index = task_step_index + 1
@@ -432,18 +437,19 @@ class RuntimeTask(object):
                 for function_step in task_step.function_steps:
 
                     if function_step.type == self._TaskStep.TYPE_RUN_COMMAND:
-                        self._execute_run_command_step(function_step, task_step_index, connection, debug)
+                        self._execute_run_command_step(function_step, task_step_index, connection, debug, file_log)
 
                     elif function_step.type == self._TaskStep.TYPE_SEND_FILE:
-                        self._execute_send_file(function_step, task_step_index, working_dir, connection)
+                        self._execute_send_file(function_step, task_step_index, working_dir, connection, file_log)
 
                     elif function_step.type == self._TaskStep.TYPE_GET_FILE:
-                        self._execute_get_file(function_step, task_step_index, working_dir, connection)
+                        self._execute_get_file(function_step, task_step_index, working_dir, connection, file_log)
 
                 self.log.debug(f'Finished executing the generated steps that are necessary to execute the python '
                                f'function `{task_step.function.__name__}` remotely.')
-
-        self.log.info(f'Finished executing RuntimeTask {self.name} on host {connection.host}')
+        log_msg = f'Finished executing RuntimeTask {self.name} on host {connection.host}'
+        file_log.append_message(f'Finished executing RuntimeTask {self.name} on host {connection.host}')
+        self.log.info(log_msg)
 
     def join(self):
         """Block the execution until the `RuntimeTask` finished its asynchronous execution.
@@ -491,23 +497,30 @@ class RuntimeTask(object):
         cls._function_index += 1
         return file_prefix + str(cls._function_index) + '.' + cls._PICKLE_FILENAME_EXT
 
-    def _execute_run_command_step(self, task_step, task_step_index: int, connection: Connection, debug: bool):
-        self.log.debug(f'Start executing step {task_step_index} (`run_command`) from RuntimeTask {self.name} on'
-                       f' host {connection.host}. Command: `{task_step.command}`')
-        self.log.debug(f'Used environment vars on host {connection.host}: {self._env_variables}')
+    def _execute_run_command_step(self, task_step, task_step_index: int, connection: Connection, debug: bool,
+                                  file_log: FileLogger):
+        log_msg = f'Start executing step {task_step_index} (`run_command`) from RuntimeTask {self.name} on host {connection.host}. Command: `{task_step.command}`'
+        self.log.debug(log_msg)
+        file_log.append_message(log_msg)
+        log_msg = f'Used environment vars on host {connection.host}: {self._env_variables}'
+        self.log.debug(log_msg)
+        file_log.append_message(log_msg)
         try:
             res = connection.run(task_step.command, hide=not debug, pty=True, env=self._env_variables)
         except UnexpectedExit as prev_excp:
             raise TaskExecutionError(task_step_index, self, connection.host, prev_excp)
 
-        stdout = res.stdout.replace('\n', '').replace('\r', '')
+        stdout = res.stdout # .replace('\n', '').replace('\r', '')  # check for side effects
+        log_msg = f'The stdout of step {task_step_index} (`run_command`) from RuntimeTask {self.name} on host ' \
+                  f'{connection.host} is `{stdout}`.'
+        file_log.append_message(log_msg)
         if not debug:
-            self.log.debug(f'The stdout of step {task_step_index} (`run_command`) from RuntimeTask {self.name} '
-                           f'on host {connection.host} is `{stdout}`.')
+            self.log.debug(log_msg)
 
         self._execution_log.append(stdout)
 
-    def _execute_send_file(self, task_step, task_step_index: int, working_dir: str, connection: Connection):
+    def _execute_send_file(self, task_step, task_step_index: int, working_dir: str, connection: Connection,
+                           file_log: FileLogger):
         # Ensure that we have a valid remote path
         remote_path = task_step.remote_path
 
@@ -531,14 +544,20 @@ class RuntimeTask(object):
                        f'`remote: {task_step.remote_path}`.')
         try:
             connection.put(task_step.local_path, task_step.remote_path)
-        except UnexpectedExit as e:
-            self.log.error(f'UnexpectedExit while executing step {task_step_index} (`send_file`) '
-                           f'from RuntimeTask {self.name} on host {connection.host}.')
+            file_log.append_message(f'File `{task_step.remote_path}` retrieved from manager.')
 
-        self._execution_log.append('Send file ' + task_step.local_path + ' to ' + task_step.remote_path +
+        except UnexpectedExit as e:
+            log_msg = f'UnexpectedExit while executing step {task_step_index} (`send_file`) from RuntimeTask ' \
+                      f'{self.name} on host {connection.host}.'
+            file_log.append_message(log_msg)
+            self.log.error(log_msg)
+            return
+
+        self._execution_log.append('Sent file ' + task_step.local_path + ' to ' + task_step.remote_path + 'on host ' +
                                    connection.host)
 
-    def _execute_get_file(self, task_step, task_step_index: int, working_dir: str, connection: Connection):
+    def _execute_get_file(self, task_step, task_step_index: int, working_dir: str, connection: Connection,
+                          file_log: FileLogger):
         # Set working directory manually, so that it feels naturally for the user if he just
         # uses the filename without a path
         remote_path = task_step.remote_path
@@ -558,10 +577,14 @@ class RuntimeTask(object):
                        f'`remote: {task_step.remote_path}`.')
         try:
             connection.get(task_step.remote_path, task_step.local_path)
-        except UnexpectedExit as e:
-            self.log.error(f'UnexpectedExit while executing step {task_step_index} (`get_file`) '
-                           f'from RuntimeTask {self.name} on host {connection.host}.', e)
-        self._execution_log.append(f'Get remote file {task_step.remote_path} to local {task_step.local_path}.')
+            file_log.append_message(f'File `{task_step.remote_path}` sent to manager.')
+        except UnexpectedExit:
+            log_msg = f'UnexpectedExit while executing step {task_step_index} (`get_file`)  from RuntimeTask ' \
+                     f'{self.name} on host {connection.host}.'
+            self.log.error(log_msg)
+            return
+
+        self._execution_log.append(f'Got remote file {task_step.remote_path} to local {task_step.local_path}.')
 
     class _TaskStep:
         """Represents an individual action, i.e. a `_TaskStep` within a `RuntimeTask`.
@@ -941,7 +964,10 @@ class Runtime(object):
             self.log.debug(f'No valid ssh connection to host {self.host}.')
             return False
         except SSHException:
-            self.log.debug(f'connection.run() threw an exception during is_valid_runtime of host {self.host}.')
+            self.log.debug(f'connection.run() threw a SSHException during is_valid_runtime of host {self.host}.')
+            return False
+        except ValueError:
+            self.log.debug(f'connection.run() threw a ValueError during is_valid_runtime of host {self.host}.')
             return False
 
         stdout = stdout.replace('\n', '').replace('\r', '')
@@ -1347,14 +1373,21 @@ class Runtime(object):
         Returns:
             bool: True if the directory could be deleted successfully.
         """
+        from invoke.exceptions import ThreadException
         with self._fabric_connection as cxn:
-            cmd_str = 'rm -r ' + path
+            cmd_str = f'rm -r {path} 2> /dev/null'
+
             try:
-                cxn.run(cmd_str)
-                self.log.debug(f'Directory {path} delete from Runtime {self.host}')
+                res = cxn.run(cmd_str, warn=True)
+            except ThreadException:
+                self.log.warning(f'ThreadException occured when deleting the directory {path}')
                 return True
-            except:
-                self.log.warning(f'Directory {path} could not be deleted on Runtime {self.host}')
+
+            if res.ok:
+                self.log.debug(f'Directory {path} deleted from Runtime {self.host}')
+                return True
+            else:
+                self.log.debug(f'Directory {path} may not be deleted on Runtime {self.host}')
                 return False
 
     def join(self):
