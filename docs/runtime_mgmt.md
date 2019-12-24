@@ -181,8 +181,8 @@ Add a `Runtime` to the group either by host or as a `Runtime` object.
 cleanup(self)
 ```
 
-Release all acquired resources and terminate all processes by calling the cleanup method on all contained
-`Runtimes`.
+Release all acquired resources and terminate all processes by calling the cleanup method on all contained `Runtimes`.
+
 -------------------
 <span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L567)</span>
 
@@ -352,6 +352,7 @@ Trigger the reading of runtime information asynchronously and buffer the result.
   takes places on the remote host takes some seconds. This method enables you to read the information in
   seperate processes so that the execution time stays more or less the same independent of the actual amount
   of Runtimes used.
+
 -------------------
 <span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L502)</span>
 
@@ -686,6 +687,7 @@ Print detected hosts incl. the inactive ones.
 **Note:**
 
   Inactive means that the host is not reachable via ssh or the check vie Runtime.is_valid_runtime() failed.
+
 -------------------
 <span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L804)</span>
 
