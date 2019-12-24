@@ -67,7 +67,7 @@ class LocalMongoLauncher(MasterLauncher):
         if return_code != 0:
             cause = f'Please verify that (1) MongoDB is installed, (2) the dbpath `{self._dbpath}` exists with the ' \
                     f'rights required by mongod and (3) that no other MongoDB instance is using and consequently ' \
-                    f'locking the respective files.'
+                    f'locking the respective files (=> Init HyperoptCluster with another dbpath).'
             raise MasterStartError('localhost', master_port, cause)
 
         time.sleep(timeout)  # Needed for being able to check the port
