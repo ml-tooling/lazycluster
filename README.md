@@ -54,6 +54,11 @@ and convenient cluster setup with Python for various distributed machine learnin
 > **Concept Definition:** *[RuntimeGroup](./docs/runtimes.md#runtimetask-class)* 
 >
 > A `RuntimeGroup` is the representation of logically related `Runtimes` and provides convenient methods for managing those related `Runtimes`. Most methods are wrappers around their counterparts in the `Runtime` class. Typical usage examples are exposing a port (i.e. a service such as a DB) in the `RuntimeGroup`, transfer files, or execute  a `RuntimeTask` on the contained `Runtimes`. Additionally, all concrete [RuntimeCluster](./docs/cluster.runtime_cluster.md#runtimecluster-class) (e.g. the [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class))implementations rely on `RuntimeGroups` for example.
+
+
+> **Concept Definition:** *Manager*<a name="manager"></a>
+>
+> The `manager` refers to the host where you are actually using the lazycluster library, since all desired lazycluster entities are managed from here. **Caution**: It is not to be confused with the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) class.
 ---
 
 <br>
@@ -74,11 +79,13 @@ pip install --upgrade git+https://github.com/ml-tooling/lazycluster.git@develop
 **For lazycluster installation:**
 - Python >= 3.6
 - ssh client (e.g. openssh-client)
+- unix baased OS
 
 **Runtime host requirements:**
 - Python >= 3.6
 - ssh server (e.g. openssh-server)
 - [passwordless ssh](https://linuxize.com/post/how-to-setup-passwordless-ssh-login/) to the host (recommended)
+- unix baased OS
 
 **Note:**
 
@@ -174,7 +181,7 @@ runtime_group = RuntimeGroup(hosts=['host-1', 'host-2'])
 </details>
 
 ### Use [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) to create a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) based on the local ssh config
-The [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on your local ssh config and eventually create a necessary [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) for you.
+The [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on the [manager's](#manager) local ssh config and eventually create a necessary [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) for you.
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
@@ -187,8 +194,8 @@ runtime_group = RuntimeManager().create_group()
 
 ### Expose a service from a [Runtime](./docs/runtimes.md#runtime-class)
 A DB is running on a remote host on port `runtime_port` and the DB is only accessible from the remote host. 
-But you also want to access the service from the local machine on port `local_port`. Then you can use this 
-method to expose the service which is running on the remote host to localhost.
+But you also want to access the service from the [manager](#manager) on port `local_port`. Then you can use this 
+method to expose the service which is running on the remote host to the [manager](#manager).
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
@@ -207,9 +214,9 @@ runtime.expose_port_to_runtime(40000)
 </details>
 
 ### Expose a service to a [Runtime](./docs/runtimes.md#runtime-class)
-A DB is running on localhost on port `local_port` and the DB is only accessible from localhost. 
+A DB is running on the [manager](#manager) on port `local_port` and the DB is only accessible from the [manager](#manager). 
 But you also want to access the service on the remote `Runtime` on port `runtime_port`. Then you can use 
-this method to expose the service which is running on localhost to the remote host.
+this method to expose the service which is running on the [manager](#manager) to the remote host.
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
@@ -228,6 +235,7 @@ runtime.expose_port_to_runtime(40000)
 </details>
 
 ### Expose a service to a whole [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) or from one contained [Runtime](./docs/runtimes.md#runtime-class) in the [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class)
+Now we extend the two previous examples by using a `RuntimeGroup` instead of just a single `Runtime`.
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
@@ -237,7 +245,9 @@ from lazycluster import RuntimeGroup
 # Create a RuntimeGroup
 runtime_group = RuntimeGroup('host1', 'host-2', 'host-3')
 
-# Make the local port 50000 accessible on all Runtimes contained in the RuntimeGroup
+# Make the local port 50000 accessible on all Runtimes contained in the RuntimeGroup.
+# Note: The port can also be exposed to a subset of the contained Runtimes by using the
+# method parameter exclude_hosts.
 runtime_group.expose_port_to_runtimes(50000)
 
 
@@ -247,7 +257,7 @@ runtime_group.expose_port_from_runtime_to_group('host-1', 40000)
 </details>
 
 ### Simple preprocessing example
-Read a local CSV and upper case chunks in parallel using [RuntimeTasks](./docs/runtimes.md#runtimetask-class)
+Read a local (on the [manager](#manager)) CSV file and upper case chunks in parallel using [RuntimeTasks](./docs/runtimes.md#runtimetask-class)
 and a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class).
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
@@ -287,9 +297,9 @@ for chunk in runtime_group.function_returns:
 </details>
 
 ### Scalable analytics with [Dask](https://dask.org/)
-Most simple way to use DASK in a cluster based on a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) created by the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class). The `RuntimeManager` can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on your local ssh config and eventually create a necessary `RuntimeGroup` for you. This `RuntimeGroup` is then handed over to [DaskCluster](./docs/cluster.dask_cluster.md#daskcluster-class) during initialization.
+Most simple way to use DASK in a cluster based on a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) created by the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class). The `RuntimeManager` can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on the [manager's](#manager) ssh config and eventually create a necessary `RuntimeGroup` for you. This `RuntimeGroup` is then handed over to [DaskCluster](./docs/cluster.dask_cluster.md#daskcluster-class) during initialization.
 
-The DASK `scheduler` instance gets started on the host where the `DaskCluster` class will be instantiated. We call this host the `master` inspired by the naming of master-worker architectures. Additionally, multiple DASK `worker` processes get started in the `RuntimeGroup`. The default number of workers is equal to the number of `Runtimes` contained in the `RuntimeGroup`.
+The DASK `scheduler` instance gets started [manager](#manager). Additionally, multiple DASK `worker` processes get started in the `RuntimeGroup`, i.e. in the contained `Runtimes`. The default number of workers is equal to the number of `Runtimes` contained in the `RuntimeGroup`.
 
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
@@ -351,12 +361,12 @@ cluster.start()
 </details>
 
 ### Distributed hyperparameter tuning with [Hyperopt](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB)
-Most simple way to use Hyperopt in a cluster based on a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) created by the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class). The `RuntimeManager` can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on your local ssh config and eventually create a necessary `RuntimeGroup` for you. This `RuntimeGroup` is then handed over to [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class) during initialization.
+Most simple way to use Hyperopt in a cluster based on a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) created by the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class). The `RuntimeManager` can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on the [manager's](#manager) ssh config and eventually create a necessary `RuntimeGroup` for you. This `RuntimeGroup` is then handed over to [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class) during initialization.
 
-A MongoDB instance gets started on the host where the [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class) class will be instantiated. We call this host the `master` inspired by the naming of master-worker architectures. Additionally, multiple hyperopt `worker` processes get started in the `RuntimeGroup`. The default number of workers is equal to the number of `Runtimes` contained in the `RuntimeGroup`.
+A MongoDB instance gets started on the [manager](#manager). Additionally, multiple hyperopt `worker` processes get started in the `RuntimeGroup`, i.e. on the contained `Runtimes`. The default number of workers is equal to the number of `Runtimes` contained in the `RuntimeGroup`.
 
 **Prerequisites:** 
-- [MongoDB server must be installed](https://docs.mongodb.com/manual/administration/install-on-linux/) on the `master` host.  Moreover, no existing MongoDB instance must be running on the `master` on the port (Default: `27017`) and the dbpath (Default: `/data/db`) used by the `HyperoptCluster`.
+- [MongoDB server must be installed](https://docs.mongodb.com/manual/administration/install-on-linux/) on the [manager](#manager).
   - **Note:** When using the [ml-workspace](https://github.com/ml-tooling/ml-workspace) as the `master` then you can use the provided install script for MongoDB which can be found under `/resources/tools`.
 - [Hyperopt must be installed ](https://github.com/hyperopt/hyperopt) on all `Runtimes` where hyperopt workers will be started
     - **Note:** When using the [ml-workspace](https://github.com/ml-tooling/ml-workspace) as hosts for the `Runtimes` then hyperopt is already pre-installed.
@@ -387,7 +397,7 @@ cluster.start()
 
 Test the cluster setup using the simple [example](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB) to minimize the sin function. 
 
-**Note:** The call to `fmin` is also done on localhost (more specifially, on the host acting as). The `objective_function` gets sent to the hyperopt workers by fmin via MongoDB. So there is no need to trigger the execution of `fmin` or the `objective_function` on the individual `Runtimes`. See hyperopt docs for detailed explanation.  
+**Note:** The call to `fmin` is also done on the [manager](#manager). The `objective_function` gets sent to the hyperopt workers by fmin via MongoDB. So there is no need to trigger the execution of `fmin` or the `objective_function` on the individual `Runtimes`. See hyperopt docs for detailed explanation.  
 
 ```python
 import math
