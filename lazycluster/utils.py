@@ -87,15 +87,6 @@ class Environment(object):
         cls.main_directory = os.path.abspath(dir)
 
 
-def get_current_timestamp() -> str:
-    """Get the current timestamp."""
-    seconds_since_epoch = time.time()
-    # Convert seconds since epoch to struct_time
-    time_obj = time.localtime(self._seconds_since_epoch)
-    return f'{time_obj.tm_year}{time_obj.tm_mon}{time_obj.tm_mday}_{time_obj.tm_hour}_{time_obj.tm_min}_' \
-           f'{time_obj.tm_sec}'
-
-
 class Timestamp(object):
     """Custom Timestamp class with convenient methods.
     """
