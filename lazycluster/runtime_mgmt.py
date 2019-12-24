@@ -415,9 +415,9 @@ class RuntimeGroup(object):
             TaskExecutionError: If an executed task step can't be executed successfully.
         """
         if not broadcast:
-            self.log.info(f'Start executing task {task.name} in RuntimeGroup (no broadcasting).')
+            self.log.debug(f'Start executing task {task.name} in RuntimeGroup (no broadcasting).')
         else:
-            self.log.info(f'Start broadcasting task {task.name} in RuntimeGroup.')
+            self.log.debug(f'Start broadcasting task {task.name} in RuntimeGroup.')
 
         if broadcast:
             tasks = []
