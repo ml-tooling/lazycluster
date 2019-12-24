@@ -90,6 +90,10 @@ import lazycluster.cluster.exceptions
 markdown_str = generator.module2md(lazycluster.cluster.exceptions)
 gd.to_md_file(markdown_str, './docs/cluster.exceptions')
 
+import lazycluster.utils
+markdown_str = generator.module2md(lazycluster.utils)
+gd.to_md_file(markdown_str, './docs/utils')
+
 if args.deploy:
     call("python3 -m pip install --user --upgrade setuptools wheel twine")
     # Deploy to PyPi

@@ -109,9 +109,11 @@ class Timestamp(object):
         self.sec = str(self._time_obj.tm_sec) if len(str(self._time_obj.tm_sec)) == 2 else f'0{str(self._time_obj.tm_sec)}'
 
     def get_unformatted(self) -> str:
-        """Fixed length representation w/o delimiters in format: yyyymmddhhmmss."""
+        """Fixed length representation w/o delimiters in format: yyyymmddhhmmss.
+        """
         return self.year + self.month + self.day + self.hour + self.min + self.sec
 
     def get_formatted(self) -> str:
-        """Formatted fixed length representation with delimiters in format: yyyy-mm-dd hh:mm:ss."""
+        """Formatted fixed length representation with delimiters in format: yyyy-mm-dd hh:mm:ss.
+        """
         return f'{self.year}-{self.month}-{self.day} {self.hour}:{self.min}:{self.sec}'

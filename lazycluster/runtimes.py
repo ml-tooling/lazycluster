@@ -456,6 +456,7 @@ class RuntimeTask(object):
 
         Note:
             If self.needs_explicit_termination is set, then the execution is omitted in order to prevent a deadlock.
+
         """
         if self.needs_explicit_termination and self.process:
             self.log.debug(f'The execution of join() of RuntimeTask {self.name} is omitted, since this task is marked '
@@ -1204,7 +1205,7 @@ class Runtime(object):
             only_alive: True, if only alive processes shall be returned instead of all. Defaults to False.
             
         Returns:
-            Dict[str, Process]: Dictionary with process keys as dict keys and the respective processes as dict values.
+            Dict: Dictionary with process keys as dict keys and the respective processes as dict values.
 
         """
         if only_alive:

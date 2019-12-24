@@ -34,8 +34,7 @@ class RuntimeGroup(object):
             # Execute a RuntimeTask in the whole RuntimeGroup
             task_list = group.execute_task(my_task, broadcast=True)
 
-            # Execute RuntimeTask via RuntimeGroup either on a single Runtime
-            my_task = RuntimeTask('group-demo').run_command('echo Hello Group!')
+            # Execute a RuntimeTask on a single Runtime contained in the RuntimeGroup
             task = group.execute_task(my_task)
             ```
             A DB is running on localhost on port `local_port` and the DB is only accessible
@@ -211,7 +210,7 @@ class RuntimeGroup(object):
         """Trigger the reading of runtime information asynchronously and buffer the result.
 
         Note:
-            The actual reading of Runtime.info data takes place when requesting the attribute the first time.
+            The actual reading of `Runtime.info data takes place when requesting the attribute the first time.
             Consequently, the result gets buffered in the respective Runtime instance. The actual reading of the data
             takes places on the remote host takes some seconds. This method enables you to read the information in
             seperate processes so that the execution time stays more or less the same independent of the actual amount
@@ -804,6 +803,10 @@ class RuntimeManager(object):
 
     def print_inactive_hosts(self):
         """Print the inactive hosts.
+
+        Note:
+            Inactive means that the host is not reachable via ssh or the check vie Runtime.is_valid_runtime() failed.
+
         """
         for host in self.inactive_hosts:
             print(f'{host} (inactive)')
