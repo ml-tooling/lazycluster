@@ -10,6 +10,7 @@ from lazycluster.cluster import MasterWorkerCluster, MasterLauncher, WorkerLaunc
 from lazycluster import _utils
 from lazycluster.cluster.exceptions import MasterStartError
 from lazycluster.exceptions import PortInUseError
+from lazycluster.utils import Environment
 
 
 class LocalMongoLauncher(MasterLauncher):
@@ -223,7 +224,7 @@ class HyperoptCluster(MasterWorkerCluster):
     def __init__(self, runtime_group: RuntimeGroup,
                  master_launcher: Optional[MasterLauncher] = None,
                  worker_launcher: Optional[WorkerLauncher] = None,
-                 dbpath: str = '/data/db',
+                 dbpath: Optional[str] = None,
                  dbname: str = 'hyperopt',
                  worker_poll_intervall: float = 0.1):
         """Initialization method.
@@ -236,7 +237,8 @@ class HyperoptCluster(MasterWorkerCluster):
             worker_launcher: Optionally, an instance implementing the `WorkerLauncher` interface can be given, which
                              implements the strategy for launching the worker instances. If None, then
                              `RoundRobinLauncher` is used.
-            dbpath: The directory where the db files will be kept. Defaults to `/data/db`.
+            dbpath: The directory where the db files will be kept. Defaults to a mongodb directory inside the
+                    `utils.Environment.main_directory`.
             dbname: The name of the database to be used for experiments. See MongoTrials url scheme in hyperopt
                     documentation for more details. Defaults to ´hyperopt´.
             worker_poll_intervall: The poll interval of the hyperopt worker. Defaults to `0.1`.
@@ -244,7 +246,11 @@ class HyperoptCluster(MasterWorkerCluster):
         super().__init__(runtime_group)
 
         self._master_launcher = master_launcher if master_launcher else LocalMongoLauncher(runtime_group)
-        self._master_launcher._dbpath = dbpath
+
+        if not dbpath:
+            self._master_launcher._dbpath = os.path.join(Environment.main_directory, 'mongodb')
+        else:
+            self._master_launcher._dbpath = dbpath
         self._dbname = dbname
 
         self._worker_launcher = worker_launcher if worker_launcher else RoundRobinLauncher(runtime_group, dbname,
