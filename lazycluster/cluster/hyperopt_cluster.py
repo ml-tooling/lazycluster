@@ -28,7 +28,7 @@ class LocalMongoLauncher(MasterLauncher):
             runtime_group: The group where the workers will be started.
         """
         super().__init__(runtime_group)
-        self._dbpath = None
+        self.dbpath = None
 
     def start(self, ports: Union[List[int], int], timeout: int = 3) -> List[int]:
         """Launch a master instance.
@@ -59,14 +59,14 @@ class LocalMongoLauncher(MasterLauncher):
             self._port = master_port = self._group.get_free_port(ports)  # Raises NoPortsLeftError
             ports = _utils.get_remaining_ports(ports, master_port)
 
-        self.log.debug(f'Starting MongoDB on localhost on port {str(master_port)} with dbpath `{self._dbpath}` and '
-                       f'logfile `{self._dbpath}/{HyperoptCluster.MONGO_LOG_FILENAME}`.')
+        self.log.debug(f'Starting MongoDB on localhost on port {str(master_port)} with dbpath `{self.dbpath}` and '
+                       f'logfile `{self.dbpath}/{HyperoptCluster.MONGO_LOG_FILENAME}`.')
 
         # Start the mongod deamon process
         return_code = os.system(self.get_mongod_start_cmd())
 
         if return_code != 0:
-            cause = f'Please verify that (1) MongoDB is installed, (2) the dbpath `{self._dbpath}` exists with the ' \
+            cause = f'Please verify that (1) MongoDB is installed, (2) the dbpath `{self.dbpath}` exists with the ' \
                     f'rights required by mongod and (3) that no other MongoDB instance is using and consequently ' \
                     f'locking the respective files (=> Init HyperoptCluster with another dbpath ' \
                     f'or manually stop the mongod process).'
@@ -94,7 +94,7 @@ class LocalMongoLauncher(MasterLauncher):
             Returns:
                 str: The shell command.
         """
-        return f'mongod --fork --logpath={self._dbpath}/{HyperoptCluster.MONGO_LOG_FILENAME} --dbpath={self._dbpath} ' \
+        return f'mongod --fork --logpath={self.dbpath}/{HyperoptCluster.MONGO_LOG_FILENAME} --dbpath={self.dbpath} ' \
                f'--port={self._port}'
 
     def get_mongod_stop_cmd(self) -> str:
@@ -103,7 +103,7 @@ class LocalMongoLauncher(MasterLauncher):
             Returns:
                 str: The shell command.
         """
-        return f'mongod --shutdown --dbpath={self._dbpath}'
+        return f'mongod --shutdown --dbpath={self.dbpath}'
 
     def cleanup(self):
         """Release all resources.
@@ -251,13 +251,13 @@ class HyperoptCluster(MasterWorkerCluster):
         self._master_launcher = master_launcher if master_launcher else LocalMongoLauncher(runtime_group)
 
         if not dbpath:
-            self._master_launcher._dbpath = os.path.join(Environment.main_directory, 'mongodb')
+            self._master_launcher.dbpath = os.path.join(Environment.main_directory, 'mongodb')
             try:
-                os.makedirs(self._master_launcher._dbpath)  # Raises PermissionError
+                os.makedirs(self._master_launcher.dbpath)  # Raises PermissionError
             except FileExistsError:
                 pass  # All good because the dir already exists
         else:
-            self._master_launcher._dbpath = dbpath
+            self._master_launcher.dbpath = dbpath
         self._dbname = dbname
 
         self._worker_launcher = worker_launcher if worker_launcher else RoundRobinLauncher(runtime_group, dbname,
