@@ -664,10 +664,10 @@ class Runtime(object):
         """Initialization method.
 
         Note:
-            The working directory will also be set as environment variable on the Runtime. It is accessible via the
-            env variable name stated in the constant `Runtime.WORKING_DIR_ENV_VAR_NAME`. This might be especially of
-            interest when executing functions remotely. Moreover, if the working_dir is set manually you need to ensure
-            in advance that this directors is actually present on the host.
+            The working directory will also be set as environment variable (see `Runtime.env_variables`) on the Runtime.
+            It is accessible via the env variable name stated in the constant `Runtime.WORKING_DIR_ENV_VAR_NAME`. This
+            might be especially of interest when executing functions remotely. Moreover, if the working_dir is set
+            manually you need to ensure in advance that this directors is actually present on the host.
 
         Args:
             host: The host of the `Runtime`.
@@ -899,17 +899,25 @@ class Runtime(object):
         return len(self.task_processes)
 
     @property
-    def env_variables(self) -> Dict:
+    def env_variables(self) -> Dict[str, str]:
+        """The environment variables for the Runtime. These variables are accessible on the Runtime and can be used
+        when executing Python functions or shell comamands."""
         return self._env_variables
 
     @env_variables.setter
     def env_variables(self, env_variables: Dict[str, str]):
         """Setter for the environment variables.
 
+        Note:
+            The working directory is always accessible as env variable on the Runtime via the name
+            value of `self.WORKING_DIR_ENV_VAR_NAME`.
+
         Args:
             env_variables: The new env var dictionary.
         """
         self._env_variables = env_variables
+        if self.WORKING_DIR_ENV_VAR_NAME not in self._env_variables:
+            self._env_variables.update({self.WORKING_DIR_ENV_VAR_NAME: self._working_dir})
 
     def add_env_variables(self, env_variables: Dict):
         """Update the environment variables. If a variable already exists it gets updated and if not it will be added.
