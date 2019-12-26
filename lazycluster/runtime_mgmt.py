@@ -428,7 +428,7 @@ class RuntimeGroup(object):
                     current_task = task
                 else:
                     # Create a deep copy to prevent reference errors especially for the task log.
-                    # Each task will will contain its own log produced on its executing host.
+                    # Each task will contain its own log produced on its executing host.
                     current_task = deepcopy(task)
 
                 runtime.execute_task(current_task, execute_async, debug)
@@ -490,14 +490,11 @@ class RuntimeGroup(object):
             task.join()
 
     def print_log(self):
-        """Print the execution logs of each `RuntimeTask` that were executed in the group.
+        """Print the execution logs of the contained `Runtimes` that were executed in the group.
         """
-        i = 0
-        for task in self._tasks:
-            if i > 0:
-                print('\n')
-                i += 1
-            task.print_log()
+        for runtime in self._runtimes.values():
+            print(f'Execution Log of Runtime {runtime.host}:')
+            runtime.print_log()
 
     def get_free_port(self, ports: List[int], enforce_check_on_localhost: bool = False) -> int:
         """Return the first port from the list which is currently not in use in the whole group.
