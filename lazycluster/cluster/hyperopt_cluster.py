@@ -237,11 +237,14 @@ class HyperoptCluster(MasterWorkerCluster):
             worker_launcher: Optionally, an instance implementing the `WorkerLauncher` interface can be given, which
                              implements the strategy for launching the worker instances. If None, then
                              `RoundRobinLauncher` is used.
-            dbpath: The directory where the db files will be kept. Defaults to a mongodb directory inside the
+            dbpath: The directory where the db files will be kept. Defaults to a `mongodb` directory inside the
                     `utils.Environment.main_directory`.
             dbname: The name of the database to be used for experiments. See MongoTrials url scheme in hyperopt
                     documentation for more details. Defaults to ´hyperopt´.
             worker_poll_intervall: The poll interval of the hyperopt worker. Defaults to `0.1`.
+
+        Raises:
+            PermissionError: If the `dbpath` does not exsist and could not be created due to lack of permissions.
         """
         super().__init__(runtime_group)
 
@@ -249,6 +252,10 @@ class HyperoptCluster(MasterWorkerCluster):
 
         if not dbpath:
             self._master_launcher._dbpath = os.path.join(Environment.main_directory, 'mongodb')
+            try:
+                os.makedirs(self._master_launcher._dbpath)  # Raises PermissionError
+            except FileExistsError:
+                pass  # All good because the dir already exists
         else:
             self._master_launcher._dbpath = dbpath
         self._dbname = dbname
