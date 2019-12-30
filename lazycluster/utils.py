@@ -21,7 +21,7 @@ class FileLogger(object):
         self.taskname = taskname
         self.file_extension = 'log'
         self.log = logging.getLogger(__name__)
-        self._main_dir = Environment.main_directory
+        self._main_dir = os.path.join(Environment.main_directory, 'log')
         self._creation_timestamp = Timestamp()
 
     @property
