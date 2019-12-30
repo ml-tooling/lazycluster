@@ -57,7 +57,7 @@ class FileLogger(object):
         self.log.debug(f'Add log message to file {path} with file mode {mode}')
 
         with open(path, mode) as file:
-            file.write('\n' + message)
+            file.write('\n' + self._create_log_msg())
 
     @classmethod
     def _create_log_msg(cls, message) -> str:
