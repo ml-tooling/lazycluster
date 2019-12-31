@@ -74,6 +74,8 @@ class Environment(object):
 
     main_directory = os.path.abspath('./lazycluster')
 
+    third_party_log_level = logging.ERROR
+
     @classmethod
     def set_main_directory(cls, dir: str):
         """Setter for the library's main directory on the manager.
@@ -85,6 +87,19 @@ class Environment(object):
             dir: Relative or absolute path.
         """
         cls.main_directory = os.path.abspath(dir)
+
+    @classmethod
+    def set_third_party_log_level(cls, log_level: int):
+        """Setter for `third_party_log_level` to control the standard python logging behavior of used libraries.
+
+        Note:
+            The class variable `third_party_log_level` defaults to `logging.Error`, e.g. only paramiko errors
+            will be shown.
+
+        Args:
+            log_level: Standard python log level values as defined in `logging` like `logging.ERROR`.
+        """
+        logging.getLogger('paramiko').setLevel(logging.ERROR)
 
 
 class Timestamp(object):

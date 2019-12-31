@@ -6,3 +6,8 @@ from lazycluster.exceptions import *
 from lazycluster.runtimes import *
 from lazycluster.runtime_mgmt import *
 
+from lazycluster.utils import Environment
+
+print('lazycluster.__init__ executed')
+Environment.set_third_party_log_level(Environment.third_party_log_level)
+
