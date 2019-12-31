@@ -99,7 +99,7 @@ class Environment(object):
         Args:
             log_level: Standard python log level values as defined in `logging` like `logging.ERROR`.
         """
-        logging.getLogger('paramiko').setLevel(logging.ERROR)
+        logging.getLogger('paramiko').setLevel(log_level)
 
 
 class Timestamp(object):
