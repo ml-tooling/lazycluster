@@ -65,7 +65,7 @@ class RuntimeGroup(object):
     _internal_port_range = range(_INTERNAL_PORT_MIN, _INTERNAL_PORT_MAX)
 
     def __init__(self, runtimes: Optional[List[Runtime]] = None, hosts: Optional[List[str]] = None):
-        """ Initialization method.
+        """Initialization method.
         
         Args:
             runtimes: List of `Runtimes`. If not given, then `hosts` must be supplied.
