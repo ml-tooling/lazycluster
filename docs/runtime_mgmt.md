@@ -7,7 +7,7 @@
 
 ## RuntimeGroup class
 
-A group of logically related `Runtimes`.
+A `RuntimeGroup` is the representation of logically related `Runtimes` and provides convenient methods for managing those related `Runtimes`. Most methods are wrappers around their counterparts in the `Runtime` class. Typical usage examples are exposing a port (i.e. a service such as a DB) in the `RuntimeGroup`, transfer files, or execute  a `RuntimeTask` on the contained `Runtimes`. Additionally, all concrete RuntimeCluster (e.g. HyperoptCluster) implementations rely on `RuntimeGroups` for example.
 
 The `RuntimeGroup` provides a simplified interface for executing tasks in multiple `Runtimes` or exposing ports
 within a `RuntimeGroup`.

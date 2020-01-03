@@ -7,13 +7,13 @@
 
 ## RuntimeTask class
 
-This class provides the functionality for executing a sequence of elementary operations over ssh. The `fabric`
+This class provides the functionality for executing a sequence of elementary operations over ssh. The [fabric](http://docs.fabfile.org/en/2.5/api/connection.html)
 library is used for handling ssh connections. A `RuntimeTask` can be composed from four different operations which
 we call steps, namely adding a step for running a shell command via `run_command()`, sending a file to a host via
 `send_file()`, retrieving a file from a host via `get_file()` or adding a step for executing a python function on a
 host via `run_function()`. The current restriction for running functions is that these functions need to be
 serializable via cloudpickle. To actually execute a `RuntimeTask`, i.e. the sequence of task steps, either a call
-to `execute()` is necessary or a handover to the `execute_task()` method of the `Runtime` class is necessary.
+to `execute()` is necessary or a handover to the `execute_task()` method of the `Runtime` or `RuntimeGroup` class is necessary.
 Usually, a `RuntimeTask` will be executed in a `Runtime` or in a `RuntimeGroup`. See its documentation for further
 details.
 

@@ -26,14 +26,14 @@ import os
 
 
 class RuntimeTask(object):
-    """This class provides the functionality for executing a sequence of elementary operations over ssh. The `fabric`
+    """This class provides the functionality for executing a sequence of elementary operations over ssh. The [fabric](http://docs.fabfile.org/en/2.5/api/connection.html)
     library is used for handling ssh connections. A `RuntimeTask` can be composed from four different operations which
     we call steps, namely adding a step for running a shell command via `run_command()`, sending a file to a host via
     `send_file()`, retrieving a file from a host via `get_file()` or adding a step for executing a python function on a
     host via `run_function()`. The current restriction for running functions is that these functions need to be
     serializable via cloudpickle. To actually execute a `RuntimeTask`, i.e. the sequence of task steps, either a call
     to `execute()` is necessary or a handover to the `execute_task()` method of the `Runtime` class is necessary.
-    Usually, a `RuntimeTask` will be executed in a `Runtime` or in a `RuntimeGroup`. See its documentation for further
+    Usually, a `RuntimeTask` or `RuntimeGroup` will be executed in a `Runtime` or in a `RuntimeGroup`. See its documentation for further
     details.
 
     Examples:
@@ -373,7 +373,7 @@ class RuntimeTask(object):
                        f'function {function.__name__}.')
         return self
 
-    def execute(self, connection: Connection, debug: bool = False):
+    def yexecute(self, connection: Connection, debug: bool = False):
         """Execute the task on a remote host using a fabric connection.
 
         Note:
@@ -632,7 +632,12 @@ class RuntimeTask(object):
 
 
 class Runtime(object):
-    """Runtime for executing `RuntimeTasks` in it or exposing ports from / to localhost.
+    """A `Runtime` is the logical representation of a remote host. Typically, the host is another server or a virtual
+    machine / container on another server. This python class provides several methods for utilizing remote resources
+    such as the port exposure from / to a `Runtime` as well as the execution of `RuntimeTasks`. A `Runtime` has a
+    working directory. Usually, the execution of a `RuntimeTask` is conducted relatively to this directory if no other
+    path is explicitly given. The working directory can be manually set during the initialization. Otherwise, a
+    temporary directory gets created that might eventually be removed.
     
     Note:
         Passwordless ssh access should be be setup in advance. Otherwise the connection kwargs of fabric must be used
