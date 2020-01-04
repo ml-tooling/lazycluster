@@ -92,6 +92,8 @@ class Environment(object):
     def set_third_party_log_level(cls, log_level: int):
         """Setter for `third_party_log_level` to control the standard python logging behavior of used libraries.
 
+        Affected libraries: paramiko
+
         Note:
             The class variable `third_party_log_level` defaults to `logging.Error`, e.g. only paramiko errors
             will be shown.
