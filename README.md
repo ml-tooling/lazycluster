@@ -42,11 +42,12 @@ and convenient cluster setup with Python for various distributed machine learnin
     - Add a [Runtime](./docs/runtimes.md#runtime-class) configuration
     - Delete a [Runtime](./docs/runtimes.md#runtime-class) configuration
 
-> **Concept Definition:** *[RuntimeTask](./docs/runtimes.md#runtimetask-class)* 
+
+> **Concept Definition:** *[RuntimeTask](./docs/runtimes.md#runtimetask-class)* <a name="task"></a>
 >
 > A `RuntimeTask` is a composition of multiple elemantary task steps, such as `send file`, `get file`, `run shell command`, `run python function`. A `RuntimeTask` can be executed on a remote host either by handing it over to a `Runtime` object or standalone by handing over a [fabric Connection](http://docs.fabfile.org/en/2.5/api/connection.html) object to the execute method of the `RuntimeTask`. Consequently, all invididual task steps are executed sequentially. Moreover, a `RuntimeTask` object captures the stdout of the remote execution as logs. An example for a `RuntimeTask` could be to send a csv file to a `Runtime`, execute a python function that is transforming the csv file and finally get the file back. 
 
-> **Concept Definition:** *[Runtime](./docs/runtimes.md#runtime-class)* 
+> **Concept Definition:** *[Runtime](./docs/runtimes.md#runtime-class)* <a name="runtime"></a>
 >
 > A `Runtime` is the logical representation of a remote host. Typically, the host is another server or a virtual machine / container on another server. This python class provides several methods for utilizing remote resources such as the port exposure from / to a `Runtime` as well as the execution of `RuntimeTasks`. A `Runtime` has a working directory. Usually, the execution of a `RuntimeTask` is conducted relatively to this directory if no other path is explicitly given. The working directory can be manually set during the initialization. Otherwise, a temporary directory gets created that might eventually be removed.
  
@@ -397,7 +398,7 @@ cluster.start()
 
 Test the cluster setup using the simple [example](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB) to minimize the sin function. 
 
-**Note:** The call to `fmin` is also done on the [manager](#manager). The `objective_function` gets sent to the hyperopt workers by fmin via MongoDB. So there is no need to trigger the execution of `fmin` or the `objective_function` on the individual `Runtimes`. See hyperopt docs for detailed explanation.  
+**Note:** The call to `fmin` is also done on the [manager](#manager). The `objective_function` gets sent to the hyperopt workers by fmin via MongoDB. So there is no need to trigger the execution of `fmin` or the `objective_function` on the individual `Runtimes`. See [hyperopt docs](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB) for detailed explanation.  
 
 ```python
 import math
@@ -422,6 +423,93 @@ cluster = HyperoptCluster(RuntimeManager().create_group(),
                           MyWorkerLauncherImpl())
 cluster.start()
 ```
+</details>
+
+### Logging, exception handling and debugging
+`lazycluster` aims to abstract away the complexity implied by using multiple distributed [Runtimes](./docs/runtimes.md#runtime-class) and provides an intuitive high level API fur this purpose. The lazycluster [manager](#manager) orchestrates the individual components of the distributed setup. A common use case could be to use lazycluster in order to launch a distributed [hyperopt cluster](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB). In this case, we have the lazycluster [manager](#manager), that starts a [MongoDB](https://www.mongodb.com/) instance, starts the hyperopt worker processes on multiple Runtimes and ensures the required communication via ssh between these instances. Each individual component could potentially fail including the 3rd party ones such as hyperopt workers. Since `lazycluster` is a generic library and debugging a distributed system is  an instrinsically non-trivial task, we tried to emphasize logging and good exception handling practices so that you can stay lazy.
+
+#### Standard Python log
+We use the standard Python [logging module](https://docs.python.org/3.6/library/logging.html#formatter-objects) in order to log everything of interest on the [manager](#manager).
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+Per default we recommend to set the basicConfig log level to `logging.INFO`. Consequently, you will get relevant status updates about the progress of launching a cluster for example. Of course, you can adjust the log level to `logging.DEBUG` or anything you like. 
+
+We like to use the following basic configuration when using lazycluster in a [Jupyter](https://jupyter.org/) notebook:
+```python
+import logging
+
+logging.basicConfig(format='[%(levelname)s] %(name)s %(message)s', 
+                    level=logging.INFO,
+                    stream=sys.stdout)
+```
+
+**Note:**
+Some 3rd party libraries produce a lot of INFO messages, which are usually not of interest for the user. This is particular true for [Paramiko](http://www.paramiko.org/). We base most ssh handling on [Fabric](http://www.fabfile.org/) which is based on Paramiko. We decided to set the log level for these libraries to `logging.Error` per default. This happens in the `__init__.py` module of the lazycluster package. And will be set once when importing the first module or class from `lazycluster`. If you want to change the log level of 3rd party libs you can set it the following way:
+```python
+import logging
+from lazycluster import Environment
+
+# Effects logs of all libraries that were initially set to logging.ERROR
+lazycluster.Environment.set_third_party_log_level(logging.INFO)
+
+# Of course, you can set the log level manually for each library / module
+logging.getLogger('paramiko').setLevel(logging.DEBUG)
+logging.getLogger('lazycluster').setLevel(logging.INFO)
+```
+See `set_third_party_log_level()` of the [Environment](./docs/utils.md#environment) class for a full list of affected libraries.
+</details>
+
+<br />
+
+#### Execution log
+The execution log aims to provide a central access point to logs produced on the Runtimes.
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+This type of log contains mainly the stdout produced when executing a [RuntimeTask](#task) on a [Runtime](#runtime). If you are new to lazycluster or you never used the lower level API directly, then you might think the execution log is not relevant for you. But it is :) Also the concrete cluster implementations (e.g. [DaskCluster](./docs/cluster.dask_cluster.md#daskcluster-class) or [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class)) are built on top of the lower-level API. You can think of it as the kind of log which you can use to understand what actually happened on your `Runtimes`.
+
+You can access the execution log in two different ways. Either by accessing the `execution_log` property of a `RuntimeTask` or by checking the generated log files on the manager. Moreover, the `Runtime` as well as the `RuntimeGroup` provide a `print_log()` function which prints the `execution_log` of the `RuntimeTasks` that were executed on the `Runtimes`. The `execution_log` property is a list and can be accessed via index. Each log entry corresponds to the output of a single (fully executed) step of the `RuntimeTask`. This might be useful if you need to access the ouput of a concrete `RuntimeTask` step. See the [concept definition](#task) and the [class documentation](./docs/runtimes.md#runtimetask-class) of the `RuntimeTask` for further details.
+
+```python
+from lazycluster import Runtime, RuntimeTask
+
+# Create the task
+task = RuntimeTask('exec-log-demo')
+
+# Add 2 individual task steps
+task.run_command('echo Hello')
+task.run_command('echo lazycluster!')
+
+# Create a Runtime 
+runtime = Runtime('host-1')
+
+# Execute the task remotely on the Runtime
+runtime.execute_task(task)
+
+# Access th elog per index
+print(task.execution_log[0]) # => 'Hello'
+print(task.execution_log[1]) # => 'lazycluster!'
+
+# Let the Runtime print the log
+runtime.print_log()
+```
+
+**Note:**
+It should be noted that `RuntimeTask.run_function()` is actually not a single task step. A call to this method will produce multiple steps, since the Python function that needs to be executed will be send as a pickle file to the remote host. There it gets unpickled, executed and the return data is sent back as a pickle file. This means if you intend to access the exectution log you should be aware that the log contains multiple log entries for the `run_function()` call. But the number of steps per call is fixed. Moreover, you should think about using the return value of a a remotely executed Python function instead of using the execution log for this purpose.
+
+The execution log is written to log files as well by using the [FileLogger](./docs/utils.md#FileLogger) class. The respective directory is per default `./lazycluster/log` on the [manager](#manager). The log directory contains a subfolder for each Runtime (i.e. host) that executed at least one `RuntimeTask`. Inside a Runtime folder you will find one log file per executed RuntimeTask. Each logfile name is generated by concatenating the name of the `RuntimeTask` and a current timestamp. You can configure the path were the log directory gets created by adjusting the lazycluster main directory. See [Environment](./docs/utils.md#environment) for this purpose.
+
+**Attention:**
+Sometimes it might happen that the RuntimeTask.`execution_log` property does not contain the full log. This might especially occur when executing a `RuntimeTask` asynchronously and the execution of the `RuntimeTask` failed. In this case always check the log files on the manager when debugging. Moreover, keep in mind that each log entry gets written after its execution. This means if you execute a `RuntimeTask` with just one step that takes some time, then you can access the log on the manager earliest when this step finished its execution.
+
+</details>
+
+<br />
+
+#### Exception handling
+Our exception handling concept follows the idea to use standard python classes whenever appropriate. Otherwise, we create a library specific error (i.e. exception) class. 
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+Each created error class inherits from our base class [LazyclusterError](./docs/exceptions#lazyclusterError) which in turn inherits from Pythons's [Exception](https://docs.python.org/3.6/tutorial/errors.html#user-defined-exceptions) class. We aim to be informative as possible with our used exceptions to guide you to a solution to your problem. So feel encouraged to provide feedback on misleading or unclear error messages, since we strongly believe that guided errors are essential so that you can stay as lazy as possible.
 </details>
 
 ---
