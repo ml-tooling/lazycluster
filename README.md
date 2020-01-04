@@ -432,6 +432,7 @@ cluster.start()
 We use the standard Python [logging module](https://docs.python.org/3.6/library/logging.html#formatter-objects) in order to log everything of interest on the [manager](#manager).
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
+
 Per default we recommend to set the basicConfig log level to `logging.INFO`. Consequently, you will get relevant status updates about the progress of launching a cluster for example. Of course, you can adjust the log level to `logging.DEBUG` or anything you like. 
 
 We like to use the following basic configuration when using lazycluster in a [Jupyter](https://jupyter.org/) notebook:
@@ -465,6 +466,7 @@ See `set_third_party_log_level()` of the [Environment](./docs/utils.md#environme
 The execution log aims to provide a central access point to logs produced on the Runtimes.
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
+
 This type of log contains mainly the stdout produced when executing a [RuntimeTask](#task) on a [Runtime](#runtime). If you are new to lazycluster or you never used the lower level API directly, then you might think the execution log is not relevant for you. But it is :) Also the concrete cluster implementations (e.g. [DaskCluster](./docs/cluster.dask_cluster.md#daskcluster-class) or [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class)) are built on top of the lower-level API. You can think of it as the kind of log which you can use to understand what actually happened on your `Runtimes`.
 
 You can access the execution log in two different ways. Either by accessing the `execution_log` property of a `RuntimeTask` or by checking the generated log files on the manager. Moreover, the `Runtime` as well as the `RuntimeGroup` provide a `print_log()` function which prints the `execution_log` of the `RuntimeTasks` that were executed on the `Runtimes`. The `execution_log` property is a list and can be accessed via index. Each log entry corresponds to the output of a single (fully executed) step of the `RuntimeTask`. This might be useful if you need to access the ouput of a concrete `RuntimeTask` step. See the [concept definition](#task) and the [class documentation](./docs/runtimes.md#runtimetask-class) of the `RuntimeTask` for further details.
@@ -500,7 +502,6 @@ The execution log is written to log files as well by using the [FileLogger](./do
 
 **Attention:**
 Sometimes it might happen that the RuntimeTask.`execution_log` property does not contain the full log. This might especially occur when executing a `RuntimeTask` asynchronously and the execution of the `RuntimeTask` failed. In this case always check the log files on the manager when debugging. Moreover, keep in mind that each log entry gets written after its execution. This means if you execute a `RuntimeTask` with just one step that takes some time, then you can access the log on the manager earliest when this step finished its execution.
-
 </details>
 
 <br />
@@ -509,7 +510,9 @@ Sometimes it might happen that the RuntimeTask.`execution_log` property does not
 Our exception handling concept follows the idea to use standard python classes whenever appropriate. Otherwise, we create a library specific error (i.e. exception) class. 
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
+
 Each created error class inherits from our base class [LazyclusterError](./docs/exceptions#lazyclusterError) which in turn inherits from Pythons's [Exception](https://docs.python.org/3.6/tutorial/errors.html#user-defined-exceptions) class. We aim to be informative as possible with our used exceptions to guide you to a solution to your problem. So feel encouraged to provide feedback on misleading or unclear error messages, since we strongly believe that guided errors are essential so that you can stay as lazy as possible.
+
 </details>
 
 ---
