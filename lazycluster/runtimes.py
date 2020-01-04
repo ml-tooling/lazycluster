@@ -373,7 +373,7 @@ class RuntimeTask(object):
                        f'function {function.__name__}.')
         return self
 
-    def yexecute(self, connection: Connection, debug: bool = False):
+    def execute(self, connection: Connection, debug: bool = False):
         """Execute the task on a remote host using a fabric connection.
 
         Note:
