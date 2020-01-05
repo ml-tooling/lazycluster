@@ -8,7 +8,9 @@
 ## LazyclusterError class
 
 Basic exception class for `lazycluster` library errors.
+
   
+
 
 -------------------
 <span style="float:right;">[[source]](/lazycluster/exceptions.py#L10)</span>
@@ -26,10 +28,15 @@ __init__(
 
 Constructor method.
 
+
+
 **Args:**
 
+
  - `msg`:  The error message.
+
  - `predecessor_excp`:  Optionally, a predecessor exception can be passed on.
+
 
 
 
@@ -39,7 +46,9 @@ Constructor method.
 ## TaskExecutionError class
 
 This error relates to exceptions occured during RuntimeTask execution.
+
   
+
 
 -------------------
 <span style="float:right;">[[source]](/lazycluster/exceptions.py#L32)</span>
@@ -59,12 +68,19 @@ __init__(
 
 Initialization method.
 
+
+
 **Args:**
 
+
  - `task_step_index`:  The index of the task step, where an error occured.
+
  - `task`:  The `RuntimeTask` during which execution the error occured.
+
  - `host`:  The host where the execution failed.
+
  - `predecessor_excp`:  Optionally, a predecessor exception can be passed on.
+
 
 
 
@@ -74,7 +90,9 @@ Initialization method.
 ## InvalidRuntimeError class
 
 Error indicating that a `Runtime` can not be instantiated properly.
+
   
+
 
 -------------------
 <span style="float:right;">[[source]](/lazycluster/exceptions.py#L52)</span>
@@ -87,9 +105,13 @@ __init__(self, host:  str)
 
 Constructor method.
 
+
+
 **Args:**
 
+
  - `host`:  The host which cannot be instantiated as `Runtime`.
+
 
 
 
@@ -99,7 +121,9 @@ Constructor method.
 ## NoRuntimesDetectedError class
 
 Error indicating that no `Runtime` could be detcted automatically by a `RuntimeManager` for example.
+
   
+
 
 -------------------
 <span style="float:right;">[[source]](/lazycluster/exceptions.py#L66)</span>
@@ -112,10 +136,15 @@ __init__(self, predecessor_excp:  Union[Exception, NoneType]  =  None)
 
 Constructor method.
 
+
+
 **Args:**
 
+
  - `msg`:  The error message.
+
  - `predecessor_excp`:  Optionally, a predecessor exception can be passed on.
+
 
 
 
@@ -125,7 +154,9 @@ Constructor method.
 ## PortInUseError class
 
 Error indicating that a port is already in use in a `RuntimeGroup` or on the local machine.
+
   
+
 
 -------------------
 <span style="float:right;">[[source]](/lazycluster/exceptions.py#L74)</span>
@@ -142,11 +173,17 @@ __init__(
 
 Constructor method.
 
+
+
 **Args:**
 
+
  - `port` (int):  The port in use.
+
  - `group` (Optional[RuntimeGroup]):  The group object where the port is in use.
+
 runtime (Optional[Runtime]: The runtime object where the port is in use.
+
 
 
 
@@ -156,7 +193,9 @@ runtime (Optional[Runtime]: The runtime object where the port is in use.
 ## NoPortsLeftError class
 
 Error indicating that there are no more ports left from the given port list.
+
   
+
 
 -------------------
 <span style="float:right;">[[source]](/lazycluster/exceptions.py#L102)</span>
@@ -168,7 +207,9 @@ __init__(self)
 ```
 
 Constructor method.
+
   
+
 
 
 
@@ -178,7 +219,9 @@ Constructor method.
 ## PathCreationError class
 
 Error indicating that a given path could not be created.
+
   
+
 
 -------------------
 <span style="float:right;">[[source]](/lazycluster/exceptions.py#L113)</span>
@@ -191,10 +234,15 @@ __init__(self, path:  str, host:  Union[str, NoneType]  =  None)
 
 Constructor method.
 
+
+
 **Args:**
 
+
  - `path`:  The path which should be created.
+
  - `host`:  The host where the path should be created.
+
 
 
 

@@ -9,6 +9,7 @@
 
 Error indicating that the cluster master instance could not be started successfully. 
 
+
 -------------------
 <span style="float:right;">[[source]](/lazycluster/cluster/exceptions.py#L14)</span>
 
@@ -20,11 +21,17 @@ __init__(self, host:  str, port:  int, cause:  str)
 
 Initialization method.
 
+
+
 **Args:**
 
+
  - `host`:  The host where the cluster master instance should be started.
+
  - `port`:  The port of the cluster master instance.
+
  - `cause`:  More detailed information of the actual root
+
 
 
 
