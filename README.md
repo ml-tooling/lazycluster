@@ -347,7 +347,6 @@ res = total.result()
 print('Result: ' + str(res))
 ```
 </details>
-<br/>
 
 Use different strategies for launching the master and the worker instance by providing custom implementation of `MasterLauncher` and `WorkerLauncher`.
 <details>
@@ -411,7 +410,6 @@ objective_function = math.sin
 best = fmin(objective_function, hp.uniform('x', -2, 2), trials=trials, algo=tpe.suggest, max_evals=10)
 ```
 </details>
-<br/>
 
 Use different strategies for launching the master and the worker instance by providing custom implementation of `MasterLauncher` and `WorkerLauncher`.
 <details>
@@ -460,7 +458,6 @@ logging.getLogger('lazycluster').setLevel(logging.INFO)
 See `set_third_party_log_level()` of the [Environment](./docs/utils.md#environment) class for a full list of affected libraries.
 </details>
 
-<br />
 
 #### Execution log
 The execution log aims to provide a central access point to logs produced on the Runtimes.
@@ -504,7 +501,6 @@ The execution log is written to log files as well by using the [FileLogger](./do
 Sometimes it might happen that the RuntimeTask.`execution_log` property does not contain the full log. This might especially occur when executing a `RuntimeTask` asynchronously and the execution of the `RuntimeTask` failed. In this case always check the log files on the manager when debugging. Moreover, keep in mind that each log entry gets written after its execution. This means if you execute a `RuntimeTask` with just one step that takes some time, then you can access the log on the manager earliest when this step finished its execution.
 </details>
 
-<br />
 
 #### Exception handling
 
