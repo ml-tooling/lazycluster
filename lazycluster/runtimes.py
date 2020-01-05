@@ -186,6 +186,8 @@ class RuntimeTask(object):
 
     @property
     def env_variables(self) -> Dict:
+        """Environment parameters used when executing a task.
+        """
         return self._env_variables
 
     @env_variables.setter
