@@ -638,10 +638,16 @@ class Runtime(object):
     working directory. Usually, the execution of a `RuntimeTask` is conducted relatively to this directory if no other
     path is explicitly given. The working directory can be manually set during the initialization. Otherwise, a
     temporary directory gets created that might eventually be removed.
+
+    A Runtime has a working directory (property: `working_dir`) which is a temporary directory per default and gets
+    deleted `atexit` in this case. If you set this directory manually, either via `__init__()` or via the property
+    `working_dir` then it won't be removed. Moreover, the working directory will also be set as environment variable on
+    the Runtime. It is accessible via the env variable name stated in the constant `Runtime.WORKING_DIR_ENV_VAR_NAME`.
+    This might be especially of interest when executing python functions remotely.
     
     Note:
-        Passwordless ssh access should be be setup in advance. Otherwise the connection kwargs of fabric must be used
-        for setting up the ssh connection. See project README.
+        [Passwordless ssh](https://linuxize.com/post/how-to-setup-passwordless-ssh-login/)access should be be setup in
+        advance. Otherwise the connection kwargs of fabric must be used for setting up the ssh connection.
 
     Examples:
         ```python
@@ -671,8 +677,7 @@ class Runtime(object):
         Note:
             The working directory will also be set as environment variable (see `Runtime.env_variables`) on the Runtime.
             It is accessible via the env variable name stated in the constant `Runtime.WORKING_DIR_ENV_VAR_NAME`. This
-            might be especially of interest when executing functions remotely. Moreover, if the working_dir is set
-            manually you need to ensure in advance that this directors is actually present on the host.
+            might be especially of interest when executing functions remotely.
 
         Args:
             host: The host of the `Runtime`.
@@ -698,7 +703,7 @@ class Runtime(object):
         self._connection_kwargs = connection_kwargs
         self._env_variables = {}  # Will be passed on to fabric connect, so that they are available on the remote host
 
-        # This checks relies on some attributes, which must be declared above
+        # This check relies on some attributes, which must be declared above
         if not self.is_valid_runtime():
             raise InvalidRuntimeError(host)
 
@@ -730,7 +735,7 @@ class Runtime(object):
         Note:
             The working directory will also be set as environment variable on the Runtime. It is accessible via the
             env variable name stated in the constant `Runtime.WORKING_DIR_ENV_VAR_NAME`. This might be especially of
-            interest when executing functions remotely.
+            interest when executing python functions remotely.
 
         Returns:
             str: The path of the working directory.
@@ -753,6 +758,7 @@ class Runtime(object):
         """
         self.create_dir(working_dir)  # raises PathCreationError
         self._working_dir = working_dir
+        self._working_dir_is_temp = False
         self._env_variables.update({self.WORKING_DIR_ENV_VAR_NAME: self._working_dir})
         self.log.debug(f'The working directory  `{self._working_dir}` of Runtime {self.host} was set as environment '
                        f'variable with the name {self.WORKING_DIR_ENV_VAR_NAME}.')
