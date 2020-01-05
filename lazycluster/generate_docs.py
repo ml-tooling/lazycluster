@@ -228,6 +228,8 @@ class MarkdownAPIGenerator(object):
             else:
                 out.append("\n" + line)
 
+            out.append("\n")
+
         return "".join(out)
 
     def func2md(self, func, clsname="", depth=3):
