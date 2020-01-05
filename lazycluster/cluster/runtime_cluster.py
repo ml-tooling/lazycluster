@@ -341,6 +341,15 @@ class MasterWorkerCluster(RuntimeCluster):
 
         self.log.info('Worker instances started.')
 
+    def print_log(self):
+        """Print the execution log.
+
+        Note:
+            This method is a convenient wrapper for the equivalent method of the contained `RuntimeGroup`.
+
+        """
+        self.runtime_group.print_log()
+
     def cleanup(self):
         """Release all resources.
         """
