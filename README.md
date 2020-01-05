@@ -366,13 +366,15 @@ Most simple way to use Hyperopt in a cluster based on a [RuntimeGroup](./docs/ru
 A MongoDB instance gets started on the [manager](#manager). Additionally, multiple hyperopt `worker` processes get started in the `RuntimeGroup`, i.e. on the contained `Runtimes`. The default number of workers is equal to the number of `Runtimes` contained in the `RuntimeGroup`.
 
 **Prerequisites:** 
-- [MongoDB server must be installed](https://docs.mongodb.com/manual/administration/install-on-linux/) on the [manager](#manager).
+- [MongoDB](https://docs.mongodb.com/manual/administration/install-on-linux/) server must be installed on the [manager](#manager).
   - **Note:** When using the [ml-workspace](https://github.com/ml-tooling/ml-workspace) as the `master` then you can use the provided install script for MongoDB which can be found under `/resources/tools`.
 - [Hyperopt must be installed ](https://github.com/hyperopt/hyperopt) on all `Runtimes` where hyperopt workers will be started
     - **Note:** When using the [ml-workspace](https://github.com/ml-tooling/ml-workspace) as hosts for the `Runtimes` then hyperopt is already pre-installed.
 
 <details>
-<summary><b>Details</b> (click to expand...)</summary>
+<summary><b>Launch a cluster</b> (click to expand...)</summary>
+
+For a detailed documentation of customizing options and default values check out the [API docs](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class)
 
 ```python
 from lazycluster import RuntimeManager
@@ -391,7 +393,8 @@ cluster = HyperoptCluster(runtime_group)
 cluster.start()
 
 # => Now, all cluster entities should be started and you can simply use 
-#    it as documented in the hyperopt documentation.
+#    it as documented in the hyperopt documentation. We recommend to call 
+#    cluster.cleanup() once you are done.
 
 ```
 
@@ -408,10 +411,137 @@ from hyperopt.mongoexp import MongoTrials
 trials = MongoTrials(cluster.mongo_trial_url, exp_key='exp1')
 objective_function = math.sin
 best = fmin(objective_function, hp.uniform('x', -2, 2), trials=trials, algo=tpe.suggest, max_evals=10)
+# Ensures that MongoDB gets stopped and other resources  
+cluster.cleanup()
 ```
+
+Now, we will cenceptually demonstrate how to use `lazycluster` w/ hyperopt to optimize hyperparameters of a [fasttext](https://github.com/facebookresearch/fastText) model. Note, this should not be a fasttext demo and thus the actual usage of fasttext is not optimized. Thus, you should read the related docs for this purpose. The example should just highlight how to get fasttext up and running in a distributed setting using lazycluster. 
+
+```python
+from lazycluster import RuntimeManager
+from lazycluster.cluster.hyperopt_cluster import HyperoptCluster
+import os
+
+# 1st: Create a RuntimeGroup, e.g. by letting the RuntimeManager detect 
+#      available hosts (i.e. Runtimes) and create the group with a persistent 
+#      working directory for you. 
+runtime_group = RuntimeManager().create_group(working_dir='~/hyperopt')
+
+# 2nd: Send the training - and test dataset to all Runtimes
+path_to_datasets = '/path_on_manager'
+train_file_name = 'train.csv'
+train_path = os.path.join(path_to_datasets, train_file_name)
+test_file_name = 'train.csv'
+test_path = os.path.join(path_to_datasets, test_file_name)
+
+# Per default the file will be send asynchronously to Runtime's working directory
+runtime_group.send_file(train_file_name)
+runtime_group.send_file(test_file_name)
+
+# 3rd: Create the HyperoptCluster instance with the RuntimeGroup.
+cluster = HyperoptCluster(runtime_group)
+
+# 4th: Let the HyperoptCluster instantiate all entities on Runtimes 
+#      contained in the RuntimeGroup using default values. For custom 
+#      configuration check the HyperoptCluster API documentation.
+cluster.start()
+
+# 5th: Ensure that the processes for sending the files terminated already,
+#      since we sent the files async in 2nd step.
+runtime_group.join()
+
+# => Now, all cluster entities are started, datasets transferred, and you
+#    can simply use the lcuster as documented in the hyperopt documentation. 
+
+# 6th: Define the objective function to be minimized by Hyperopt in order to find the
+#      best hyperparameter combination.
+def train(params):
+    
+    import fasttext
+    import os
+    
+    train_path = os.path.join(os.environ['WORKING_DIR'], params['train_set_file_name']) 
+    test_path = os.path.join(os.environ['WORKING_DIR'], params['test_set_file_name'])
+    
+    model = fasttext.train_supervised(
+        input = train_path, 
+        lr = float(params['learning_rate']),
+        dim = int(params['vector_dim']),
+        ws = int(params['window_size']),
+        epoch = int(params['epochs']),
+        minCount = int(params['min_count']),
+        neg = int(params['negativ_sampling']),
+        t = float(params['sampling']),
+        wordNgrams = 1, # word ngrams other than 1 crash
+        bucket = int(params['bucket']),
+        pretrainedVectors = str(params['pretrained_vectors']),
+        lrUpdateRate = int(params['lr_update_rate']),
+        thread = int(params['threads']),
+        verbose = 2
+    )
+    
+    number_of_classes, precision, recall = model.test(test_path)
+    
+    f1 = 2 * ((precision * recall) / (precision + recall))
+    
+    # Return value must be negative because hyperopt's fmin tries to minimize the objective
+    # function. You can think of it as minimizing an artificial loss function.
+    return -1 * f1
+
+from hyperopt import fmin, tpe, hp
+from hyperopt.mongoexp import MongoTrials
+
+# 7th: Define the searh space for the paramters to be optimized. Check further functions 
+#      of Hyperopt's hp module that might suit your specific requirement. This should just
+#      give you an idea and not show how to best use fasttext.
+search_space = {
+    'min_count': hp.quniform('min_count', 2, 20, 1),
+    'window_size': hp.quniform('window_size', 4, 15, 1), 
+    'vector_dim': hp.quniform('vector_dim', 100, 300, 1), 
+    'learning_rate': 0.4, 
+    'lr_update_rate': 100,
+    'negativ_sampling': hp.quniform('negativ_sampling', 5, 20, 1), 
+    'sampling': hp.uniform('sampling', 0, 10**-3), 
+    'bucket': 2000000,
+    'epochs': hp.quniform('epochs', 3, 30, 1), 
+    'pretrained_vectors': '', 
+    'threads': 8, 
+    'train_set_file_name': train_file_name, 
+    'test_set_file_name': test_file_name 
+}
+
+# 8th: Actually, execute the hyperparameter optimization. Use the mongo_trial_url
+#      property of your HyperoptCluster instance to get the url in the format 
+#      required by MongoTrials.
+trials = MongoTrials(cluster.mongo_trial_url, exp_key='exp1')
+best = fmin(train, search_space, tpe.suggest, 500, trials)
+print(best)
+```
+
+</details>
+<br />
+<details>
+<summary><b>Debugging</b> (click to expand...)</summary>
+
+In general you should read the [Logging, exception handling and debugging](#logging-exception-handling-and-debugging) section first so that you are aware of the general options lazycluster offers for debugging.<br/>
+So the first step is to successfully launch a Hyperopt cluster by using the corresponding lazycluster class. If you experience problems until this point you should analyze the exceptions which should guide you forward to a solution. If this given error is not self explaining then please consider to provide meaningful feadback here so that it will be soon. Common problems until now are:
+- **MongoDB or hyperopt are not installed**, i.e. the prerequisites are not yet fulfilled.
+  => Ensure that the prerequisites are fulfilled. Consider using [ml-workspace](https://github.com/ml-tooling/ml-workspace) to get rid of dependency problems.
+- **MongoDB is already running** (under the same dbpath). This might especially happen if you started a cluster before and the cleanup did not happen correctly. Usually, the cleanup should happen [atexit](https://docs.python.org/3.6/library/atexit.html) but sometimes it simply does not work depending on your execution environment.
+    => to prevent this problem you can explicitly call the `cleanup()` method of the `HyperoptCluster` instance
+    => to solve the problem if MongoDB is still running just type `lsof -i | grep mongod` into a terminal. Finally, use the `kill pid` command with the process ID you got from issuing the previous command.  
+
+Once the Hyperopt cluster is running, you can start [using it](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB#3-run-hyperopt-mongo-worker). It should be noted, that the following is mainly about finding Hyperopt related issues since lazycluster basically did its job already. Typically, this means you have a bug in your objective function that you try to minimize with Hyperopt. <br/>
+First, you could use the `print_log()` method of your hyperopt to check the execution log. If you can't find any error here, then check the [execution log files](#execution-log). <br/>
+If you can't find any error in the log files any of the `Runtimes` then you could first start a hyperopt job again. Next, you ssh into one of your `Runtimes` and manually start a hyperopt-worker process. You can find the respective shell command in the [hyperopt docs](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB#3-run-hyperopt-mongo-worker). Moreover, you can get the necessary url for the `--mongo` argument by accessing the python property `mongo_url` from your `HyperoptCluster` instance once its running. Consequently, the newly started worker will poll a job from the master (i.e. MongoDB) and start its execution. Now you should see the error in the terminal once it occurs.
+
+We found to common bug types related to the objective function. First, make sure that the hyper-/parameters you are passing to your model have the correct datatypes. Sounds trivial, right? :) <br/>
+Next, you typically use some training - and test dataset on your Runtimes inside your objective function. So the correct file paths may be a bit tricky at first. You should understand that the objective function gets communicated to the hyperopt worker processes by `fmin()` via MongoDB. Consequently, the objective function gets executed as it is on the Runtimes and the paths must exist on the `Runtimes`. The `Runtime's` working directory as documented in the [API docs](./docs/runtimes.md#runtime-class) is of interest here. It should be noted, that the path of this directory is available on the Runtimes. Consequently, we recommend that you manually set a working directory on your `Runtimes` and move the training - and test dataset files relative to the working directory. This can also be done on `RuntimeGroup` level. Now, you can create a relative path to the files inside your objective_function with ``` os.path.join(os.environ['WORKING_DIR'], 'relative_file_path') ```. **Note:** The advantage of manually setting a working directory in this case is that a manually set working directory does not get removed at the end. Consequently, you do not  need to move the files each time you start the execution. This hint can safe you quite a lot of time especially when you need to restart the exectuion mutliple times while debugging. 
+
 </details>
 
-Use different strategies for launching the master and the worker instance by providing custom implementation of `MasterLauncher` and `WorkerLauncher`.
+<br />
+Use different strategies for launching the master and the worker instances by providing custom implementation of `MasterLauncher` and `WorkerLauncher`.
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
@@ -424,7 +554,7 @@ cluster.start()
 </details>
 
 ### Logging, exception handling and debugging
-`lazycluster` aims to abstract away the complexity implied by using multiple distributed [Runtimes](./docs/runtimes.md#runtime-class) and provides an intuitive high level API fur this purpose. The lazycluster [manager](#manager) orchestrates the individual components of the distributed setup. A common use case could be to use lazycluster in order to launch a distributed [hyperopt cluster](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB). In this case, we have the lazycluster [manager](#manager), that starts a [MongoDB](https://www.mongodb.com/) instance, starts the hyperopt worker processes on multiple Runtimes and ensures the required communication via ssh between these instances. Each individual component could potentially fail including the 3rd party ones such as hyperopt workers. Since `lazycluster` is a generic library and debugging a distributed system is  an instrinsically non-trivial task, we tried to emphasize logging and good exception handling practices so that you can stay lazy.
+`lazycluster` aims to abstract away the complexity implied by using multiple distributed [Runtimes](./docs/runtimes.md#runtime-class) and provides an intuitive high level API fur this purpose. The lazycluster [manager](#manager) orchestrates the individual components of the distributed setup. A common use case could be to use lazycluster in order to launch a distributed [hyperopt cluster](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB). In this case, we have the lazycluster [manager](#manager), that starts a [MongoDB](https://www.mongodb.com/) instance, starts the hyperopt worker processes on multiple `Runtimes` and ensures the required communication via ssh between these instances. Each individual component could potentially fail including the 3rd party ones such as hyperopt workers. Since `lazycluster` is a generic library and debugging a distributed system is  an instrinsically non-trivial task, we tried to emphasize logging and good exception handling practices so that you can stay lazy.
 
 #### Standard Python log
 We use the standard Python [logging module](https://docs.python.org/3.6/library/logging.html#formatter-objects) in order to log everything of interest on the [manager](#manager).
