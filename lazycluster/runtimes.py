@@ -542,13 +542,13 @@ class RuntimeTask(object):
         # Update the path in the `_TaskStep` so that the actual used path is correctly stored
         task_step.remote_path = remote_path
 
-        self.log.debug(f'Start executing TaskStep {task_step_index} (`send_file`) from RuntimeTask {self.name} '
-                       f'on host {connection.host}. File: `local: {task_step.local_path}`, '
-                       f'`remote: {task_step.remote_path}`.')
+        log_msg = f'Start executing TaskStep {task_step_index} (`send_file`) from RuntimeTask {self.name} on host ' \
+                  f'{connection.host}. File: `local: {task_step.local_path}`, `remote: {task_step.remote_path}`.'
+        self.log.debug(log_msg)
+        file_log.append_message(log_msg)
         try:
             connection.put(task_step.local_path, task_step.remote_path)
             file_log.append_message(f'File `{task_step.remote_path}` retrieved from manager.')
-
         except UnexpectedExit as e:
             log_msg = f'UnexpectedExit while executing step {task_step_index} (`send_file`) from RuntimeTask ' \
                       f'{self.name} on host {connection.host}.'
@@ -556,8 +556,9 @@ class RuntimeTask(object):
             self.log.error(log_msg)
             return
 
-        self._execution_log.append('Sent file ' + task_step.local_path + ' to ' + task_step.remote_path + 'on host ' +
-                                   connection.host)
+        log_msg = 'Sent file ' + task_step.local_path + ' to ' + task_step.remote_path + 'on host ' + connection.host
+        self._execution_log.append(log_msg)
+        self.log.info(log_msg)
 
     def _execute_get_file(self, task_step, task_step_index: int, working_dir: str, connection: Connection,
                           file_log: FileLogger):
@@ -587,7 +588,9 @@ class RuntimeTask(object):
             self.log.error(log_msg)
             return
 
-        self._execution_log.append(f'Got remote file {task_step.remote_path} to local {task_step.local_path}.')
+        log_msg = f'Got remote file {task_step.remote_path} from host {connection.host} to local {task_step.local_path}.'
+        self._execution_log.append(log_msg)
+        self.log.info(log_msg)
 
     class _TaskStep:
         """Represents an individual action, i.e. a `_TaskStep` within a `RuntimeTask`.
