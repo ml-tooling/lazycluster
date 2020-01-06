@@ -257,6 +257,43 @@ runtime_group.expose_port_from_runtime_to_group('host-1', 40000)
 ```
 </details>
 
+### File Transfer
+A `RuntimeTask` is capable of sending a file from the [manager](#manager) to a `Runtime` or vice versa. Moreover, the `Runtime` class as well as the `RuntimeGroup` provide convenient methods for this purpose that internally create the `RuntimeTasks` for you.
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
+In the following example, the `file.csv` will be transferred to the `Runtime's` working directory. Another path on the Runtime can be specified by supplying a `remote_path` as argument. See [Runtime](./docs/runtimes.md#runtime-class) docs for further details on the working directory.
+
+```python
+from lazycluster import RuntimeTask, Runtime
+
+task = RuntimeTask('file-transfer')
+task.send_file('local_path/file.csv')
+
+runtime = Runtime('host-1')
+runtime.execute_task(task, exec_async=False)
+```
+
+The explicit creation of a `RuntimeTask` is only necessary if you intend to add further steps to the `RuntimeTask` instead of just transferring a file. For example, you want to send a file, execute a Python function, and transfer the file back. If not, you can use the file transfer methods of the `Runtime` or `RuntimeGroup`.
+In the case of sending a file to a `RuntimeGroup` you should send the files asynchronously. Otherwise, each file will be transferred sequentially. Do not forget to call `join()`, if you need the files to be transferred before proceeding.
+
+```python
+from lazycluster import RuntimeTask, Runtime, RuntimeGroup, RuntimeManager
+
+# Send a file to a single Runtime
+runtime = Runtime('host-1')
+send_file('local_path/file.csv', execute_async=False)
+
+# Send a file to a whole RuntimeGroup
+group = RuntimeManager().create_group()
+group.send_file('local_path/file.csv', execute_async=True)
+group.join()
+```
+The usage of get_file is similar and documented [here](./docs/runtimes.md#runtime-class).
+</details>
+
+
+
 ### Simple preprocessing example
 Read a local (on the [manager](#manager)) CSV file and upper case chunks in parallel using [RuntimeTasks](./docs/runtimes.md#runtimetask-class)
 and a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class).
