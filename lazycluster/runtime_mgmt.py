@@ -729,7 +729,7 @@ class RuntimeManager(object):
                            restricted.
             exclude_hosts: If supplied, all detected `Runtimes` beside the here specified ones will be included in the
                            group. Defaults to None, i.e. not restricted.
-            gpu_required): True, if gpu availability is required. Defaults to False.
+            gpu_required: True, if gpu availability is required. Defaults to False.
             min_memory: The minimal amount of memory in MB. Defaults to None, i.e. not restricted.
             min_cpu_cores: The minimum number of cpu cores required. Defaults to None, i.e. not restricted.
             installed_executables: Possibility to only include `Runtimes` that have an specific executables installed.
