@@ -213,8 +213,8 @@ class RuntimeGroup(object):
         Note:
             The actual reading of `Runtime.info data takes place when requesting the attribute the first time.
             Consequently, the result gets buffered in the respective Runtime instance. The actual reading of the data
-            takes places on the remote host takes some seconds. This method enables you to read the information in
-            seperate processes so that the execution time stays more or less the same independent of the actual amount
+            takes places on the remote host and takes some seconds. This method enables you to read the information in a
+            separate processes so that the execution time stays more or less the same independent of the actual amount
             of Runtimes used.
 
         """
@@ -746,17 +746,25 @@ class RuntimeManager(object):
         
         Raises:
             ValueError: Only hosts or excluded_hosts must be provided or Hostname is not contained in the group.
-            NoRuntimesError: If no `Runtime` matches the filter criteria.
+            NoRuntimesError: If no `Runtime` matches the filter criteria or none could be detected.
         """
+        self.log.info(f'RuntimeManager starts looking for valid Runtimes.')
         runtimes_dict = self._group.get_runtimes(include_hosts, exclude_hosts)  # Raises ValueError
 
         final_runtimes = []
 
-        for runtime in runtimes_dict.values():
-            if runtime.check_filter(gpu_required, min_memory, min_cpu_cores, installed_executables, filter_commands):
-                if working_dir:
-                    runtime.working_dir = working_dir
-                final_runtimes.append(runtime)
+        if gpu_required or min_memory or min_cpu_cores or installed_executables or filter_commands:
+
+            self.log.info('RuntimeManager starts evaluating the given filter criteria')
+
+            for runtime in runtimes_dict.values():
+                if runtime.check_filter(gpu_required, min_memory, min_cpu_cores, installed_executables, filter_commands):
+                    if working_dir:
+                        runtime.working_dir = working_dir
+                    final_runtimes.append(runtime)
+
+        else:
+            final_runtimes = runtimes_dict.values()
 
         try:
             group = RuntimeGroup(final_runtimes)
@@ -764,7 +772,7 @@ class RuntimeManager(object):
         except ValueError as e:
             raise NoRuntimesDetectedError(e)
 
-        self.log.debug(f'RuntimeManager created RuntimeGroup with {str(group.runtime_count)} Runtime(s).')
+        self.log.info(f'RuntimeManager created RuntimeGroup with {str(group.runtime_count)} Runtime(s).')
         return group
 
     def print_runtime_info(self):
