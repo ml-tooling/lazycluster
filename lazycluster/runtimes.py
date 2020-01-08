@@ -1325,6 +1325,7 @@ class Runtime(object):
             check_passed = runtime.check_filter(filer_commands=filter_str)
             ```
         """
+        self.log.debug(f'Start executing check_filter() for Runtime {self.host}')
 
         all_filters_checked = True
 
