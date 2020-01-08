@@ -218,18 +218,20 @@ class RuntimeGroup(object):
             of Runtimes used.
 
         """
+        self.log.debug('Start filling the buffers Runtime.info asynchronously.')
         with Pool(self.runtime_count) as pool:
             results = []
             for runtime in self._runtimes.values():
+                # We need to check the private member because otherwise the reading will be triggered synchronously
                 if runtime._info:
                     # If the runtime info is already present, we do not need to re-read it
                     continue
-                self.log.debug(f'Start reading runtime info asynchronously of host {runtime.host}')
+                self.log.debug(f'Start reading runtime info asynchronously of Runtime {runtime.host}')
                 results.append(pool.apply_async(_utils.read_host_info, (runtime.host, )))
 
-            index = 0
+            index = 1
             for result in results:
-                self.log.debug(f'Waiting fo result {index}.')
+                self.log.debug(f'Waiting fo result {index} of {self.runtime_count}.')
                 index += 1
                 runtime_info = result.get()
                 self.log.debug(f'Result for host {runtime_info["host"]} retrieved')
@@ -756,6 +758,14 @@ class RuntimeManager(object):
         if gpu_required or min_memory or min_cpu_cores or installed_executables or filter_commands:
 
             self.log.info('RuntimeManager starts evaluating the given filter criteria')
+
+            # Ensure that all runtime info are read asynchronously before printing.
+            # Otherwise each runtime will read its information synchronously.
+            if gpu_required or min_memory or min_cpu_cores:
+                self._group.fill_runtime_info_buffers_async()
+
+            # The evaluation of installed_executables and filter_commands is not yet parallelized.
+            # => needs refactoring if heavily used, for now we keep it simple
 
             for runtime in runtimes_dict.values():
                 if runtime.check_filter(gpu_required, min_memory, min_cpu_cores, installed_executables, filter_commands):
