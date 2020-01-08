@@ -20,6 +20,7 @@ def cli(debug: bool):
     # log to sys out
     log_level = logging.DEBUG if debug else logging.CRITICAL
     logging.basicConfig(stream=sys.stdout, format='%(asctime)s : %(levelname)s : %(message)s', level=logging.CRITICAL)
+    logging.getLogger('paramiko').setLevel(logging.CRITICAL)
     logging.getLogger('lazycluster').setLevel(log_level)
 
 
@@ -82,7 +83,7 @@ def list_runtime(long: bool):
 
 @cli.command('start-dask')
 def start_dask_cluster():
-    from lazycluster.cluster import DaskCluster
+    from lazycluster.cluster.dask_cluster import DaskCluster
     cluster = DaskCluster(RuntimeManager().create_group())
     cluster.start()
     while True:
