@@ -917,7 +917,7 @@ class Runtime(object):
     @property
     def env_variables(self) -> Dict[str, str]:
         """The environment variables for the Runtime. These variables are accessible on the Runtime and can be used
-        when executing Python functions or shell comamands."""
+        when executing Python functions or shell commands."""
         return self._env_variables
 
     @env_variables.setter
