@@ -170,15 +170,33 @@ lazycluster delete-runtime host-1
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
+A `Runtime` has a working directory. Usually, the execution of a [RuntimeTask](#task) is conducted relatively to this directory if no other path is explicitly given. The working directory can be manually set during the initialization. Otherwise, a temporary directory gets created that might eventually be removed.
+
 ```python
 from lazycluster import Runtime, RuntimeGroup
 
 rt_1 = Runtime('host-1')
-rt_2 = Runtime('host-1', working_dir='/workspace')
+rt_2 = Runtime('host-2', working_dir='/workspace')
 
+# In this case you get a group where both Runtimes have different working directories.
+# The working directory on host-1 will be a temp one ang gets removed eventually.
 runtime_group = RuntimeGroup([rt_1, rt_2])
-runtime_group = RuntimeGroup(hosts=['host-1', 'host-2'])
+
+# Here, the group internally creates Runtimes for both hosts and sets its working directory.
+runtime_group = RuntimeGroup(hosts=['host-1', 'host-2'], working_dir='/workspace')
 ```
+Moreover, you can set environment variables for the Runtimes. These variables can then be accessed when executing a Python function on the Runtime or executing a shell command. Per default the working directory is set as an env variable and the class constant `Runtime.WORKING_DIR_ENV_VAR_NAME` will give you the name of the variable. The working directory is always accessible also if manually update the env_variables.
+```python
+# Directly set the env vars per Runtimes
+rt = Runtime('host-1')
+rt.env_variables = {'foo': 'bar'}
+
+# Or use the convenient method to the the env vars  
+# for all Runtimes contained in a RuntimeGroup
+runtime_group = RuntimeGroup(hosts=['host-1', 'host-2'])
+group.set_env_variables({'foo': 'bar'})
+```
+
 </details>
 
 ### Use [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) to create a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) based on the local ssh config
