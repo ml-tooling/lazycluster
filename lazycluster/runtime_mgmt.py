@@ -64,13 +64,17 @@ class RuntimeGroup(object):
     _INTERNAL_PORT_MAX = 5999
     _internal_port_range = range(_INTERNAL_PORT_MIN, _INTERNAL_PORT_MAX)
 
-    def __init__(self, runtimes: Optional[List[Runtime]] = None, hosts: Optional[List[str]] = None):
+    def __init__(self, runtimes: Optional[List[Runtime]] = None, hosts: Optional[List[str]] = None,
+                 working_dir: Optional[str] = None):
         """Initialization method.
         
         Args:
             runtimes: List of `Runtimes`. If not given, then `hosts` must be supplied.
             hosts: List of hosts, which will be used to instantiate `Runtime` objects. If not given, then `runtimes`
                    must be supplied.
+            working_dir: The directory which shall act as working directory on all Runtimes. Defaults to None. See the `Runtime` docs for
+                         further details.
+
         Raises:
             ValueError: Either `runtimes` or `hosts` must be supplied. Not both or none.
             InvalidRuntimeError: If a runtime cannot be instantiated via host.
