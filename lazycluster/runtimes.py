@@ -917,16 +917,17 @@ class Runtime(object):
     @property
     def env_variables(self) -> Dict[str, str]:
         """The environment variables for the Runtime. These variables are accessible on the Runtime and can be used
-        when executing Python functions or shell commands."""
+        when executing Python functions or shell commands.
+
+        Note:
+            The working directory is always accessible as environment variable on the Runtime. The respective variable
+            name is given by the value of the constant `self.WORKING_DIR_ENV_VAR_NAME`.
+        """
         return self._env_variables
 
     @env_variables.setter
     def env_variables(self, env_variables: Dict[str, str]):
         """Setter for the environment variables.
-
-        Note:
-            The working directory is always accessible as env variable on the Runtime via the name
-            value of `self.WORKING_DIR_ENV_VAR_NAME`.
 
         Args:
             env_variables: The new env var dictionary.
