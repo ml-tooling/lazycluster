@@ -7,7 +7,9 @@
 
 ## MasterLauncher class
 
-Abstract class for implementing the strategy for launching the master instance of the cluster. 
+Abstract class for implementing the strategy for launching the master instance of the cluster.
+
+  
 
 
 #### MasterLauncher.port
@@ -35,7 +37,7 @@ The process object where the master instance was started in.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L17)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L18)</span>
 
 ### MasterLauncher.`__init__`
 
@@ -55,7 +57,7 @@ Initialization method.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L73)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L82)</span>
 
 ### MasterLauncher.cleanup
 
@@ -68,7 +70,7 @@ Release all resources.
   
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L50)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L51)</span>
 
 ### MasterLauncher.start
 
@@ -77,11 +79,23 @@ start(
     self,
     ports:  Union[List[int],
     int],
-    timeout:  int  =  3
+    timeout:  int  =  3,
+    debug:  bool  =  False
 ) → List[int]
 ```
 
 Launch a master instance.
+
+
+
+**Note:**
+
+
+  If you create a custom subclass of MasterLauncher which will not start the master instance on localhost
+
+  then you should pass the debug flag on to `execute_task()` of the `RuntimeGroup` or `Runtime` so that you
+
+  can benefit from the debug feature of `RuntimeTask.execute()`.
 
 
 
@@ -93,6 +107,12 @@ Launch a master instance.
   `RuntimeGroup` will be used. The actual chosen port can requested via the property `port`.
 
  - `timeout`:  Timeout (s) after which an MasterStartError is raised if master instance not started yet.
+
+ - `debug`:  If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
+
+  the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+
+  `False`.
 
 
 
@@ -114,7 +134,7 @@ List[int]: In case a port list was given the updated port list will be returned.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L81)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L90)</span>
 
 ## WorkerLauncher class
 
@@ -150,7 +170,7 @@ is reachable on the respective host.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L92)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L101)</span>
 
 ### WorkerLauncher.`__init__`
 
@@ -170,7 +190,7 @@ Initialization method.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L159)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L172)</span>
 
 ### WorkerLauncher.cleanup
 
@@ -183,7 +203,7 @@ Release all resources.
   
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L141)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L154)</span>
 
 ### WorkerLauncher.setup_worker_ssh_tunnels
 
@@ -216,7 +236,7 @@ local machine and all entities can talk to each other on localhost.
  - `NoPortsLeftError`:  If `group_ports` was given and none of the ports was free.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L119)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L128)</span>
 
 ### WorkerLauncher.start
 
@@ -225,7 +245,8 @@ start(
     self,
     worker_count:  int,
     master_port:  int,
-    ports:  List[int]
+    ports:  List[int],
+    debug:  bool  =  False
 ) → List[int]
 ```
 
@@ -244,6 +265,14 @@ Launches the worker instances in the `RuntimeGroup`.
 
   actually free.
 
+ - `debug`:  If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
+
+  the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+
+  `False`.
+
+
+
 **Returns:**
 
 
@@ -258,7 +287,7 @@ List[int]: The updated port list after starting the workers, i.e. the used ones 
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L166)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L179)</span>
 
 ## RuntimeCluster class
 
@@ -277,7 +306,7 @@ All further cluster implementations should inherit from this class either direct
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L178)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L191)</span>
 
 ## MasterWorkerCluster class
 
@@ -348,7 +377,7 @@ The RuntimeGroup.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L205)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L218)</span>
 
 ### MasterWorkerCluster.`__init__`
 
@@ -395,7 +424,7 @@ Initialization method.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L353)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L374)</span>
 
 ### MasterWorkerCluster.cleanup
 
@@ -408,7 +437,7 @@ Release all resources.
   
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L344)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L365)</span>
 
 ### MasterWorkerCluster.print_log
 
@@ -426,7 +455,7 @@ Print the execution log.
   This method is a convenient wrapper for the equivalent method of the contained `RuntimeGroup`.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L256)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L269)</span>
 
 ### MasterWorkerCluster.start
 
@@ -436,7 +465,8 @@ start(
     worker_count:  Union[int,
     NoneType]  =  None,
     master_port:  Union[int,
-    NoneType]  =  None
+    NoneType]  =  None,
+    debug:  bool  =  False
 )
 ```
 
@@ -459,8 +489,14 @@ Internally, `self.start_master()` and `self.start_workers()` will be called.
 
   `self.start()`, hence see respective method for further details.
 
+ - `debug`:  If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
+
+  the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+
+  `False`.
+
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L272)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L288)</span>
 
 ### MasterWorkerCluster.start_master
 
@@ -469,7 +505,8 @@ start_master(
     self,
     master_port:  Union[int,
     NoneType]  =  None,
-    timeout:  int  =  3
+    timeout:  int  =  3,
+    debug:  bool  =  False
 )
 ```
 
@@ -499,6 +536,10 @@ Start the master instance.
 
  - `timeout`:  Timeout (s) after which an MasterStartError is raised if master instance not started yet.
 
+ - `debug`:  If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. Has no effect for
+
+  if the master instance is started locally, what default MasterLauncher implementations usually do.
+
 
 
 **Raises:**
@@ -511,12 +552,17 @@ Start the master instance.
  - `MasterStartError`:  If master was not started after the specified `timeout`.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L318)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L336)</span>
 
 ### MasterWorkerCluster.start_workers
 
 ```python
-start_workers(self, count:  Union[int, NoneType]  =  None)
+start_workers(
+    self,
+    count:  Union[int,
+    NoneType]  =  None,
+    debug:  bool  =  False
+)
 ```
 
 Start the worker instances.
@@ -540,6 +586,12 @@ Start the worker instances.
  - `count`:  The number of worker instances to be started in the cluster. Defaults to the number of runtimes in
 
   the cluster.
+
+ - `debug`:  If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
+
+  the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+
+  `False`.
 
 **Raises:**
 

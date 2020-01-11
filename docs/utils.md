@@ -5,21 +5,21 @@
 -------------------
 <span style="float:right;">[[source]](/lazycluster/utils.py#L6)</span>
 
-## FileLogger class
+## ExecutionFileLogUtil class
 
 Generic class used to write log files.
 
   
 
 
-#### FileLogger.directory_path
+#### ExecutionFileLogUtil.directory_path
  
 Get the full path to the directory where this logfile gets written to.
 
   
 
 
-#### FileLogger.file_path
+#### ExecutionFileLogUtil.file_path
  
 Get the full path to the log file.
 
@@ -36,7 +36,7 @@ Get the full path to the log file.
 -------------------
 <span style="float:right;">[[source]](/lazycluster/utils.py#L10)</span>
 
-### FileLogger.`__init__`
+### ExecutionFileLogUtil.`__init__`
 
 ```python
 __init__(self, runtime_host, taskname)
@@ -63,26 +63,19 @@ Initialization method.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/utils.py#L45)</span>
+<span style="float:right;">[[source]](/lazycluster/utils.py#L50)</span>
 
-### FileLogger.append_message
+### ExecutionFileLogUtil.get_write_mode
 
 ```python
-append_message(self, message:  str)
+get_write_mode(self) → str
 ```
 
-Add a message at the end of the log file.
 
-
-
-**Args:**
-
-
- - `message`:  The message to be appended.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/utils.py#L71)</span>
+<span style="float:right;">[[source]](/lazycluster/utils.py#L55)</span>
 
 ## Environment class
 
@@ -95,7 +88,7 @@ This class contains environment variables.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/utils.py#L107)</span>
+<span style="float:right;">[[source]](/lazycluster/utils.py#L91)</span>
 
 ## Timestamp class
 
@@ -105,7 +98,7 @@ Custom Timestamp class with convenient methods.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/utils.py#L111)</span>
+<span style="float:right;">[[source]](/lazycluster/utils.py#L95)</span>
 
 ### Timestamp.`__init__`
 
@@ -120,7 +113,7 @@ Initializes the object with the current date/time.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/utils.py#L133)</span>
+<span style="float:right;">[[source]](/lazycluster/utils.py#L117)</span>
 
 ### Timestamp.get_formatted
 
@@ -133,7 +126,7 @@ Formatted fixed length representation with delimiters in format: yyyy-mm-dd hh:m
   
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/utils.py#L128)</span>
+<span style="float:right;">[[source]](/lazycluster/utils.py#L112)</span>
 
 ### Timestamp.get_unformatted
 

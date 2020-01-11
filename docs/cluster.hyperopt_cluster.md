@@ -63,7 +63,7 @@ Initialization method.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L108)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L119)</span>
 
 ### LocalMongoLauncher.cleanup
 
@@ -76,7 +76,7 @@ Release all resources.
   
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L91)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L102)</span>
 
 ### LocalMongoLauncher.get_mongod_start_cmd
 
@@ -94,7 +94,7 @@ Get the shell command for starting mongod as a deamon process.
  - `str`:  The shell command.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L100)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L111)</span>
 
 ### LocalMongoLauncher.get_mongod_stop_cmd
 
@@ -121,11 +121,23 @@ start(
     self,
     ports:  Union[List[int],
     int],
-    timeout:  int  =  3
+    timeout:  int  =  3,
+    debug:  bool  =  False
 ) → List[int]
 ```
 
 Launch a master instance.
+
+
+
+**Note:**
+
+
+  If you create a custom subclass of MasterLauncher which will not start the master instance on localhost
+
+  then you should pass the debug flag on to `execute_task()` of the `RuntimeGroup` or `Runtime` so that you
+
+  can benefit from the debug feature of `RuntimeTask.execute()`.
 
 
 
@@ -139,6 +151,12 @@ Launch a master instance.
  - `timeout`:  Timeout (s) after which an MasterStartError is raised if DB instance not started yet. Defaults to
 
   3 seconds.
+
+ - `debug`:  If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
+
+  the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+
+  `False`.
 
 
 
@@ -160,7 +178,7 @@ List[int]: In case a port list was given the updated port list will be returned.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L121)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L132)</span>
 
 ## RoundRobinLauncher class
 
@@ -184,7 +202,7 @@ is reachable on the respective host.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L126)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L137)</span>
 
 ### RoundRobinLauncher.`__init__`
 
@@ -219,7 +237,7 @@ Raises.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L198)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L213)</span>
 
 ### RoundRobinLauncher.cleanup
 
@@ -232,7 +250,7 @@ Release all resources.
   
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L141)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L154)</span>
 
 ### RoundRobinLauncher.setup_worker_ssh_tunnels
 
@@ -265,7 +283,7 @@ local machine and all entities can talk to each other on localhost.
  - `NoPortsLeftError`:  If `group_ports` was given and none of the ports was free.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L150)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L161)</span>
 
 ### RoundRobinLauncher.start
 
@@ -274,7 +292,8 @@ start(
     self,
     worker_count:  int,
     master_port:  int,
-    ports:  List[int]  =  None
+    ports:  List[int]  =  None,
+    debug:  bool  =  True
 ) → List[int]
 ```
 
@@ -293,6 +312,14 @@ Launches the worker instances in the `RuntimeGroup`.
 
   WorkerLauncher class.
 
+ - `debug`:  If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
+
+  the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+
+  `False`.
+
+
+
 **Returns:**
 
 
@@ -300,7 +327,7 @@ List[int]: The updated port list after starting the workers, i.e. the used ones 
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L205)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L220)</span>
 
 ## HyperoptCluster class
 
@@ -399,7 +426,7 @@ The RuntimeGroup.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L224)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L239)</span>
 
 ### HyperoptCluster.`__init__`
 
@@ -459,7 +486,7 @@ Initialization method.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L326)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L343)</span>
 
 ### HyperoptCluster.cleanup
 
@@ -472,7 +499,7 @@ Release all resources.
   
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L344)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L365)</span>
 
 ### HyperoptCluster.print_log
 
@@ -490,7 +517,7 @@ Print the execution log.
   This method is a convenient wrapper for the equivalent method of the contained `RuntimeGroup`.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L256)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L269)</span>
 
 ### HyperoptCluster.start
 
@@ -500,7 +527,8 @@ start(
     worker_count:  Union[int,
     NoneType]  =  None,
     master_port:  Union[int,
-    NoneType]  =  None
+    NoneType]  =  None,
+    debug:  bool  =  False
 )
 ```
 
@@ -523,8 +551,14 @@ Internally, `self.start_master()` and `self.start_workers()` will be called.
 
   `self.start()`, hence see respective method for further details.
 
+ - `debug`:  If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
+
+  the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+
+  `False`.
+
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L304)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/hyperopt_cluster.py#L319)</span>
 
 ### HyperoptCluster.start_master
 
@@ -533,7 +567,8 @@ start_master(
     self,
     master_port:  Union[int,
     NoneType]  =  None,
-    timeout:  int  =  3
+    timeout:  int  =  3,
+    debug:  bool  =  False
 )
 ```
 
@@ -563,6 +598,10 @@ Start the master instance.
 
  - `timeout`:  Timeout (s) after which an MasterStartError is raised if master instance not started yet.
 
+ - `debug`:  If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. Has no effect for
+
+  if the master instance is started locally, what default MasterLauncher implementations usually do.
+
 
 
 **Raises:**
@@ -575,12 +614,17 @@ Start the master instance.
  - `MasterStartError`:  If master was not started after the specified `timeout`.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L318)</span>
+<span style="float:right;">[[source]](/lazycluster/cluster/runtime_cluster.py#L336)</span>
 
 ### HyperoptCluster.start_workers
 
 ```python
-start_workers(self, count:  Union[int, NoneType]  =  None)
+start_workers(
+    self,
+    count:  Union[int,
+    NoneType]  =  None,
+    debug:  bool  =  False
+)
 ```
 
 Start the worker instances.
@@ -604,6 +648,12 @@ Start the worker instances.
  - `count`:  The number of worker instances to be started in the cluster. Defaults to the number of runtimes in
 
   the cluster.
+
+ - `debug`:  If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
+
+  the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+
+  `False`.
 
 **Raises:**
 

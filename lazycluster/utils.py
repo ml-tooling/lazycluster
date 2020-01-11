@@ -3,7 +3,7 @@ import time
 import logging
 
 
-class FileLogger(object):
+class ExecutionFileLogUtil(object):
     """Generic class used to write log files.
     """
 
@@ -21,7 +21,7 @@ class FileLogger(object):
         self.taskname = taskname
         self.file_extension = 'log'
         self.log = logging.getLogger(__name__)
-        self._main_dir = os.path.join(Environment.main_directory, 'log')
+        self._main_dir = os.path.join(Environment.main_directory, 'execution_log')
         self._creation_timestamp = Timestamp()
 
     @property
@@ -33,37 +33,21 @@ class FileLogger(object):
             gets written when the execution of the `RuntimeTask` is started.
 
         """
-        return os.path.join(self._main_dir, f'{self.runtime_host}/{self.taskname}_'
-                                            f'{self._creation_timestamp.get_unformatted()}.{self.file_extension}')
+        return os.path.join(self.directory_path, f'{self.taskname}_{self._creation_timestamp.get_unformatted()}'
+                                                 f'.{self.file_extension}')
 
     @property
     def directory_path(self) -> str:
         """Get the full path to the directory where this logfile gets written to.
         """
-        return os.path.join(self._main_dir, f'{self.runtime_host}')
+        path = os.path.join(self._main_dir, f'{self.runtime_host}')
 
-    def append_message(self, message: str):
-        """Add a message at the end of the log file.
+        if not os.path.exists(path):
+            os.makedirs(path)
 
-        Args:
-            message: The message to be appended.
-        """
-        if not os.path.exists(self.directory_path):
-            os.makedirs(self.directory_path)
+        return path
 
-        mode = self._get_write_mode()
-        path = self.file_path
-
-        self.log.debug(f'Add log message to file {path} with file mode {mode}')
-
-        with open(path, mode) as file:
-            file.write('\n' + self._create_log_msg(message))
-
-    @classmethod
-    def _create_log_msg(cls, message) -> str:
-        return f'{Timestamp().get_formatted()} {message}'
-
-    def _get_write_mode(self) -> str:
+    def get_write_mode(self) -> str:
         # Append if file exists otherwise create the file
         return 'a' if os.path.exists(self.file_path) else 'w+'
 

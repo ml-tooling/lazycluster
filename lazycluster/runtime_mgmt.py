@@ -408,9 +408,8 @@ class RuntimeGroup(object):
                   chosen.
             broadcast: True, if the task will be executed on all `Runtimes`. Defaults to False.
             execute_async: True, if execution will take place async. Defaults to True.
-            debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
-                   the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
-                   `False`.
+            debug : If `True`, stdout/stderr from the remote host will be printed to stdout. If, `False`
+                    then the stdout/stderr will be written to execution log files. Defaults to `False`.
 
         Returns:
             RuntimeTask or List[RuntimeTask]: Either a single `RuntimeTask` object in case the execution took place

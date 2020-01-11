@@ -579,18 +579,18 @@ print(best)
 <summary><b>Debugging</b> (click to expand...)</summary>
 
 In general you should read the [Logging, exception handling and debugging](#logging-exception-handling-and-debugging) section first so that you are aware of the general options lazycluster offers for debugging.<br/>
-So the first step is to successfully launch a Hyperopt cluster by using the corresponding lazycluster class. If you experience problems until this point you should analyze the exceptions which should guide you forward to a solution. If this given error is not self explaining then please consider to provide meaningful feadback here so that it will be soon. Common problems until now are:
+So the first step is to successfully launch a Hyperopt cluster by using the corresponding lazycluster class. If you experience problems until this point you should analyze the exceptions which should guide you forward to a solution. If this given error is not self explaining then please consider to provide meaningful feedback here so that it will be soon. Common problems until the cluster is started are:
 - **MongoDB or hyperopt are not installed**, i.e. the prerequisites are not yet fulfilled.
   => Ensure that the prerequisites are fulfilled. Consider using [ml-workspace](https://github.com/ml-tooling/ml-workspace) to get rid of dependency problems.
 - **MongoDB is already running** (under the same dbpath). This might especially happen if you started a cluster before and the cleanup did not happen correctly. Usually, the cleanup should happen [atexit](https://docs.python.org/3.6/library/atexit.html) but sometimes it simply does not work depending on your execution environment.
-    => to prevent this problem you can explicitly call the `cleanup()` method of the `HyperoptCluster` instance
+    => to prevent this problem you can and should explicitly call the `cleanup()` method of the `HyperoptCluster` instance
     => to solve the problem if MongoDB is still running just type `lsof -i | grep mongod` into a terminal. Finally, use the `kill pid` command with the process ID you got from issuing the previous command.  
 
 Once the Hyperopt cluster is running, you can start [using it](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB#3-run-hyperopt-mongo-worker). It should be noted, that the following is mainly about finding Hyperopt related issues since lazycluster basically did its job already. Typically, this means you have a bug in your objective function that you try to minimize with Hyperopt. <br/>
-First, you could use the `print_log()` method of your hyperopt to check the execution log. If you can't find any error here, then check the [execution log files](#execution-log). <br/>
-If you can't find any error in the log files any of the `Runtimes` then you could first start a hyperopt job again. Next, you ssh into one of your `Runtimes` and manually start a hyperopt-worker process. You can find the respective shell command in the [hyperopt docs](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB#3-run-hyperopt-mongo-worker). Moreover, you can get the necessary url for the `--mongo` argument by accessing the python property `mongo_url` from your `HyperoptCluster` instance once its running. Consequently, the newly started worker will poll a job from the master (i.e. MongoDB) and start its execution. Now you should see the error in the terminal once it occurs.
+First, you could use the `print_log()` method of your hyperopt to check the execution log. If you can't find any error here, then check the [execution log files](#execution-log) or redirect the execution log from files to stdout of the [manager](#manager) by setting `debug=True` in the start methods of the [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class) class. <br/>
+Alternatively, you can ssh into one of your `Runtimes` and manually start a hyperopt-worker process. You can find the respective shell command in the [hyperopt docs](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB#3-run-hyperopt-mongo-worker). Moreover, you can get the necessary url for the `--mongo` argument by accessing the python property `mongo_url` from your `HyperoptCluster` instance once its running. Consequently, the newly started worker will poll a job from the master (i.e. MongoDB) and start its execution. Now you should see the error in the terminal once it occurs.
 
-We found to common bug types related to the objective function. First, make sure that the hyper-/parameters you are passing to your model have the correct datatypes. Sounds trivial, right? :) <br/>
+We found two common bug types related to the objective function. First, make sure that the hyper-/parameters you are passing to your model have the correct datatypes. Sounds trivial, right? :) <br/>
 Next, you typically use some training - and test dataset on your Runtimes inside your objective function. So the correct file paths may be a bit tricky at first. You should understand that the objective function gets communicated to the hyperopt worker processes by `fmin()` via MongoDB. Consequently, the objective function gets executed as it is on the Runtimes and the paths must exist on the `Runtimes`. The `Runtime's` working directory as documented in the [API docs](./docs/runtimes.md#runtime-class) is of interest here. It should be noted, that the path of this directory is available on the Runtimes. Consequently, we recommend that you manually set a working directory on your `Runtimes` and move the training - and test dataset files relative to the working directory. This can also be done on `RuntimeGroup` level. Now, you can create a relative path to the files inside your objective_function with ``` os.path.join(os.environ['WORKING_DIR'], 'relative_file_path') ```. **Note:** The advantage of manually setting a working directory in this case is that a manually set working directory does not get removed at the end. Consequently, you do not  need to move the files each time you start the execution. This hint can safe you quite a lot of time especially when you need to restart the exectuion mutliple times while debugging. 
 
 </details>
@@ -612,7 +612,7 @@ cluster.start()
 `lazycluster` aims to abstract away the complexity implied by using multiple distributed [Runtimes](./docs/runtimes.md#runtime-class) and provides an intuitive high level API fur this purpose. The lazycluster [manager](#manager) orchestrates the individual components of the distributed setup. A common use case could be to use lazycluster in order to launch a distributed [hyperopt cluster](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB). In this case, we have the lazycluster [manager](#manager), that starts a [MongoDB](https://www.mongodb.com/) instance, starts the hyperopt worker processes on multiple `Runtimes` and ensures the required communication via ssh between these instances. Each individual component could potentially fail including the 3rd party ones such as hyperopt workers. Since `lazycluster` is a generic library and debugging a distributed system is  an instrinsically non-trivial task, we tried to emphasize logging and good exception handling practices so that you can stay lazy.
 
 #### Standard Python log
-We use the standard Python [logging module](https://docs.python.org/3.6/library/logging.html#formatter-objects) in order to log everything of interest on the [manager](#manager).
+We use the standard Python [logging module](https://docs.python.org/3.6/library/logging.html#formatter-objects) in order to log everything of interest that happens on the [manager](#manager).
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
@@ -622,9 +622,7 @@ We like to use the following basic configuration when using lazycluster in a [Ju
 ```python
 import logging
 
-logging.basicConfig(format='[%(levelname)s] %(name)s %(message)s', 
-                    level=logging.INFO,
-                    stream=sys.stdout)
+logging.basicConfig(format='[%(levelname)s] %(message)s', level=logging.INFO)
 ```
 
 **Note:**
@@ -645,13 +643,28 @@ See `set_third_party_log_level()` of the [Environment](./docs/utils.md#environme
 
 
 #### Execution log
-The execution log aims to provide a central access point to logs produced on the Runtimes.
+The execution log aims to provide a central access point to output produced on the Runtimes.
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
-This type of log contains mainly the stdout produced when executing a [RuntimeTask](#task) on a [Runtime](#runtime). If you are new to lazycluster or you never used the lower level API directly, then you might think the execution log is not relevant for you. But it is :) Also the concrete cluster implementations (e.g. [DaskCluster](./docs/cluster.dask_cluster.md#daskcluster-class) or [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class)) are built on top of the lower-level API. You can think of it as the kind of log which you can use to understand what actually happened on your `Runtimes`.
+This type of log contains mainly the stdout/stderr produced when executing a [RuntimeTask](#task) on a [Runtime](#runtime). If you are new to lazycluster or you never used the lower level API directly, then you might think the execution log is not relevant for you. But it is :) Also the concrete cluster implementations (e.g. [DaskCluster](./docs/cluster.dask_cluster.md#daskcluster-class) or [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class)) are built on top of the lower-level API. You can think of it as the kind of log which you can use to understand what actually happened on your `Runtimes`. You can access the execution log in 3 different ways.
 
-You can access the execution log in two different ways. Either by accessing the `execution_log` property of a `RuntimeTask` or by checking the generated log files on the manager. Moreover, the `Runtime` as well as the `RuntimeGroup` provide a `print_log()` function which prints the `execution_log` of the `RuntimeTasks` that were executed on the `Runtimes`. The `execution_log` property is a list and can be accessed via index. Each log entry corresponds to the output of a single (fully executed) step of the `RuntimeTask`. This might be useful if you need to access the ouput of a concrete `RuntimeTask` step. See the [concept definition](#task) and the [class documentation](./docs/runtimes.md#runtimetask-class) of the `RuntimeTask` for further details.
+The 1st option is by accessing the excution log files. The stdout/stderr generated on the `Runtimes` is streamed to log files. The respective directory is per default `./lazycluster/execution_log` on the [manager](#manager). The log directory contains a subfolder for each Runtime (i.e. host) that executed at least one `RuntimeTask`. Inside a Runtime folder you will find one log file per executed RuntimeTask. Each logfile name is generated by concatenating the name of the `RuntimeTask` and a current timestamp. You can configure the path were the log directory gets created by adjusting the lazycluster main directory. See [Environment](./docs/utils.md#environment) for this purpose.
+
+The 2nd option is to redirect the execution log (i.e. stdout/stderr from the Runtimes) to the stdout of the [manager](#manager). Hereby, you can quickly spot errors. The drawback here is that you can not directly distinguish which Runtime generated which output, since the output of potentially multiple Runtimes is directly streamed to the manager's stdout as it occurs. To enable this feature you need to pass on the `debug` flag to the respective methods (i.e. RuntimeTask.execute(), Runtime.execute_task(), RuntimeGroup.execute_task()). All cluster related `start()` methods (e.g. `HyperoptCluster.start()`, `DaskCluster.start()` etc.) provide the debug option too. Example:
+
+```python
+from lazycluster import RuntimeGroup, RuntimeTask
+
+task = RuntimeTask('debug-test').run_command('python --version')
+group = RuntimeGroup(hosts=['gaia-1', 'gaia-2'])
+tasks = group.execute_task(task, debug=True)
+```
+
+ The 3rd option is to access the `execution_log` property of a `RuntimeTask`. Additionally, the `Runtime` as well as the `RuntimeGroup` provide a `print_log()` function which prints the `execution_log` of the `RuntimeTasks` that were executed on the `Runtimes`. The `execution_log` property is a list and can be accessed via index. Each log entry corresponds to the output of a single (fully executed) step of a `RuntimeTask`. This means the stdout/stderr is not streamed to the manager can only be accessed after its execution. This kind of log might be useful if you need to access the ouput of a concrete `RuntimeTask` step programmatically. See the [concept definition](#task) and the [class documentation](./docs/runtimes.md#runtimetask-class) of the `RuntimeTask` for further details.
+
+**Note:**
+It should be noted that `RuntimeTask.run_function()` is actually not a single task step. A call to this method will produce multiple steps, since the Python function that needs to be executed will be send as a pickle file to the remote host. There it gets unpickled, executed and the return data is sent back as a pickle file. This means if you intend to access the exectution log you should be aware that the log contains multiple log entries for the `run_function()` call. But the number of steps per call is fixed. Moreover, you should think about using the return value of a a remotely executed Python function instead of using the execution log for this purpose.
 
 ```python
 from lazycluster import Runtime, RuntimeTask
@@ -674,16 +687,9 @@ print(task.execution_log[0]) # => 'Hello'
 print(task.execution_log[1]) # => 'lazycluster!'
 
 # Let the Runtime print the log
+# an equivalent method exists for RuntimeGroup
 runtime.print_log()
 ```
-
-**Note:**
-It should be noted that `RuntimeTask.run_function()` is actually not a single task step. A call to this method will produce multiple steps, since the Python function that needs to be executed will be send as a pickle file to the remote host. There it gets unpickled, executed and the return data is sent back as a pickle file. This means if you intend to access the exectution log you should be aware that the log contains multiple log entries for the `run_function()` call. But the number of steps per call is fixed. Moreover, you should think about using the return value of a a remotely executed Python function instead of using the execution log for this purpose.
-
-The execution log is written to log files as well by using the [FileLogger](./docs/utils.md#FileLogger) class. The respective directory is per default `./lazycluster/log` on the [manager](#manager). The log directory contains a subfolder for each Runtime (i.e. host) that executed at least one `RuntimeTask`. Inside a Runtime folder you will find one log file per executed RuntimeTask. Each logfile name is generated by concatenating the name of the `RuntimeTask` and a current timestamp. You can configure the path were the log directory gets created by adjusting the lazycluster main directory. See [Environment](./docs/utils.md#environment) for this purpose.
-
-**Attention:**
-Sometimes it might happen that the RuntimeTask.`execution_log` property does not contain the full log. This might especially occur when executing a `RuntimeTask` asynchronously and the execution of the `RuntimeTask` failed. In this case always check the log files on the manager when debugging. Moreover, keep in mind that each log entry gets written after its execution. This means if you execute a `RuntimeTask` with just one step that takes some time, then you can access the log on the manager earliest when this step finished its execution.
 </details>
 
 
