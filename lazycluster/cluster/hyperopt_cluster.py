@@ -30,14 +30,22 @@ class LocalMongoLauncher(MasterLauncher):
         super().__init__(runtime_group)
         self.dbpath = None
 
-    def start(self, ports: Union[List[int], int], timeout: int = 3) -> List[int]:
+    def start(self, ports: Union[List[int], int], timeout: int = 3, debug: bool = False) -> List[int]:
         """Launch a master instance.
+
+        Note:
+            If you create a custom subclass of MasterLauncher which will not start the master instance on localhost
+            then you should pass the debug flag on to `execute_task()` of the `RuntimeGroup` or `Runtime` so that you
+            can benefit from the debug feature of `RuntimeTask.execute()`.
 
         Args:
             ports: Port where the DB should be started. If a list is given then the first port that is free in the
                    `RuntimeGroup` will be used. The actual chosen port can be requested via the property `port`.
             timeout: Timeout (s) after which an MasterStartError is raised if DB instance not started yet. Defaults to
                      3 seconds.
+            debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
+                   the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+                   `False`.
 
         Returns:
             List[int]: In case a port list was given the updated port list will be returned. Otherwise an empty list.
@@ -47,6 +55,9 @@ class LocalMongoLauncher(MasterLauncher):
             NoPortsLeftError: If a port list was given and none of the ports is actually free in the `RuntimeGroup`.
             MasterStartError: If master was not started after the specified `timeout`.
         """
+
+        if debug:
+            self.log.debug('The debug flag has no effect in LocalMongoLauncher.')
 
         if not isinstance(ports, list):
             if _utils.localhost_has_free_port(ports) and \
@@ -147,7 +158,7 @@ class RoundRobinLauncher(WorkerLauncher):
 
         self.log.debug('RoundRobinLauncher initialized.')
 
-    def start(self, worker_count: int, master_port: int, ports: List[int] = None) -> List[int]:
+    def start(self, worker_count: int, master_port: int, ports: List[int] = None, debug: bool = True) -> List[int]:
         """Launches the worker instances in the `RuntimeGroup`.
 
         Args:
@@ -155,6 +166,10 @@ class RoundRobinLauncher(WorkerLauncher):
             master_port:  The port of the master instance.
             ports: Without use here. Only here because we need to adhere to the interface defined by the
                    WorkerLauncher class.
+            debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
+                   the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+                   `False`.
+
         Returns:
             List[int]: The updated port list after starting the workers, i.e. the used ones were removed.
         """
@@ -173,17 +188,17 @@ class RoundRobinLauncher(WorkerLauncher):
 
             self.log.debug(f'Launch Hyperopt worker with index {worker_index} on Runtime {host}')
 
-            self._launch_single_worker(host, worker_index, master_port)
+            self._launch_single_worker(host, worker_index, master_port, debug)
 
         return self._ports
 
-    def _launch_single_worker(self, host: str, worker_index: int, master_port: int):
+    def _launch_single_worker(self, host: str, worker_index: int, master_port: int, debug):
         """Launch a single worker instance in a `Runtime` in the `RuntimeGroup`.
         """
         # 2. Start the worker on this port
         task = RuntimeTask('launch-hyperopt-worker-' + str(worker_index), needs_explicit_termination=True)
         task.run_command(self._get_launch_command(master_port, self._dbname, self._poll_interval))
-        self._group.execute_task(task, host)
+        self._group.execute_task(task, host, debug=debug)
 
     @classmethod
     def _get_launch_command(cls, master_port: int, dbname: str, poll_interval: float = 0.1) -> str:
@@ -301,7 +316,7 @@ class HyperoptCluster(MasterWorkerCluster):
         """
         return self._dbname
 
-    def start_master(self, master_port: Optional[int] = None, timeout: int = 3):
+    def start_master(self, master_port: Optional[int] = None, timeout: int = 3, debug: bool = False):
         """Start the master instance.
 
         Note:
@@ -314,6 +329,8 @@ class HyperoptCluster(MasterWorkerCluster):
                          the port is not free within the group. The actual chosen port can be requested via
                          self.master_port.
             timeout: Timeout (s) after which an MasterStartError is raised if master instance not started yet.
+            debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. Has no effect for
+                   if the master instance is started locally, what default MasterLauncher implementations usually do.
 
         Raises:
             PortInUseError: If a single port is given and it is not free in the `RuntimeGroup`.

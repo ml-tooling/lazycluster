@@ -12,7 +12,8 @@ from lazycluster.runtime_mgmt import RuntimeGroup
 
 
 class MasterLauncher(object):
-    """Abstract class for implementing the strategy for launching the master instance of the cluster. """
+    """Abstract class for implementing the strategy for launching the master instance of the cluster.
+    """
 
     def __init__(self, runtime_group: RuntimeGroup):
         """Initialization method.
@@ -47,13 +48,21 @@ class MasterLauncher(object):
         """
         return self._process
 
-    def start(self, ports: Union[List[int], int], timeout: int = 3) -> List[int]:
+    def start(self, ports: Union[List[int], int], timeout: int = 3, debug: bool = False) -> List[int]:
         """Launch a master instance.
+
+        Note:
+            If you create a custom subclass of MasterLauncher which will not start the master instance on localhost
+            then you should pass the debug flag on to `execute_task()` of the `RuntimeGroup` or `Runtime` so that you
+            can benefit from the debug feature of `RuntimeTask.execute()`.
 
         Args:
             ports: Port where the master should be started. If a list is given then the first port that is free in the
                   `RuntimeGroup` will be used. The actual chosen port can requested via the property `port`.
             timeout: Timeout (s) after which an MasterStartError is raised if master instance not started yet.
+            debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
+                   the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+                   `False`.
 
         Returns:
             List[int]: In case a port list was given the updated port list will be returned. Otherwise an empty list.
@@ -116,7 +125,7 @@ class WorkerLauncher(object):
         """
         return self._ports_per_host
 
-    def start(self, worker_count: int, master_port: int, ports: List[int]) -> List[int]:
+    def start(self, worker_count: int, master_port: int, ports: List[int], debug: bool = False) -> List[int]:
         """Launches the worker instances in the `RuntimeGroup`.
 
         Args:
@@ -124,6 +133,10 @@ class WorkerLauncher(object):
             master_port:  The port of the master instance.
             ports: The ports to be used for starting the workers. Only ports from the list will be chosen that are
                    actually free.
+            debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
+                   the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+                   `False`.
+
         Returns:
             List[int]: The updated port list after starting the workers, i.e. the used ones were removed.
 
@@ -253,7 +266,7 @@ class MasterWorkerCluster(RuntimeCluster):
         """
         return self._group
 
-    def start(self, worker_count: Optional[int] = None, master_port: Optional[int] = None):
+    def start(self, worker_count: Optional[int] = None, master_port: Optional[int] = None, debug: bool = False):
         """Convenient method for launching the cluster.
 
         Internally, `self.start_master()` and `self.start_workers()` will be called.
@@ -263,13 +276,16 @@ class MasterWorkerCluster(RuntimeCluster):
                          for further details.
             worker_count: The number of worker instances to be started in the cluster. Will be passed on to
                           `self.start()`, hence see respective method for further details.
+            debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
+                   the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+                   `False`.
 
         """
         self.log.info('Starting the cluster ...')
-        self.start_master(master_port)
+        self.start_master(master_port, debug=debug)
         self.start_workers(worker_count)
 
-    def start_master(self, master_port: Optional[int] = None, timeout: int = 3):
+    def start_master(self, master_port: Optional[int] = None, timeout: int = 3, debug: bool = False):
         """Start the master instance.
 
         Note:
@@ -282,6 +298,8 @@ class MasterWorkerCluster(RuntimeCluster):
                          the port is not free within the group. The actual chosen port can be requested via
                          self.master_port.
             timeout: Timeout (s) after which an MasterStartError is raised if master instance not started yet.
+            debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. Has no effect for
+                   if the master instance is started locally, what default MasterLauncher implementations usually do.
 
         Raises:
             PortInUseError: If a single port is given and it is not free in the `RuntimeGroup`.
@@ -299,7 +317,7 @@ class MasterWorkerCluster(RuntimeCluster):
             overwrite_port_list = True
 
         # 2. Trigger the actual logic for starting the master instance
-        ports = self._master_launcher.start(ports, timeout)  # Raises the possible exceptions
+        ports = self._master_launcher.start(ports, timeout, debug)  # Raises the possible exceptions
 
         if overwrite_port_list:
             self._ports = ports
@@ -315,7 +333,7 @@ class MasterWorkerCluster(RuntimeCluster):
 
         self.log.info(f'Master instance started on port {str(self.master_port)}.')
 
-    def start_workers(self, count: Optional[int] = None):
+    def start_workers(self, count: Optional[int] = None, debug: bool = False):
         """Start the worker instances.
 
         Note:
@@ -326,13 +344,16 @@ class MasterWorkerCluster(RuntimeCluster):
         Args:
             count: The number of worker instances to be started in the cluster. Defaults to the number of runtimes in
                    the cluster.
+            debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
+                   the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+                   `False`.
          Raises:
             NoPortsLeftError: If there are no free ports left in the port list for instantiating new worker entities.
         """
         if not count:
             count = self._group.runtime_count
 
-        self._ports = self._worker_launcher.start(count, self.master_port, self._ports)
+        self._ports = self._worker_launcher.start(count, self.master_port, self._ports, debug)
 
         # Some attributes must be set in the given MasterLauncher implementation after
         # starting the master to ensure correct behavior of MasterWorkerCluster
