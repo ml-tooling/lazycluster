@@ -283,7 +283,7 @@ class MasterWorkerCluster(RuntimeCluster):
         """
         self.log.info('Starting the cluster ...')
         self.start_master(master_port, debug=debug)
-        self.start_workers(worker_count)
+        self.start_workers(worker_count, debug=debug)
 
     def start_master(self, master_port: Optional[int] = None, timeout: int = 3, debug: bool = False):
         """Start the master instance.
