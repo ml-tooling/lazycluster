@@ -21,13 +21,21 @@ class LocalMasterLauncher(MasterLauncher):
     This class implements the logic for starting a the DASK master instance (i.e. scheduler in DASK terms) on localhost.
     """
 
-    def start(self, ports: Union[List[int], int], timeout: int = 3) -> List[int]:
+    def start(self, ports: Union[List[int], int], timeout: int = 3, debug: bool = False) -> List[int]:
         """Launch a master instance.
+
+        Note:
+            If you create a custom subclass of MasterLauncher which will not start the master instance on localhost
+            then you should pass the debug flag on to `execute_task()` of the `RuntimeGroup` or `Runtime` so that you
+            can benefit from the debug feature of `RuntimeTask.execute()`.
 
         Args:
             ports: Port where the master should be started. If a list is given then the first port that is free in the
                    `RuntimeGroup` will be used. The actual chosen port can be requested via the property `port`.
             timeout: Timeout (s) after which an MasterStartError is raised if master instance not started yet.
+            debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
+                   the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+                   `False`.
 
         Returns:
             List[int]: In case a port list was given the updated port list will be returned. Otherwise an empty list.
@@ -90,7 +98,7 @@ class RoundRobinLauncher(WorkerLauncher):
 
         self.log.debug('RoundRobinLauncher initialized.')
 
-    def start(self, worker_count: int, master_port: int, ports: List[int]) -> List[int]:
+    def start(self, worker_count: int, master_port: int, ports: List[int], debug: bool = False) -> List[int]:
         """Launches the worker instances in the `RuntimeGroup`.
 
         Args:
@@ -98,6 +106,10 @@ class RoundRobinLauncher(WorkerLauncher):
             master_port:  The port of the master instance.
             ports: The ports to be used for starting the workers. Only ports from the list will be chosen
                                that are actually free.
+            debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
+                   the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+                   `False`.
+
         Returns:
             List[int]: The updated port list after starting the workers, i.e. the used ones were removed.
 
@@ -119,7 +131,7 @@ class RoundRobinLauncher(WorkerLauncher):
 
             self.log.debug(f'Launch Dask worker with index {worker_index} on Runtime {host}')
 
-            worker_port = self._launch_single_worker(host, worker_index, master_port, working_dir)  # NoPortsLeftError
+            worker_port = self._launch_single_worker(host, worker_index, master_port, working_dir, debug)  # NoPortsLeftError
             # Remember which worker ports are now used per `Runtime`
             if host in self._ports_per_host:
                 self._ports_per_host[host].append(worker_port)
@@ -131,7 +143,7 @@ class RoundRobinLauncher(WorkerLauncher):
 
         return self._ports
 
-    def _launch_single_worker(self, host: str, worker_index: int, master_port: int, working_dir: str):
+    def _launch_single_worker(self, host: str, worker_index: int, master_port: int, working_dir: str, debug: bool):
         """Launch a single worker instance in a `Runtime` in the `RuntimeGroup`.
 
         Raises:
@@ -144,7 +156,7 @@ class RoundRobinLauncher(WorkerLauncher):
         task = RuntimeTask('launch-dask-worker-' + str(worker_index), needs_explicit_termination=True)
         task.run_command(DaskCluster.PIP_INSTALL_COMMAND)
         task.run_command(self._get_launch_command(master_port, worker_port, working_dir))
-        self._group.execute_task(task, host)
+        self._group.execute_task(task, host, debug=debug)
         return worker_port
 
     @classmethod
