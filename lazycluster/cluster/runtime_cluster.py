@@ -75,7 +75,7 @@ class MasterLauncher(object):
 
         # The actual values for the following instance attributes need to be set within the concrete implementations:
         # - self._port
-        # - self._process
+        # - self._process (In case the master is started in a process managed by the MasterLauncher instance )
 
         raise NotImplementedError
 
