@@ -1113,7 +1113,7 @@ class Runtime(object):
             ValueError: If function is empty.
             TaskExecutionError: If there was an error during the execution.
         """
-        task = RuntimeTask(function.__name__).run_function(function, **func_kwargs)
+        task = RuntimeTask(f'execute-function-{function.__name__}').run_function(function, **func_kwargs)
         self.execute_task(task, execute_async, debug)
         return task
 
