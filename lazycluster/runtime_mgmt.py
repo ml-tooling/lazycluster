@@ -456,7 +456,7 @@ class RuntimeGroup(object):
 
     def send_file(self, local_path: str, remote_path: Optional[str] = None, execute_async: Optional[bool] = True) \
             -> List[RuntimeTask]:
-        """Send either a single file or a folder from localhost to all `Runtimes` of the group.
+        """Send either a single file or a folder from the manager to all `Runtimes` of the group.
 
         Note:
             This method is a convenient wrapper around the Runtime's send file functionality. See `Runtime.send_file()´
