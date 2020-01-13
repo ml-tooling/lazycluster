@@ -15,7 +15,6 @@ from typing import Optional, List, Dict, Generator, Union
 import shutil
 import cloudpickle as pickle
 import atexit
-from invoke.exceptions import UnexpectedExit
 from lazycluster import InvalidRuntimeError, NoPortsLeftError, PortInUseError, TaskExecutionError, PathCreationError
 import lazycluster._utils as _utils
 from lazycluster.utils import ExecutionFileLogUtil
@@ -235,6 +234,7 @@ class RuntimeTask(object):
 
         Raises:
             ValueError: If remote path is emtpy.
+            OSError: In case of non existent paths.
         """
         if not remote_path:
             raise ValueError("Remote path must not be empty")
@@ -394,6 +394,7 @@ class RuntimeTask(object):
         Raises:
             ValueError: If cxn is broken and connection can not be established.
             TaskExecutionError: If an executed task step can't be executed successfully.
+            OSError: In case of file transfer and non existent paths.
         """
         exec_file_log_util = ExecutionFileLogUtil(connection.host, self.name)
 
@@ -544,14 +545,11 @@ class RuntimeTask(object):
         self.log.debug(f'Start executing TaskStep {task_step_index} (`send_file`) from RuntimeTask {self.name} '
                        f'on host {connection.host}. File: `local: {task_step.local_path}`, '
                        f'`remote: {task_step.remote_path}`.')
-        try:
-            connection.put(task_step.local_path, task_step.remote_path)
-        except UnexpectedExit as e:
-            self.log.error(f'UnexpectedExit while executing step {task_step_index} (`send_file`) '
-                           f'from RuntimeTask {self.name} on host {connection.host}.')
-            return
 
-        self.log.info(f'Sent file {task_step.local_path} to {task_step.remote_path} on host {connection.host}')
+        connection.put(task_step.local_path, task_step.remote_path)
+
+        self.log.info(f'Finished sending the file {task_step.local_path} to {task_step.remote_path} '
+                      f'on host {connection.host}')
 
     def _execute_get_file(self, task_step, task_step_index: int, working_dir: str, connection: Connection,
                           file_log: ExecutionFileLogUtil):
@@ -572,17 +570,11 @@ class RuntimeTask(object):
         self.log.debug(f'Start executing step {task_step_index} (`get_file`) from RuntimeTask {self.name} on '
                        f'host {connection.host}. File: `local: {task_step.local_path}`, '
                        f'`remote: {task_step.remote_path}`.')
-        try:
-            connection.get(task_step.remote_path, task_step.local_path)
-        except UnexpectedExit:
-            log_msg = f'UnexpectedExit while executing step {task_step_index} (`get_file`)  from RuntimeTask ' \
-                     f'{self.name} on host {connection.host}.'
-            self.log.error(log_msg)
-            return
 
-        log_msg = f'Got remote file {task_step.remote_path} from host {connection.host} to local {task_step.local_path}.'
-        self._execution_log.append(log_msg)
-        self.log.info(log_msg)
+        connection.get(task_step.remote_path, task_step.local_path)
+
+        self.log.info(f'Finished transferring remote file {task_step.remote_path} from host {connection.host} '
+                      f'to local file {task_step.local_path}.')
 
     class _TaskStep:
         """Represents an individual action, i.e. a `_TaskStep` within a `RuntimeTask`.
@@ -1088,6 +1080,7 @@ class Runtime(object):
         Raises:
             ValueError: If local_path is emtpy.
             TaskExecutionError: If an executed task step can't be executed successfully.
+            OSError: In case of non existent paths.e
         """
         async_str = ' asynchronously ' if execute_async else ' synchronously '
         self.log.debug(f'Start sending local file `{local_path}` to Runtime {self.host} {async_str}. Given remote path:'
