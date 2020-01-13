@@ -278,7 +278,7 @@ Add a `Runtime` to the group either by host or as a `Runtime` object.
   the temptation to guess. Also if no argument is supplied.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L644)</span>
+<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L645)</span>
 
 ### RuntimeGroup.cleanup
 
@@ -291,7 +291,7 @@ Release all acquired resources and terminate all processes by calling the cleanu
 `Runtimes`.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L570)</span>
+<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L571)</span>
 
 ### RuntimeGroup.clear_tasks
 
@@ -304,7 +304,7 @@ Clears all internal state related to `RuntimeTasks`.
   
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L559)</span>
+<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L560)</span>
 
 ### RuntimeGroup.contains_runtime
 
@@ -536,7 +536,7 @@ Trigger the reading of runtime information asynchronously and buffer the result.
   of Runtimes used.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L505)</span>
+<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L506)</span>
 
 ### RuntimeGroup.get_free_port
 
@@ -576,7 +576,7 @@ Return the first port from the list which is currently not in use in the whole g
  - `NoPortsLeftError`:  If the port list is empty and no free port was found yet.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L581)</span>
+<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L582)</span>
 
 ### RuntimeGroup.get_runtime
 
@@ -623,7 +623,7 @@ i.e. the one with the fewest alive processes executing a `RuntimeTask`.
  - `ValueError`:  Hostname is not contained in the group.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L605)</span>
+<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L606)</span>
 
 ### RuntimeGroup.get_runtimes
 
@@ -662,7 +662,7 @@ Convenient methods for getting relevant `Runtimes` contained in the group.
   in the group.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L534)</span>
+<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L535)</span>
 
 ### RuntimeGroup.has_free_port
 
@@ -708,7 +708,7 @@ specific subset of contained `Runtimes` by excluding some hosts.
   not contained in the group.                     
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L491)</span>
+<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L492)</span>
 
 ### RuntimeGroup.join
 
@@ -734,7 +734,7 @@ Print the hosts of the group.
   
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L498)</span>
+<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L499)</span>
 
 ### RuntimeGroup.print_log
 
@@ -793,7 +793,7 @@ send_file(
 ) → List[lazycluster.runtimes.RuntimeTask]
 ```
 
-Send either a single file or a folder from localhost to all `Runtimes` of the group.
+Send either a single file or a folder from the manager to all `Runtimes` of the group.
 
 
 
@@ -833,6 +833,8 @@ List[RuntimeTask]: The tasks that were internally created by the respective `Run
 
  - `TaskExecutionError`:  If an executed task step can't be executed successfully.
 
+ - `OSError`:  In case of non existent paths.
+
 -------------------
 <span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L168)</span>
 
@@ -860,7 +862,7 @@ Set environment variables used when executing a task.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L665)</span>
+<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L666)</span>
 
 ## RuntimeManager class
 
@@ -872,7 +874,7 @@ automatically detected instances and possibly based on further filters such as G
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L671)</span>
+<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L672)</span>
 
 ### RuntimeManager.`__init__`
 
@@ -892,7 +894,7 @@ Initialization method.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L721)</span>
+<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L722)</span>
 
 ### RuntimeManager.create_group
 
@@ -976,7 +978,7 @@ documentation for further details and examples.
  - `NoRuntimesError`:  If no `Runtime` matches the filter criteria or none could be detected.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L809)</span>
+<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L810)</span>
 
 ### RuntimeManager.print_hosts
 
@@ -994,7 +996,7 @@ Print detected hosts incl. the inactive ones.
   Inactive means that the host is not reachable via ssh or the check vie Runtime.is_valid_runtime() failed.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L825)</span>
+<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L826)</span>
 
 ### RuntimeManager.print_inactive_hosts
 
@@ -1012,7 +1014,7 @@ Print the inactive hosts.
   Inactive means that the host is not reachable via ssh or the check vie Runtime.is_valid_runtime() failed.
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L793)</span>
+<span style="float:right;">[[source]](/lazycluster/runtime_mgmt.py#L794)</span>
 
 ### RuntimeManager.print_runtime_info
 
