@@ -273,7 +273,7 @@ class RuntimeTask(object):
 
         Args:
             function: The function to be executed remotely.
-            func_kwargs: kwargs which will be passed to the function.
+            **func_kwargs: kwargs which will be passed to the function.
 
         Returns:
             RuntimeTask: self.
@@ -1090,27 +1090,32 @@ class Runtime(object):
         self.execute_task(task, execute_async)
         return task
 
-    def execute_run_function(self, function: callable, debug: bool = False, **func_kwargs) -> 'RuntimeTask':
-        """Create a task step for executing a given python function on a remote host. The function will be transferred
-        to the remote host via ssh and cloudpickle. The return data can be requested via the property `function_returns`
+    def execute_function(self, function: callable, execute_async: bool = False, debug: bool = False, **func_kwargs) -> 'RuntimeTask':
+        """Execute a Python function on the Runtime.
 
         Note:
-            Hence, the function must be serializable via cloudpickle and all dependencies must be available in its
-            correct versions on the remote host for now. We are planning to improve the dependency handling.
+            Internally, creates a RuntimeTask for executing the given python function on a remote host. The function
+            will be transferred to the remote host via ssh and cloudpickle. The return data can be requested via the
+            property `function_returns` of the Runtime or of the returned RuntimeTask. Hence, the function must be
+            serializable via cloudpickle and all dependencies must be available in its correct versions on the Runtime.
 
         Args:
             function: The function to be executed remotely.
+            execute_async: The execution will be done in a separate process if True. Defaults to False.
             debug : If `True`, stdout/stderr from the remote host will be printed to stdout. If, `False`
                     then the stdout/stderr will be written to execution log files. Defaults to `False`.
-            func_kwargs: kwargs which will be passed to the function.
+            **func_kwargs: kwargs which will be passed to the function.
 
         Returns:
             RuntimeTask: self.
 
         Raises:
             ValueError: If function is empty.
+            TaskExecutionError: If there was an error during the execution.
         """
-        # Create a task with name including the function name
+        task = RuntimeTask(function.__name__).run_function(function, **func_kwargs)
+        self.execute_task(task, execute_async, debug)
+        return task
 
     def _create_working_dir_if_not_exists(self):
         if not self._working_dir:
