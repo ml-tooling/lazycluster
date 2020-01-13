@@ -1060,19 +1060,19 @@ class Runtime(object):
 
         self._tasks.append(task)
 
-    def send_file(self, local_path: str, remote_path: Optional[str] = None, execute_async: Optional[bool] = True) \
+    def send_file(self, local_path: str, remote_path: Optional[str] = None, execute_async: Optional[bool] = False) \
             -> 'RuntimeTask':
-        """Send either a single file or a folder from localhost to the Runtime.
+        """Send either a single file or a folder from the manager to the Runtime.
 
         Note:
             This method is a convenient wrapper around the RuntimeTask's send file functionality. But it directly
-            executes the file sending in contrast to the send_file() method of the RuntimeTask.
+            executes the file transfer in contrast to the send_file() method of the RuntimeTask.
 
         Args:
             local_path: Path to file on local machine.
             remote_path: Path on the Runtime. Defaults to the self.working_dir. See
                          `RuntimeTask.execute()` docs for further details.
-            execute_async: The execution will be done in a separate process if True. Defaults to True.
+            execute_async: The execution will be done in a separate process if True. Defaults to False.
 
         Returns:
             RuntimeTask: The task that were internally created for the file transfer.
@@ -1087,6 +1087,34 @@ class Runtime(object):
                        f' {remote_path}`.')
         task = RuntimeTask(f'send-file-{local_path}-to-{self.host}')
         task.send_file(local_path, remote_path)
+        self.execute_task(task, execute_async)
+        return task
+
+    def get_file(self, remote_path: str, local_path: Optional[str] = None, execute_async: Optional[bool] = False) -> 'RuntimeTask':
+        """Get either a single file or a folder from the Runtime to the manager.
+
+        Note:
+            This method is a convenient wrapper around the RuntimeTask's get file functionality. But it directly
+            executes the file transfer in contrast to the get_file() method of the RuntimeTask.
+
+        Args:
+            remote_path: Path to file on host.
+            local_path: Path to file on local machine (i.e. manager). The remote file is downloaded  to the current
+                        working directory (as seen by os.getcwd) using its remote filename if local_path is None.
+                        This is the default behavior of fabric.Connection.get().
+            execute_async: The execution will be done in a separate process if True. Defaults to False.
+
+        Returns:
+            RuntimeTask: self.
+
+        Raises:
+            ValueError: If remote path is emtpy.
+        """
+        async_str = ' asynchronously ' if execute_async else ' synchronously '
+        self.log.debug(f'Start transferring the file `{remote_path}` of Runtime {self.host} {async_str} to local path:'
+                       f' {local_path}`.')
+        task = RuntimeTask(f'get-file-{remote_path}-from-{self.host}')
+        task.get_file(remote_path, local_path)
         self.execute_task(task, execute_async)
         return task
 
