@@ -85,6 +85,11 @@ class Environment(object):
         Args:
             log_level: Standard python log level values as defined in `logging` like `logging.ERROR`.
         """
+        if log_level == logging.ERROR or log_level == logging.CRITICAL:
+            logging.basicConfig(format='[%(levelname)s] %(message)s')
+        else:
+            logging.basicConfig(format='[%(levelname)s] %(name)s %(message)s')
+
         logging.getLogger('paramiko').setLevel(log_level)
 
 
