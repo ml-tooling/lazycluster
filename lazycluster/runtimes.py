@@ -191,7 +191,7 @@ class RuntimeTask(object):
 
     @env_variables.setter
     def env_variables(self, env_variables: Dict):
-        """Set environment parameters used when executing a task.
+        """Set environment parameters used when executing a RuntimeTask.
 
         Args:
             env_variables: The env variables as dictionary.
@@ -725,6 +725,7 @@ class Runtime(object):
             The working directory will also be set as environment variable on the Runtime. It is accessible via the
             env variable name stated in the constant `Runtime.WORKING_DIR_ENV_VAR_NAME`. This might be especially of
             interest when executing python functions remotely.
+            Moreover, The full path will be created on the remote host in case it does not exist.
 
         Returns:
             str: The path of the working directory.
