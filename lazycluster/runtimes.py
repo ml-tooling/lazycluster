@@ -396,7 +396,7 @@ class RuntimeTask(object):
             TaskExecutionError: If an executed task step can't be executed successfully.
             OSError: In case of file transfer and non existent paths.
         """
-        exec_file_log_util = ExecutionFileLogUtil(connection.host, self.name)
+        exec_file_log_util = ExecutionFileLogUtil(connection.original_host, self.name)
 
         # The Fabric connection will only consider the manually set working directory for connection.run()
         # but not fur connection.put() & connection.get(). Thus, we need to set the path in
@@ -404,11 +404,11 @@ class RuntimeTask(object):
         from socket import gaierror
         try:
             working_dir = connection.run('pwd', hide=True, warn=True).stdout.replace('\n', '').replace('\r', '')
-            self.log.debug(f'Current directory of connection to host {connection.host} is `{working_dir}`.')
+            self.log.debug(f'Current directory of connection to host {connection.original_host} is `{working_dir}`.')
         except gaierror:
             raise ValueError('Connection cannot be established. connection: ' + str(connection))
 
-        self.log.info(f'Start executing RuntimeTask {self.name} on host {connection.host}')
+        self.log.info(f'Start executing RuntimeTask {self.name} on host {connection.original_host}')
 
         task_step_index = 0
 
@@ -448,7 +448,7 @@ class RuntimeTask(object):
                 self.log.debug(f'Finished executing the generated steps that are necessary to execute the python '
                                f'function `{task_step.function.__name__}` remotely.')
 
-        self.log.info(f'Finished executing RuntimeTask {self.name} on host {connection.host}')
+        self.log.info(f'Finished executing RuntimeTask {self.name} on host {connection.original_host}')
 
     def join(self):
         """Block the execution until the `RuntimeTask` finished its asynchronous execution.
@@ -500,9 +500,9 @@ class RuntimeTask(object):
     def _execute_run_command_step(self, task_step, task_step_index: int, connection: Connection, debug: bool,
                                   exec_file_log_util: ExecutionFileLogUtil):
         self.log.debug(f'Start executing step {task_step_index} (`run_command`) from RuntimeTask {self.name} on host '
-                       f'{connection.host}. Command: `{task_step.command}`')
+                       f'{connection.original_host}. Command: `{task_step.command}`')
 
-        self.log.debug(f'Used environment vars on host {connection.host}: {self._env_variables}')
+        self.log.debug(f'Used environment vars on host {connection.original_host}: {self._env_variables}')
 
         # The output will be sent to stdout in case of debug
         # Otherwise it gets written to an execution log file
@@ -515,12 +515,12 @@ class RuntimeTask(object):
 
         if not debug:
             self.log.debug(f'The stdout of step {task_step_index} (`run_command`) from RuntimeTask {self.name} on host '
-                           f'{connection.host} is `{result.stdout}`.')
+                           f'{connection.original_host} is `{result.stdout}`.')
 
         self._execution_log.append(result.stdout)
 
         if result.exited != 0:
-            raise TaskExecutionError(task_step_index, self, connection.host)
+            raise TaskExecutionError(task_step_index, self, connection.original_host)
 
     def _execute_send_file(self, task_step, task_step_index: int, working_dir: str, connection: Connection,
                            file_log: ExecutionFileLogUtil):
@@ -543,13 +543,13 @@ class RuntimeTask(object):
         task_step.remote_path = remote_path
 
         self.log.debug(f'Start executing TaskStep {task_step_index} (`send_file`) from RuntimeTask {self.name} '
-                       f'on host {connection.host}. File: `local: {task_step.local_path}`, '
+                       f'on host {connection.original_host}. File: `local: {task_step.local_path}`, '
                        f'`remote: {task_step.remote_path}`.')
 
         connection.put(task_step.local_path, task_step.remote_path)
 
         self.log.info(f'Finished sending the file {task_step.local_path} to {task_step.remote_path} '
-                      f'on host {connection.host}')
+                      f'on host {connection.original_host}')
 
     def _execute_get_file(self, task_step, task_step_index: int, working_dir: str, connection: Connection,
                           file_log: ExecutionFileLogUtil):
@@ -568,12 +568,12 @@ class RuntimeTask(object):
         task_step.remote_path = remote_path
 
         self.log.debug(f'Start executing step {task_step_index} (`get_file`) from RuntimeTask {self.name} on '
-                       f'host {connection.host}. File: `local: {task_step.local_path}`, '
+                       f'host {connection.original_host}. File: `local: {task_step.local_path}`, '
                        f'`remote: {task_step.remote_path}`.')
 
         connection.get(task_step.remote_path, task_step.local_path)
 
-        self.log.info(f'Finished transferring remote file {task_step.remote_path} from host {connection.host} '
+        self.log.info(f'Finished transferring remote file {task_step.remote_path} from host {connection.original_host} '
                       f'to local file {task_step.local_path}.')
 
     class _TaskStep:
