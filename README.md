@@ -1,5 +1,5 @@
 <h1 align="center">
-     lazycluster
+    🎛 lazycluster
     <br>
 </h1>
 
@@ -37,21 +37,24 @@ and convenient cluster setup with Python for various distributed machine learnin
 - **Lower-level API for:**
     - Managing [Runtimes](./docs/runtimes.md#runtime-class) or [RuntimeGroups](./docs/runtime_mgmt.md#runtimegroup-class) to:
         - A-/synchronously execute [RuntimeTasks](./docs/runtimes.md#runtimetask-class) by leveraging the power of ssh
-        - Expose services (e.g. a DB) from or to a [Runtime](./docs/runtimes.md#runtime-class) or in a whole [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class)
+        - Expose services (e.g. a DB) from or to a `Runtime` or in a whole `RuntimeGroup`
 - **Command line interface (CLI)**
-    - List all available [Runtimes](./docs/runtimes.md#runtime-class)
-    - Add a [Runtime](./docs/runtimes.md#runtime-class) configuration
-    - Delete a [Runtime](./docs/runtimes.md#runtime-class) configuration
+    - List all available `Runtimes`
+    - Add a `Runtime` configuration
+    - Delete a `Runtime` configuration
 
+<br/>
+
+![API layer](./docs/img/layer-concept.png)
 
 > **Concept Definition:** *[Runtime](./docs/runtimes.md#runtime-class)* <a name="runtime"></a>
 >
-> A `Runtime` is the logical representation of a remote host. Typically, the host is another server or a virtual machine / container on another server. This python class provides several methods for utilizing remote resources such as the port exposure from / to a `Runtime` as well as the execution of `RuntimeTasks`. A `Runtime` has a working directory. Usually, the execution of a `RuntimeTask` is conducted relatively to this directory if no other path is explicitly given. The working directory can be manually set during the initialization. Otherwise, a temporary directory gets created that might eventually be removed.
+> A `Runtime` is the logical representation of a remote host. Typically, the host is another server or a virtual machine / container on another server. This python class provides several methods for utilizing remote resources such as the port exposure from / to a `Runtime` as well as the execution of [RuntimeTasks](#task). A `Runtime` has a working directory. Usually, the execution of a `RuntimeTask` is conducted relatively to this directory if no other path is explicitly given. The working directory can be manually set during the initialization. Otherwise, a temporary directory gets created that might eventually be removed.
  
 
 > **Concept Definition:** *[RuntimeGroup](./docs/runtimes.md#runtimetask-class)* 
 >
-> A `RuntimeGroup` is the representation of logically related `Runtimes` and provides convenient methods for managing those related `Runtimes`. Most methods are wrappers around their counterparts in the `Runtime` class. Typical usage examples are exposing a port (i.e. a service such as a DB) in the `RuntimeGroup`, transfer files, or execute  a `RuntimeTask` on the contained `Runtimes`. Additionally, all concrete [RuntimeCluster](./docs/cluster.runtime_cluster.md#runtimecluster-class) (e.g. the [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class))implementations rely on `RuntimeGroups` for example.
+> A `RuntimeGroup` is the representation of logically related `Runtimes` and provides convenient methods for managing those related `Runtimes`. Most methods are wrappers around their counterparts in the `Runtime` class. Typical usage examples are exposing a port (i.e. a service such as a DB) in the `RuntimeGroup`, transfer files, or execute  a `RuntimeTask` on the contained `Runtimes`. Additionally, all concrete [RuntimeCluster](./docs/cluster.runtime_cluster.md#runtimecluster-class) (e.g. the [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class)) implementations rely on `RuntimeGroups` for example.
 
 
 > **Concept Definition:** *Manager*<a name="manager"></a>
@@ -60,9 +63,8 @@ and convenient cluster setup with Python for various distributed machine learnin
 
 > **Concept Definition:** *[RuntimeTask](./docs/runtimes.md#runtimetask-class)* <a name="task"></a>
 >
-> A `RuntimeTask` is a composition of multiple elemantary task steps, namely `send file`, `get file`, `run shell command`, `run python function`. A `RuntimeTask` can be executed on a remote host either by handing it over to a `Runtime` object or standalone by handing over a [fabric Connection](http://docs.fabfile.org/en/2.5/api/connection.html) object to the execute method of the `RuntimeTask`. Consequently, all invididual task steps are executed sequentially. Moreover, a `RuntimeTask` object captures the stdout of the remote execution as logs. An example for a `RuntimeTask` could be to send a csv file to a `Runtime`, execute a python function that is transforming the csv file and finally get the file back. 
+> A `RuntimeTask` is a composition of multiple elemantary task steps, namely `send file`, `get file`, `run command` (shell), `run function` (python). A `RuntimeTask` can be executed on a remote host either by handing it over to a `Runtime` object or standalone by handing over a [fabric Connection](http://docs.fabfile.org/en/2.5/api/connection.html) object to the execute method of the `RuntimeTask`. Consequently, all invididual task steps are executed sequentially. Moreover, a `RuntimeTask` object captures the output (stdout/stderr) of the remote execution in its execution log. An example for a `RuntimeTask` could be to send a csv file to a `Runtime`, execute a python function that is transforming the csv file and finally get the file back. 
 ---
-
 <br>
 
 ## Getting started
@@ -94,11 +96,9 @@ pip install lazycluster
 <br/>
 
 **[Runtime](#runtime) host requirements:**
+- Unix based OS
 - Python >= 3.6
 - ssh server (e.g. openssh-server)
-
-- Unix based OS
-- https://www.ssh.com/ssh/keygen#creating-an-ssh-key-pair-for-user-authentication
 
 **Note:**
 
@@ -119,7 +119,8 @@ task = RuntimeTask('my-first_task').run_command('echo Hello World!') \
 # Actually execute it remotely in a `Runtime`                                   
 task = Runtime('host-1').execute_task(task, execute_async=False)
 
-# The stdout from from the executing `Runtime` can be accessed via the execution log of the `RuntimeTask`
+# The stdout from from the executing `Runtime` can be accessed 
+# via the execution log of the `RuntimeTask`
 task.print_log()
 
 # Print the return of the `hello()` call
@@ -150,7 +151,7 @@ valuable if it's shared publicly so that more people can benefit from it.
 
 ## Features
 
-### Use CLI to manage local ssh configuration to enable [Runtime](./docs/runtimes.md#runtime-class) use
+### Use CLI to manage local ssh configuration to enable `Runtime` usage
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
@@ -178,7 +179,7 @@ lazycluster delete-runtime host-1
 ![Runtime Deleted](./docs/img/cli-runtime-deleted.png)
 </details>
 
-### Create [Runtimes](./docs/runtimes.md#runtime-class) & [RuntimeGroups](./docs/runtime_mgmt.md#runtimegroup-class)
+### Create `Runtimes` & `RuntimeGroups`
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
@@ -211,7 +212,7 @@ group.set_env_variables({'foo': 'bar'})
 
 </details>
 
-### Use [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) to create a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) based on the local ssh config
+### Use the `RuntimeManager` to create a `RuntimeGroup` based on the manager's ssh config
 The [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on the [manager's](#manager) local ssh config and eventually create a necessary [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) for you.
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
@@ -223,7 +224,7 @@ runtime_group = RuntimeManager().create_group()
 ```
 </details>
 
-### Expose a service from a [Runtime](./docs/runtimes.md#runtime-class)
+### Expose a service from a `Runtime`
 A DB is running on a remote host on port `runtime_port` and the DB is only accessible from the remote host. 
 But you also want to access the service from the [manager](#manager) on port `local_port`. Then you can use this 
 method to expose the service which is running on the remote host to the [manager](#manager).
@@ -244,7 +245,7 @@ runtime.expose_port_to_runtime(40000)
 ```
 </details>
 
-### Expose a service to a [Runtime](./docs/runtimes.md#runtime-class)
+### Expose a service to a `Runtime`
 A DB is running on the [manager](#manager) on port `local_port` and the DB is only accessible from the [manager](#manager). 
 But you also want to access the service on the remote `Runtime` on port `runtime_port`. Then you can use 
 this method to expose the service which is running on the [manager](#manager) to the remote host.
@@ -265,7 +266,7 @@ runtime.expose_port_to_runtime(40000)
 ```
 </details>
 
-### Expose a service to a whole [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) or from one contained [Runtime](./docs/runtimes.md#runtime-class) in the [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class)
+### Expose a service to a whole `RuntimeGroup` or from one contained `Runtime` in the `RuntimeGroup`
 Now we extend the two previous examples by using a `RuntimeGroup` instead of just a single `Runtime`.
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
@@ -325,7 +326,7 @@ The usage of get_file is similar and documented [here](./docs/runtimes.md#runtim
 
 
 ### Simple preprocessing example
-Read a local (on the [manager](#manager)) CSV file and upper case chunks in parallel using [RuntimeTasks](./docs/runtimes.md#runtimetask-class)
+Read a local CSV file (on the [manager](#manager)) and upper case chunks in parallel using [RuntimeTasks](./docs/runtimes.md#runtimetask-class)
 and a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class).
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
@@ -367,7 +368,7 @@ for chunk in runtime_group.function_returns:
 ### Scalable analytics with [Dask](https://dask.org/)
 Most simple way to use DASK in a cluster based on a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) created by the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class). The `RuntimeManager` can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on the [manager's](#manager) ssh config and eventually create a necessary `RuntimeGroup` for you. This `RuntimeGroup` is then handed over to [DaskCluster](./docs/cluster.dask_cluster.md#daskcluster-class) during initialization.
 
-The DASK `scheduler` instance gets started [manager](#manager). Additionally, multiple DASK `worker` processes get started in the `RuntimeGroup`, i.e. in the contained `Runtimes`. The default number of workers is equal to the number of `Runtimes` contained in the `RuntimeGroup`.
+The DASK `scheduler` instance gets started on the [manager](#manager). Additionally, multiple DASK `worker` processes get started in the `RuntimeGroup`, i.e. in the contained `Runtimes`. The default number of workers is equal to the number of `Runtimes` contained in the `RuntimeGroup`.
 
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
