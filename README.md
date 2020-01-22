@@ -4,7 +4,8 @@
 </h1>
 
 <p align="center">
-    <strong>Distributed machine learning made simple.</strong>
+    <strong>Distributed machine learning made simple.</strong><br/>
+    Use your preferred distributed ML framework like a <a href="https://youtu.be/UXSSJENiZiw">lazy engineer</a>.
 </p>
 
 <p align="center">
@@ -37,15 +38,11 @@ and convenient cluster setup with Python for various distributed machine learnin
     - Managing [Runtimes](./docs/runtimes.md#runtime-class) or [RuntimeGroups](./docs/runtime_mgmt.md#runtimegroup-class) to:
         - A-/synchronously execute [RuntimeTasks](./docs/runtimes.md#runtimetask-class) by leveraging the power of ssh
         - Expose services (e.g. a DB) from or to a [Runtime](./docs/runtimes.md#runtime-class) or in a whole [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class)
-- **CLI**
+- **Command line interface (CLI)**
     - List all available [Runtimes](./docs/runtimes.md#runtime-class)
     - Add a [Runtime](./docs/runtimes.md#runtime-class) configuration
     - Delete a [Runtime](./docs/runtimes.md#runtime-class) configuration
 
-
-> **Concept Definition:** *[RuntimeTask](./docs/runtimes.md#runtimetask-class)* <a name="task"></a>
->
-> A `RuntimeTask` is a composition of multiple elemantary task steps, such as `send file`, `get file`, `run shell command`, `run python function`. A `RuntimeTask` can be executed on a remote host either by handing it over to a `Runtime` object or standalone by handing over a [fabric Connection](http://docs.fabfile.org/en/2.5/api/connection.html) object to the execute method of the `RuntimeTask`. Consequently, all invididual task steps are executed sequentially. Moreover, a `RuntimeTask` object captures the stdout of the remote execution as logs. An example for a `RuntimeTask` could be to send a csv file to a `Runtime`, execute a python function that is transforming the csv file and finally get the file back. 
 
 > **Concept Definition:** *[Runtime](./docs/runtimes.md#runtime-class)* <a name="runtime"></a>
 >
@@ -60,6 +57,10 @@ and convenient cluster setup with Python for various distributed machine learnin
 > **Concept Definition:** *Manager*<a name="manager"></a>
 >
 > The `manager` refers to the host where you are actually using the lazycluster library, since all desired lazycluster entities are managed from here. **Caution**: It is not to be confused with the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) class.
+
+> **Concept Definition:** *[RuntimeTask](./docs/runtimes.md#runtimetask-class)* <a name="task"></a>
+>
+> A `RuntimeTask` is a composition of multiple elemantary task steps, namely `send file`, `get file`, `run shell command`, `run python function`. A `RuntimeTask` can be executed on a remote host either by handing it over to a `Runtime` object or standalone by handing over a [fabric Connection](http://docs.fabfile.org/en/2.5/api/connection.html) object to the execute method of the `RuntimeTask`. Consequently, all invididual task steps are executed sequentially. Moreover, a `RuntimeTask` object captures the stdout of the remote execution as logs. An example for a `RuntimeTask` could be to send a csv file to a `Runtime`, execute a python function that is transforming the csv file and finally get the file back. 
 ---
 
 <br>
@@ -68,25 +69,36 @@ and convenient cluster setup with Python for various distributed machine learnin
 
 ### Installation
 ```bash
-pip install lazycluster
-``` 
-```bash
 # Most up-to-date development version
 pip install --upgrade git+https://github.com/ml-tooling/lazycluster.git@develop
+``` 
+```bash
+pip install lazycluster
 ``` 
 
 ### Prerequisites
 
-**For lazycluster installation:**
+**For lazycluster usage on the [manager](#manager):**
+- Unix based OS
 - Python >= 3.6
 - ssh client (e.g. openssh-client)
-- Unix based OS
+- Passwordless ssh access to the `Runtime` hosts **(recommended)**
+<details>
+<summary>Configure passwordless ssh access (click to expand...)</summary>
 
-**Runtime host requirements:**
+   - Create a key pair on the manager as described [here](https://www.ssh.com/ssh/keygen#creating-an-ssh-key-pair-for-user-authentication) or use an existing one
+    - [Install](#installation) lazycluster on the manager
+    - Create the ssh configuration for each host to be used as Runtime by using the lazycluster CLI command `lazycluster add-runtime` as described [here](#add-host-to-ssh-config) and **do not forget** to specify the `--id-file` argument.
+    - Finally, enable the passwordless ssh access by copying the public key to each Runtime as descibed [here](https://www.ssh.com/ssh/keygen#copying-the-public-key-to-the-server)
+</details>
+<br/>
+
+**[Runtime](#runtime) host requirements:**
 - Python >= 3.6
 - ssh server (e.g. openssh-server)
-- [passwordless ssh](https://linuxize.com/post/how-to-setup-passwordless-ssh-login/) to the host (recommended)
+
 - Unix based OS
+- https://www.ssh.com/ssh/keygen#creating-an-ssh-key-pair-for-user-authentication
 
 **Note:**
 
@@ -151,7 +163,7 @@ lazycluster add-runtime localhost root@localhost:22 --id_file ~/.ssh/id_rsa
 ```
 ![Runtime Added](./docs/img/cli-runtime-added.png)
 #### List all available runtimes incl. additional information like cpu, memory, etc.
-Moreover, also incative hosts will be shown. Inactive means, that the host could not be reached via ssh and instantiated as a vlaid Runtime.
+Moreover, also incative hosts will be shown. Inactive means, that the host could not be reached via ssh and instantiated as a valid Runtime.
 ```bash
 lazycluster list-runtimes     # will give short list with hosts
 lazycluster list-runtimes -l  # will give print additional host information
@@ -179,7 +191,7 @@ rt_1 = Runtime('host-1')
 rt_2 = Runtime('host-2', working_dir='/workspace')
 
 # In this case you get a group where both Runtimes have different working directories.
-# The working directory on host-1 will be a temp one ang gets removed eventually.
+# The working directory on host-1 will be a temp one and gets removed eventually.
 runtime_group = RuntimeGroup([rt_1, rt_2])
 
 # Here, the group internally creates Runtimes for both hosts and sets its working directory.
