@@ -119,7 +119,7 @@ def read_host_info(host: str) -> dict:
     task.run_command(get_pip_install_cmd())
     task.run_function(print_localhost_info)
     task.execute(Connection(host))
-    runtime_info = json.loads(task.execution_log[3])
+    runtime_info = json.loads(task.execution_log[2])
     runtime_info['host'] = host
     return runtime_info
 
