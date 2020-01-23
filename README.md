@@ -54,7 +54,7 @@ and convenient cluster setup with Python for various distributed machine learnin
 
 > **Concept Definition:** *[RuntimeGroup](./docs/runtimes.md#runtimetask-class)* 
 >
-> A `RuntimeGroup` is the representation of logically related `Runtimes` and provides convenient methods for managing those related `Runtimes`. Most methods are wrappers around their counterparts in the `Runtime` class. Typical usage examples are exposing a port (i.e. a service such as a DB) in the `RuntimeGroup`, transfer files, or execute  a `RuntimeTask` on the contained `Runtimes`. Additionally, all concrete [RuntimeCluster](./docs/cluster.runtime_cluster.md#runtimecluster-class) (e.g. the [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class)) implementations rely on `RuntimeGroups` for example.
+> A `RuntimeGroup` is the representation of logically related `Runtimes` and provides convenient methods for managing those related `Runtimes`. Most methods are wrappers around their counterparts in the `Runtime` class. Typical usage examples are exposing a port (i.e. a service such as a DB) in the `RuntimeGroup`, transfer files, or execute  a `RuntimeTask` on the `Runtimes`. Additionally, all concrete [RuntimeCluster](./docs/cluster.runtime_cluster.md#runtimecluster-class) (e.g. the [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class)) implementations rely on `RuntimeGroups` for example.
 
 
 > **Concept Definition:** *Manager*<a name="manager"></a>
@@ -240,7 +240,7 @@ rt = Runtime('host-1')
 rt.env_variables = {'foo': 'bar'}
 
 # Or use the convenient method to the the env vars  
-# for all Runtimes contained in a RuntimeGroup
+# for all Runtimes in a RuntimeGroup
 runtime_group = RuntimeGroup(hosts=['host-1', 'host-2'])
 group.set_env_variables({'foo': 'bar'})
 ```
@@ -259,7 +259,12 @@ runtime_group = RuntimeManager().create_group()
 ```
 </details>
 
-### Expose a service from a `Runtime`
+### Expose services by setting up ssh tunnels
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
+
+#### Expose a service from a `Runtime`
 A DB is running on a remote host on port `runtime_port` and the DB is only accessible from the remote host. 
 But you also want to access the service from the [manager](#manager) on port `local_port`. Then you can use this 
 method to expose the service which is running on the remote host to the [manager](#manager).
@@ -280,10 +285,10 @@ runtime.expose_port_to_runtime(40000)
 ```
 </details>
 
-### Expose a service to a `Runtime`
-A DB is running on the [manager](#manager) on port `local_port` and the DB is only accessible from the [manager](#manager). 
+#### Expose a service to a `Runtime`
+A DB is running on the [manager](#manager) on port `local_port` and the DB is only accessible from the manager. 
 But you also want to access the service on the remote `Runtime` on port `runtime_port`. Then you can use 
-this method to expose the service which is running on the [manager](#manager) to the remote host.
+this method to expose the service which is running on the manager to the remote host.
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
@@ -301,8 +306,8 @@ runtime.expose_port_to_runtime(40000)
 ```
 </details>
 
-### Expose a service to a whole `RuntimeGroup` or from one contained `Runtime` in the `RuntimeGroup`
-Now we extend the two previous examples by using a `RuntimeGroup` instead of just a single `Runtime`.
+#### Service exposure 
+Now, we extend the previous example by using a `RuntimeGroup` instead of just a single `Runtime`. This means we want to expose a service which is running on the [manager](#manager) to a group of `Runtimes`.
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
@@ -312,15 +317,30 @@ from lazycluster import RuntimeGroup
 # Create a RuntimeGroup
 runtime_group = RuntimeGroup('host1', 'host-2', 'host-3')
 
-# Make the local port 50000 accessible on all Runtimes contained in the RuntimeGroup.
-# Note: The port can also be exposed to a subset of the contained Runtimes by using the
-# method parameter exclude_hosts.
+# Make the local port 50000 accessible on all Runtimes in the RuntimeGroup.
 runtime_group.expose_port_to_runtimes(50000)
 
+# Note: The port can also be exposed to a subset of the Runtimes by using the
+# method parameter exclude_hosts.
+runtime_group.expose_port_to_runtimes(50000, exclude_hosts='host-3')
+```
+</details>
+
+#### Expose a service from a `Runtime` to the other `Runtimes` in the `RuntimeGroup`
+Assume you have service which is running on Runtime `host-1`. Now, you can expose the service to the remaining `Runtimes` in the `RuntimeGroup.` 
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
+```python
+from lazycluster import RuntimeGroup
+
+# Create a RuntimeGroup
+runtime_group = RuntimeGroup('host1', 'host-2', 'host-3')
 
 # Make the port 40000 which is running on host-1 accessible on all other Runtimes in the RuntimeGroup
 runtime_group.expose_port_from_runtime_to_group('host-1', 40000)
 ```
+</details>
 </details>
 
 ### File Transfer
@@ -403,7 +423,7 @@ for chunk in runtime_group.function_returns:
 ### Start a [Dask](https://dask.org/) cluster for scalable analytics
 Most simple way to use DASK in a cluster based on a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) created by the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class). The `RuntimeManager` can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on the [manager's](#manager) ssh config and eventually create a necessary `RuntimeGroup` for you. This `RuntimeGroup` is then handed over to [DaskCluster](./docs/cluster.dask_cluster.md#daskcluster-class) during initialization.
 
-The DASK `scheduler` instance gets started on the [manager](#manager). Additionally, multiple DASK `worker` processes get started in the `RuntimeGroup`, i.e. in the contained `Runtimes`. The default number of workers is equal to the number of `Runtimes` contained in the `RuntimeGroup`.
+The DASK `scheduler` instance gets started on the [manager](#manager). Additionally, multiple DASK `worker` processes get started in the `RuntimeGroup`, i.e. in the `Runtimes`. The default number of workers is equal to the number of `Runtimes` in the `RuntimeGroup`.
 
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
@@ -420,7 +440,7 @@ runtime_group = RuntimeManager().create_group()
 cluster = DaskCluster(runtime_group)
 
 # 3rd: Let the DaskCluster instantiate all entities on Runtimes 
-#      contained in the RuntimeGroup using default values. For custom 
+#      of the RuntimeGroup using default values. For custom 
 #      configuration check the DaskCluster API documentation.
 cluster.start()
 
@@ -469,7 +489,7 @@ cluster.start()
 ### Distributed hyperparameter tuning with [Hyperopt](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB)
 Most simple way to use Hyperopt in a cluster based on a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) created by the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class). The `RuntimeManager` can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on the [manager's](#manager) ssh config and eventually create a necessary `RuntimeGroup` for you. This `RuntimeGroup` is then handed over to [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class) during initialization.
 
-A MongoDB instance gets started on the [manager](#manager). Additionally, multiple hyperopt `worker` processes get started in the `RuntimeGroup`, i.e. on the contained `Runtimes`. The default number of workers is equal to the number of `Runtimes` contained in the `RuntimeGroup`.
+A MongoDB instance gets started on the [manager](#manager). Additionally, multiple hyperopt `worker` processes get started in the `RuntimeGroup`, i.e. on the contained `Runtimes`. The default number of workers is equal to the number of `Runtimes` in the `RuntimeGroup`.
 
 **Prerequisites:** 
 - [MongoDB](https://docs.mongodb.com/manual/administration/install-on-linux/) server must be installed on the [manager](#manager).
@@ -493,8 +513,7 @@ runtime_group = RuntimeManager().create_group()
 # 2nd: Create the HyperoptCluster instance with the RuntimeGroup.
 cluster = HyperoptCluster(runtime_group)
 
-# 3rd: Let the HyperoptCluster instantiate all entities on Runtimes 
-#      contained in the RuntimeGroup using default values. For custom 
+# 3rd: Let the HyperoptCluster instantiate all entities on Runtimes of the RuntimeGroup using default values. For custom 
 #      configuration check the HyperoptCluster API documentation.
 cluster.start()
 
@@ -547,9 +566,9 @@ runtime_group.send_file(test_file_name)
 # 3rd: Create the HyperoptCluster instance with the RuntimeGroup.
 cluster = HyperoptCluster(runtime_group)
 
-# 4th: Let the HyperoptCluster instantiate all entities on Runtimes 
-#      contained in the RuntimeGroup using default values. For custom 
-#      configuration check the HyperoptCluster API documentation.
+# 4th: Let the HyperoptCluster instantiate all entities on 
+# Runtimes of the RuntimeGroup using default values. 
+# For custom  configuration check the HyperoptCluster API documentation.
 cluster.start()
 
 # 5th: Ensure that the processes for sending the files terminated already,
