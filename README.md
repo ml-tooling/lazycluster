@@ -85,6 +85,7 @@ pip install lazycluster
 - Python >= 3.6
 - ssh client (e.g. openssh-client)
 - Passwordless ssh access to the `Runtime` hosts **(recommended)**
+<a name="passwordless-ssh"></a>
 <details>
 <summary>Configure passwordless ssh access (click to expand...)</summary>
 
@@ -174,25 +175,36 @@ valuable if it's shared publicly so that more people can benefit from it.
 
 ## Features
 
-### Use CLI to manage local ssh configuration to enable `Runtime` usage
+### Use the Command Line Interface (`CLI`) to manage local ssh configuration to enable `Runtime` usage
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
+
+For a full list of CLI commands please use `lazycluster --help`. For the help of a specific command please use `lazycluster COMMAND --help`.
+
+#### List all available runtimes incl. additional information like cpu, memory, etc.
+Moreover, also incative hosts will be shown. Inactive means, that the host could not be reached via ssh and instantiated as a valid Runtime.
+```bash
+# Will print a short list of active / inactive Runtimes
+lazycluster list-runtimes     
+```
+![List Runtimes](./docs/img/cli-list-runtimes.png)
+```bash
+# will print a list of active / inactive Runtimes incl. additional host information
+# Note: This is slower as compared to omittin the -l option
+lazycluster list-runtimes -l  
+```
+![List Runtimes in long format](./docs/img/cli-list-runtimes-l.png)
 
 #### Add host to ssh config 
 The host is named `localhost` for user `root` accessible on `localhost` port `22` using the private key file found under 
 ~/.ssh/id_rsa.
 
+**Note:** Add command will only add the ssh configuration on the [manager](#manager). For a complete guide on how to setup passwordless ssh check the [prerequisites section](#passwordless-ssh). 
+
 ```bash
 lazycluster add-runtime localhost root@localhost:22 --id_file ~/.ssh/id_rsa
 ```
 ![Runtime Added](./docs/img/cli-runtime-added.png)
-#### List all available runtimes incl. additional information like cpu, memory, etc.
-Moreover, also incative hosts will be shown. Inactive means, that the host could not be reached via ssh and instantiated as a valid Runtime.
-```bash
-lazycluster list-runtimes     # will give short list with hosts
-lazycluster list-runtimes -l  # will give print additional host information
-```
-![List Runtimes](./docs/img/cli-list-runtimes.png)
 
 #### Delete the ssh config of `Runtime`
 *Note:* Corresponding remote ikernel will be deleted too if present.
@@ -438,10 +450,13 @@ res = total.result()
 print('Result: ' + str(res))
 ```
 </details>
-
-Use different strategies for launching the master and the worker instance by providing custom implementation of `lazycluster.cluster.MasterLauncher` and `lazycluster.cluster.WorkerLauncher`. The default implementations are `lazycluster.cluster.dask_cluster.LocalMasterLauncher` and `lazycluster.cluster.dask_cluster.RoundRobinLauncher`. 
+<br/>
+Use different strategies for launching the master and the worker instances.
+ 
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
+
+Use different strategies for launching the master and the worker instance by providing custom implementation of `lazycluster.cluster.MasterLauncher` and `lazycluster.cluster.WorkerLauncher`. The default implementations are `lazycluster.cluster.dask_cluster.LocalMasterLauncher` and `lazycluster.cluster.dask_cluster.RoundRobinLauncher`.
 
 ```python
 cluster = DaskCluster(RuntimeManager().create_group(),
@@ -633,9 +648,11 @@ Next, you typically use some training - and test dataset on your Runtimes inside
 
 <br />
 
-Use different strategies for launching the master and the worker instance by providing custom implementation of `lazycluster.cluster.MasterLauncher` and `lazycluster.cluster.WorkerLauncher`. The default implementations are `lazycluster.cluster.hyperopt_cluster.LocalMongoLauncher` and `lazycluster.cluster.hyperopt_cluster.RoundRobinLauncher`. 
+Use different strategies for launching the master and the worker instances.
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
+
+Use different strategies for launching the master and the worker instances by providing custom implementation of `lazycluster.cluster.MasterLauncher` and `lazycluster.cluster.WorkerLauncher`. The default implementations are `lazycluster.cluster.hyperopt_cluster.LocalMongoLauncher` and `lazycluster.cluster.hyperopt_cluster.RoundRobinLauncher`. 
 
 ```python
 cluster = HyperoptCluster(RuntimeManager().create_group(),
