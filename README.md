@@ -154,8 +154,6 @@ print(next(generator))
 
 ---
 
-<br>
-
 ## Support
 
 The **lazycluster** project is maintained by [Jan Kalkan](https://www.linkedin.com/in/jan-kalkan-b5390284/). Please 
@@ -171,7 +169,6 @@ valuable if it's shared publicly so that more people can benefit from it.
 
 ---
 
-<br>
 
 ## Features
 
@@ -244,13 +241,13 @@ rt.env_variables = {'foo': 'bar'}
 runtime_group = RuntimeGroup(hosts=['host-1', 'host-2'])
 group.set_env_variables({'foo': 'bar'})
 ```
-
 </details>
 
 ### Use the `RuntimeManager` to create a `RuntimeGroup` based on the manager's ssh config
-The [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on the [manager's](#manager) local ssh config and eventually create a necessary [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) for you.
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
+
+The [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class) can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on the [manager's](#manager) local ssh config and eventually create a necessary [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) for you.
 
 ```python
 from lazycluster import RuntimeManager, RuntimeGroup
@@ -259,169 +256,11 @@ runtime_group = RuntimeManager().create_group()
 ```
 </details>
 
-### Expose services by setting up ssh tunnels
-<details>
-<summary><b>Details</b> (click to expand...)</summary>
-
-
-#### Expose a service from a `Runtime`
-A DB is running on a remote host on port `runtime_port` and the DB is only accessible from the remote host. 
-But you also want to access the service from the [manager](#manager) on port `local_port`. Then you can use this 
-method to expose the service which is running on the remote host to the [manager](#manager).
-<details>
-<summary><b>Details</b> (click to expand...)</summary>
-
-```python
-from lazycluster import Runtime
-
-# Create a Runtime
-runtime = Runtime('host-1')
-
-# Make the port 50000 from the Runtime accessible on localhost
-runtime.expose_port_from_runtime(50000)
-
-# Make the local port 40000 accessible on the Runtime
-runtime.expose_port_to_runtime(40000)
-```
-</details>
-
-#### Expose a service to a `Runtime`
-A DB is running on the [manager](#manager) on port `local_port` and the DB is only accessible from the manager. 
-But you also want to access the service on the remote `Runtime` on port `runtime_port`. Then you can use 
-this method to expose the service which is running on the manager to the remote host.
-<details>
-<summary><b>Details</b> (click to expand...)</summary>
-
-```python
-from lazycluster import Runtime
-
-# Create a Runtime
-runtime = Runtime('host-1')
-
-# Make the port 50000 from the Runtime accessible on localhost
-runtime.expose_port_from_runtime(50000)
-
-# Make the local port 40000 accessible on the Runtime
-runtime.expose_port_to_runtime(40000)
-```
-</details>
-
-#### Service exposure 
-Now, we extend the previous example by using a `RuntimeGroup` instead of just a single `Runtime`. This means we want to expose a service which is running on the [manager](#manager) to a group of `Runtimes`.
-<details>
-<summary><b>Details</b> (click to expand...)</summary>
-
-```python
-from lazycluster import RuntimeGroup
-
-# Create a RuntimeGroup
-runtime_group = RuntimeGroup('host1', 'host-2', 'host-3')
-
-# Make the local port 50000 accessible on all Runtimes in the RuntimeGroup.
-runtime_group.expose_port_to_runtimes(50000)
-
-# Note: The port can also be exposed to a subset of the Runtimes by using the
-# method parameter exclude_hosts.
-runtime_group.expose_port_to_runtimes(50000, exclude_hosts='host-3')
-```
-</details>
-
-#### Expose a service from a `Runtime` to the other `Runtimes` in the `RuntimeGroup`
-Assume you have service which is running on Runtime `host-1`. Now, you can expose the service to the remaining `Runtimes` in the `RuntimeGroup.` 
-<details>
-<summary><b>Details</b> (click to expand...)</summary>
-
-```python
-from lazycluster import RuntimeGroup
-
-# Create a RuntimeGroup
-runtime_group = RuntimeGroup('host1', 'host-2', 'host-3')
-
-# Make the port 40000 which is running on host-1 accessible on all other Runtimes in the RuntimeGroup
-runtime_group.expose_port_from_runtime_to_group('host-1', 40000)
-```
-</details>
-</details>
-
-### File Transfer
-A `RuntimeTask` is capable of sending a file from the [manager](#manager) to a `Runtime` or vice versa. Moreover, the `Runtime` class as well as the `RuntimeGroup` provide convenient methods for this purpose that internally create the `RuntimeTasks` for you.
-<details>
-<summary><b>Details</b> (click to expand...)</summary>
-
-In the following example, the `file.csv` will be transferred to the `Runtime's` working directory. Another path on the Runtime can be specified by supplying a `remote_path` as argument. See [Runtime](./docs/runtimes.md#runtime-class) docs for further details on the working directory.
-
-```python
-from lazycluster import RuntimeTask, Runtime
-
-task = RuntimeTask('file-transfer')
-task.send_file('local_path/file.csv')
-
-runtime = Runtime('host-1')
-runtime.execute_task(task, exec_async=False)
-```
-
-The explicit creation of a `RuntimeTask` is only necessary if you intend to add further steps to the `RuntimeTask` instead of just transferring a file. For example, you want to send a file, execute a Python function, and transfer the file back. If not, you can use the file transfer methods of the `Runtime` or `RuntimeGroup`.
-In the case of sending a file to a `RuntimeGroup` you should send the files asynchronously. Otherwise, each file will be transferred sequentially. Do not forget to call `join()`, if you need the files to be transferred before proceeding.
-
-```python
-from lazycluster import RuntimeTask, Runtime, RuntimeGroup, RuntimeManager
-
-# Send a file to a single Runtime
-runtime = Runtime('host-1')
-send_file('local_path/file.csv', execute_async=False)
-
-# Send a file to a whole RuntimeGroup
-group = RuntimeManager().create_group()
-group.send_file('local_path/file.csv', execute_async=True)
-group.join()
-```
-The usage of get_file is similar and documented [here](./docs/runtimes.md#runtime-class).
-</details>
-
-
-
-### Simple preprocessing example
-Read a local CSV file (on the [manager](#manager)) and upper case chunks in parallel using [RuntimeTasks](./docs/runtimes.md#runtimetask-class)
-and a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class).
-<details>
-<summary><b>Details</b> (click to expand...)</summary>
-
-```python
-from typing import List
-import pandas as pd
-from lazycluster import RuntimeTask, RuntimeManager
-
-# Define the function to be executed remotely
-def preprocess(docs: List[str]):
-    return [str(doc).lower() for doc in docs]
-    
-file_path = '/path/to/file.csv'
-
-runtime_group = RuntimeManager().create_group()
-
-tasks = []
-
-# Distribute chunks of the csv and start the preprocessing in parallel in the RuntimeGroup
-for df_chunk in pd.read_csv(file_path, sep=';', chunksize=500):
-    
-    task = RuntimeTask().run_function(preprocess, docs=df_chunk['text'].tolist())
-    
-    tasks.append(runtime_group.execute_task(task))
-
-# Wait until all executions are done   
-runtime_group.join()    
-
-# Get the return data and print it
-index = 0
-for chunk in runtime_group.function_returns:  
-    print('Chunk: ' + str(index))
-    index += 1
-    print(chunk)
-```
-</details>
-
 ### Start a [Dask](https://dask.org/) cluster for scalable analytics
-Most simple way to use DASK in a cluster based on a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) created by the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class). The `RuntimeManager` can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on the [manager's](#manager) ssh config and eventually create a necessary `RuntimeGroup` for you. This `RuntimeGroup` is then handed over to [DaskCluster](./docs/cluster.dask_cluster.md#daskcluster-class) during initialization.
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
+Most simple way to use Dask in a cluster based on a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) created by the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class). The `RuntimeManager` can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on the [manager's](#manager) ssh config and eventually create a necessary `RuntimeGroup` for you. This `RuntimeGroup` is then handed over to [DaskCluster](./docs/cluster.dask_cluster.md#daskcluster-class) during initialization.
 
 The DASK `scheduler` instance gets started on the [manager](#manager). Additionally, multiple DASK `worker` processes get started in the `RuntimeGroup`, i.e. in the `Runtimes`. The default number of workers is equal to the number of `Runtimes` in the `RuntimeGroup`.
 
@@ -485,8 +324,12 @@ cluster = DaskCluster(RuntimeManager().create_group(),
 cluster.start()
 ```
 </details>
+</details>
 
 ### Distributed hyperparameter tuning with [Hyperopt](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB)
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
 Most simple way to use Hyperopt in a cluster based on a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) created by the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class). The `RuntimeManager` can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on the [manager's](#manager) ssh config and eventually create a necessary `RuntimeGroup` for you. This `RuntimeGroup` is then handed over to [HyperoptCluster](./docs/cluster.hyperopt_cluster.md#hyperoptcluster-class) during initialization.
 
 A MongoDB instance gets started on the [manager](#manager). Additionally, multiple hyperopt `worker` processes get started in the `RuntimeGroup`, i.e. on the contained `Runtimes`. The default number of workers is equal to the number of `Runtimes` in the `RuntimeGroup`.
@@ -680,8 +523,174 @@ cluster = HyperoptCluster(RuntimeManager().create_group(),
 cluster.start()
 ```
 </details>
+</details>
+
+### Expose services 
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
+#### Expose a service from a `Runtime`
+A DB is running on a remote host on port `runtime_port` and the DB is only accessible from the remote host. 
+But you also want to access the service from the [manager](#manager) on port `local_port`. Then you can use this 
+method to expose the service which is running on the remote host to the [manager](#manager).
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
+```python
+from lazycluster import Runtime
+
+# Create a Runtime
+runtime = Runtime('host-1')
+
+# Make the port 50000 from the Runtime accessible on localhost
+runtime.expose_port_from_runtime(50000)
+
+# Make the local port 40000 accessible on the Runtime
+runtime.expose_port_to_runtime(40000)
+```
+</details>
+
+#### Expose a service to a `Runtime`
+A DB is running on the [manager](#manager) on port `local_port` and the DB is only accessible from the manager. 
+But you also want to access the service on the remote `Runtime` on port `runtime_port`. Then you can use 
+this method to expose the service which is running on the manager to the remote host.
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
+```python
+from lazycluster import Runtime
+
+# Create a Runtime
+runtime = Runtime('host-1')
+
+# Make the port 50000 from the Runtime accessible on localhost
+runtime.expose_port_from_runtime(50000)
+
+# Make the local port 40000 accessible on the Runtime
+runtime.expose_port_to_runtime(40000)
+```
+</details>
+
+#### Service exposure 
+Now, we extend the previous example by using a `RuntimeGroup` instead of just a single `Runtime`. This means we want to expose a service which is running on the [manager](#manager) to a group of `Runtimes`.
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
+```python
+from lazycluster import RuntimeGroup
+
+# Create a RuntimeGroup
+runtime_group = RuntimeGroup('host1', 'host-2', 'host-3')
+
+# Make the local port 50000 accessible on all Runtimes in the RuntimeGroup.
+runtime_group.expose_port_to_runtimes(50000)
+
+# Note: The port can also be exposed to a subset of the Runtimes by using the
+# method parameter exclude_hosts.
+runtime_group.expose_port_to_runtimes(50000, exclude_hosts='host-3')
+```
+</details>
+
+#### Expose a service from a `Runtime` to the other `Runtimes` in the `RuntimeGroup`
+Assume you have service which is running on Runtime `host-1`. Now, you can expose the service to the remaining `Runtimes` in the `RuntimeGroup.` 
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
+```python
+from lazycluster import RuntimeGroup
+
+# Create a RuntimeGroup
+runtime_group = RuntimeGroup('host1', 'host-2', 'host-3')
+
+# Make the port 40000 which is running on host-1 accessible on all other Runtimes in the RuntimeGroup
+runtime_group.expose_port_from_runtime_to_group('host-1', 40000)
+```
+</details>
+</details>
+
+### File Transfer
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
+A `RuntimeTask` is capable of sending a file from the [manager](#manager) to a `Runtime` or vice versa. Moreover, the `Runtime` class as well as the `RuntimeGroup` provide convenient methods for this purpose that internally create the `RuntimeTasks` for you.
+
+In the following example, the `file.csv` will be transferred to the `Runtime's` working directory. Another path on the Runtime can be specified by supplying a `remote_path` as argument. See [Runtime](./docs/runtimes.md#runtime-class) docs for further details on the working directory.
+
+```python
+from lazycluster import RuntimeTask, Runtime
+
+task = RuntimeTask('file-transfer')
+task.send_file('local_path/file.csv')
+
+runtime = Runtime('host-1')
+runtime.execute_task(task, exec_async=False)
+```
+
+The explicit creation of a `RuntimeTask` is only necessary if you intend to add further steps to the `RuntimeTask` instead of just transferring a file. For example, you want to send a file, execute a Python function, and transfer the file back. If not, you can use the file transfer methods of the `Runtime` or `RuntimeGroup`.
+In the case of sending a file to a `RuntimeGroup` you should send the files asynchronously. Otherwise, each file will be transferred sequentially. Do not forget to call `join()`, if you need the files to be transferred before proceeding.
+
+```python
+from lazycluster import RuntimeTask, Runtime, RuntimeGroup, RuntimeManager
+
+# Send a file to a single Runtime
+runtime = Runtime('host-1')
+send_file('local_path/file.csv', execute_async=False)
+
+# Send a file to a whole RuntimeGroup
+group = RuntimeManager().create_group()
+group.send_file('local_path/file.csv', execute_async=True)
+group.join()
+```
+The usage of get_file is similar and documented [here](./docs/runtimes.md#runtime-class).
+</details>
+
+
+
+### Simple preprocessing example
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
+Read a local CSV file (on the [manager](#manager)) and upper case chunks in parallel using [RuntimeTasks](./docs/runtimes.md#runtimetask-class)
+and a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class).
+
+```python
+from typing import List
+import pandas as pd
+from lazycluster import RuntimeTask, RuntimeManager
+
+# Define the function to be executed remotely
+def preprocess(docs: List[str]):
+    return [str(doc).lower() for doc in docs]
+    
+file_path = '/path/to/file.csv'
+
+runtime_group = RuntimeManager().create_group()
+
+tasks = []
+
+# Distribute chunks of the csv and start the preprocessing in parallel in the RuntimeGroup
+for df_chunk in pd.read_csv(file_path, sep=';', chunksize=500):
+    
+    task = RuntimeTask().run_function(preprocess, docs=df_chunk['text'].tolist())
+    
+    tasks.append(runtime_group.execute_task(task))
+
+# Wait until all executions are done   
+runtime_group.join()    
+
+# Get the return data and print it
+index = 0
+for chunk in runtime_group.function_returns:  
+    print('Chunk: ' + str(index))
+    index += 1
+    print(chunk)
+```
+</details>
 
 ### Logging, exception handling and debugging
+<details>
+<summary><b>Details</b> (click to expand...)</summary>
+
 `lazycluster` aims to abstract away the complexity implied by using multiple distributed [Runtimes](./docs/runtimes.md#runtime-class) and provides an intuitive high level API fur this purpose. The lazycluster [manager](#manager) orchestrates the individual components of the distributed setup. A common use case could be to use lazycluster in order to launch a distributed [hyperopt cluster](https://github.com/hyperopt/hyperopt/wiki/Parallelizing-Evaluations-During-Search-via-MongoDB). In this case, we have the lazycluster [manager](#manager), that starts a [MongoDB](https://www.mongodb.com/) instance, starts the hyperopt worker processes on multiple `Runtimes` and ensures the required communication via ssh between these instances. Each individual component could potentially fail including the 3rd party ones such as hyperopt workers. Since `lazycluster` is a generic library and debugging a distributed system is  an instrinsically non-trivial task, we tried to emphasize logging and good exception handling practices so that you can stay lazy.
 
 #### Standard Python log
@@ -775,6 +784,7 @@ Our exception handling concept follows the idea to use standard python classes w
 
 Each created error class inherits from our base class [LazyclusterError](./docs/exceptions#lazyclusterError) which in turn inherits from Pythons's [Exception](https://docs.python.org/3.6/tutorial/errors.html#user-defined-exceptions) class. We aim to be informative as possible with our used exceptions to guide you to a solution to your problem. So feel encouraged to provide feedback on misleading or unclear error messages, since we strongly believe that guided errors are essential so that you can stay as lazy as possible.
 
+</details>
 </details>
 
 ---

@@ -88,7 +88,7 @@ This class contains environment variables.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/utils.py#L91)</span>
+<span style="float:right;">[[source]](/lazycluster/utils.py#L96)</span>
 
 ## Timestamp class
 
@@ -98,7 +98,7 @@ Custom Timestamp class with convenient methods.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/utils.py#L95)</span>
+<span style="float:right;">[[source]](/lazycluster/utils.py#L100)</span>
 
 ### Timestamp.`__init__`
 
@@ -113,7 +113,7 @@ Initializes the object with the current date/time.
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/utils.py#L117)</span>
+<span style="float:right;">[[source]](/lazycluster/utils.py#L122)</span>
 
 ### Timestamp.get_formatted
 
@@ -126,7 +126,7 @@ Formatted fixed length representation with delimiters in format: yyyy-mm-dd hh:m
   
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/utils.py#L112)</span>
+<span style="float:right;">[[source]](/lazycluster/utils.py#L117)</span>
 
 ### Timestamp.get_unformatted
 

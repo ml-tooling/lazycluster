@@ -114,7 +114,7 @@ Launch a master instance.
 
  - `debug`:  If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
 
-  the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+  the stdout/stderr will be added to python logger with level debug after each `RuntimeTask` step. Defaults to
 
   `False`.
 
@@ -259,7 +259,7 @@ Launches the worker instances in the `RuntimeGroup`.
 
  - `debug`:  If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
 
-  the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+  the stdout/stderr will be added to python logger with level debug after each `RuntimeTask` step. Defaults to
 
   `False`.
 
@@ -472,7 +472,7 @@ Internally, `self.start_master()` and `self.start_workers()` will be called.
 
  - `debug`:  If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
 
-  the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+  the stdout/stderr will be added to python logger with level debug after each `RuntimeTask` step. Defaults to
 
   `False`.
 
@@ -570,7 +570,7 @@ Start the worker instances.
 
  - `debug`:  If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
 
-  the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+  the stdout/stderr will be added to python logger with level debug after each `RuntimeTask` step. Defaults to
 
   `False`.
 
