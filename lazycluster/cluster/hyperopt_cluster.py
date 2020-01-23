@@ -44,7 +44,7 @@ class LocalMongoLauncher(MasterLauncher):
             timeout: Timeout (s) after which an MasterStartError is raised if DB instance not started yet. Defaults to
                      3 seconds.
             debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
-                   the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+                   the stdout/stderr will be added to python logger with level debug after each `RuntimeTask` step. Defaults to
                    `False`.
 
         Returns:
@@ -167,7 +167,7 @@ class RoundRobinLauncher(WorkerLauncher):
             ports: Without use here. Only here because we need to adhere to the interface defined by the
                    WorkerLauncher class.
             debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
-                   the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+                   the stdout/stderr will be added to python logger with level debug after each `RuntimeTask` step. Defaults to
                    `False`.
 
         Returns:

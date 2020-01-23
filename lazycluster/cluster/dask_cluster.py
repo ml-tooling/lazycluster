@@ -34,7 +34,7 @@ class LocalMasterLauncher(MasterLauncher):
                    `RuntimeGroup` will be used. The actual chosen port can be requested via the property `port`.
             timeout: Timeout (s) after which an MasterStartError is raised if master instance not started yet.
             debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
-                   the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+                   the stdout/stderr will be added to python logger with level debug after each `RuntimeTask` step. Defaults to
                    `False`.
 
         Returns:
@@ -107,7 +107,7 @@ class RoundRobinLauncher(WorkerLauncher):
             ports: The ports to be used for starting the workers. Only ports from the list will be chosen
                                that are actually free.
             debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
-                   the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+                   the stdout/stderr will be added to python logger with level debug after each `RuntimeTask` step. Defaults to
                    `False`.
 
         Returns:

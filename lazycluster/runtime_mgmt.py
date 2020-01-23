@@ -154,8 +154,8 @@ class RuntimeGroup(object):
 
         Note:
             Only function returns from `RuntimeTasks` that were started via the `RuntimeGroup` will be returned. If a
-            contained `Runtime` executed further tasks directly, then those data will only be returned when querying the
-            respective task directly.
+            contained `Runtime` executed further `RuntimeTasks` directly, then those data will only be returned when querying the
+            respective `RuntimeTask` directly.
 
         Returns:
             Generator[object, None, None]: The unpickled return data.
@@ -398,16 +398,16 @@ class RuntimeGroup(object):
         """Execute a `RuntimeTask` in the whole group or in a single `Runtime`.
 
         Note:
-            When broadcasting a task in the group then actually deep copies of the RuntimeTask are created (by using
-            its custom __deepcopy__ implementation), since each task holds state related to its own execution. Thus,
-            multiple tasks will be returned in this case.
+            When broadcasting a `RuntimeTask` in the group then actually deep copies of the RuntimeTask are created (by using
+            its custom __deepcopy__ implementation), since each RuntimeTask holds state related to its own execution. Thus,
+            multiple `RuntimeTasks` will be returned in this case.
         
         Args:
-            task: The task to be executed.
-            host: If task should be executed in one Runtime. Optionally, the host could be set in order to ensure
+            task: The RuntimeTask to be executed.
+            host: If `RuntimeTask` should be executed in one Runtime. Optionally, the host could be set in order to ensure
                   the execution in a specific Runtime. Defaults to None. Consequently, the least busy `Runtime` will be
                   chosen.
-            broadcast: True, if the task will be executed on all `Runtimes`. Defaults to False.
+            broadcast: True, if the `RuntimeTask` will be executed on all `Runtimes`. Defaults to False.
             execute_async: True, if execution will take place async. Defaults to True.
             omit_on_join: If True, then a call to join() won't wait for the termination of the corresponding process.
                           Defaults to False. This parameter has no effect in case of synchronous execution.
@@ -420,12 +420,12 @@ class RuntimeGroup(object):
 
         Raises:
             ValueError: If `host` is given and not contained as `Runtime` in the group.
-            TaskExecutionError: If an executed task step can't be executed successfully.
+            TaskExecutionError: If an executed `RuntimeTask` step can't be executed successfully.
         """
         if not broadcast:
-            self.log.debug(f'Start executing task {task.name} in RuntimeGroup (no broadcasting).')
+            self.log.debug(f'Start executing RuntimeTask {task.name} in RuntimeGroup (no broadcasting).')
         else:
-            self.log.debug(f'Start broadcasting task {task.name} in RuntimeGroup.')
+            self.log.debug(f'Start broadcasting RuntimeTask {task.name} in RuntimeGroup.')
 
         task.omit_on_join = omit_on_join
 
@@ -474,11 +474,11 @@ class RuntimeGroup(object):
             execute_async: Each individual sending will be done in a separate process if True. Defaults to True.
 
         Returns:
-            List[RuntimeTask]: The tasks that were internally created by the respective `Runtimes`.
+            List[RuntimeTask]: The `RuntimeTasks` that were internally created by the respective `Runtimes`.
 
         Raises:
             ValueError: If local_path is emtpy.
-            TaskExecutionError: If an executed task step can't be executed successfully.
+            TaskExecutionError: If an executed `RuntimeTask` step can't be executed successfully.
             OSError: In case of non existent paths.
         """
         async_str = ' asynchronously ' if execute_async else ' synchronously '
@@ -497,7 +497,7 @@ class RuntimeGroup(object):
     def join(self):
         """Blocks until `RuntimeTasks` which were started via the `group.execute_task()` method terminated.
         """
-        self.log.info('Joining all processes executing a task that were started via the RuntimeGroup')
+        self.log.info('Joining all processes executing a RuntimeTask that were started via the RuntimeGroup')
         for task in self._tasks:
             task.join()
 
@@ -576,7 +576,7 @@ class RuntimeGroup(object):
     def clear_tasks(self):
         """Clears all internal state related to `RuntimeTasks`.
         """
-        self.log.info(f'Clear all tasks and kill related processes in the RuntimeGroup.')
+        self.log.info(f'Clear all RuntimeTasks and kill related processes in the RuntimeGroup.')
         # 1: Clean up all state on group level
         self._tasks = []
         self._proc_keys = [proc_key for proc_key in self._proc_keys if not Runtime.is_runtime_task_process(proc_key)]

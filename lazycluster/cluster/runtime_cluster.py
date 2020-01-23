@@ -277,7 +277,7 @@ class MasterWorkerCluster(RuntimeCluster):
             worker_count: The number of worker instances to be started in the cluster. Will be passed on to
                           `self.start()`, hence see respective method for further details.
             debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
-                   the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+                   the stdout/stderr will be added to python logger with level debug after each `RuntimeTask` step. Defaults to
                    `False`.
 
         """
@@ -345,7 +345,7 @@ class MasterWorkerCluster(RuntimeCluster):
             count: The number of worker instances to be started in the cluster. Defaults to the number of runtimes in
                    the cluster.
             debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
-                   the stdout/stderr will be added to python logger with level debug after each task step. Defaults to
+                   the stdout/stderr will be added to python logger with level debug after each `RuntimeTask` step. Defaults to
                    `False`.
          Raises:
             NoPortsLeftError: If there are no free ports left in the port list for instantiating new worker entities.

@@ -1163,7 +1163,7 @@ class Runtime(object):
     def clear_tasks(self):
         """Clears all internal state related to `RuntimeTasks`.
         """
-        self.log.info(f'Clear all tasks and kill related processes on Runtime {self.host}')
+        self.log.info(f'Clear all RuntimeTasks and kill related processes on Runtime {self.host}')
         self._tasks = []
         self._processes = {key: value for key, value in self._processes.items()
                            if not Runtime.is_runtime_task_process(key)}
@@ -1442,7 +1442,7 @@ class Runtime(object):
     def join(self):
         """Blocks until `RuntimeTasks` which were started via the `runtime.execute_task()` method terminated.
         """
-        self.log.info(f'Joining all processes executing a task that were started via the Runtime {self.host}')
+        self.log.info(f'Joining all processes executing a RuntimeTask that were started via the Runtime {self.host}')
         for task in self._tasks:
             task.join()
 
