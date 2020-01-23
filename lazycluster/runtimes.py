@@ -64,6 +64,7 @@ class RuntimeTask(object):
 
         # Create the Logger
         self.log = logging.getLogger(__name__)
+        self._execution_log_file_path = None
 
         self.name = name
         if not self.name:
@@ -145,6 +146,12 @@ class RuntimeTask(object):
         """
         return self._execution_log
 
+    @property
+    def execution_log_file_path(self) -> str:
+        """The execution log file path. This property is read-only and
+        will be updated each time the `RuntimeTask` gets executed.
+        """
+        return self._execution_log_file_path
     @property
     def function_returns(self) -> Generator[object, None, None]:
         """The return data produced by functions which were executed as a consequence of a `task.run_function()`
@@ -394,6 +401,7 @@ class RuntimeTask(object):
             OSError: In case of file transfer and non existent paths.
         """
         exec_file_log_util = ExecutionFileLogUtil(connection.original_host, self.name)
+        self._execution_log_file_path = exec_file_log_util.file_path
 
         # The Fabric connection will only consider the manually set working directory for connection.run()
         # but not fur connection.put() & connection.get(). Thus, we need to set the path in
