@@ -517,7 +517,7 @@ class RuntimeTask(object):
         self._execution_log.append(result.stdout)
 
         if result.exited != 0:
-            raise TaskExecutionError(task_step_index, self, connection.original_host)
+            raise TaskExecutionError(task_step_index, self, connection.original_host, result.stdout)
 
     def _execute_send_file(self, task_step, task_step_index: int, working_dir: str, connection: Connection,
                            file_log: ExecutionFileLogUtil):
