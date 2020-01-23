@@ -415,10 +415,10 @@ class RuntimeTask(object):
                 self._execute_run_command_step(task_step, task_step_index, connection, debug, exec_file_log_util)
 
             elif task_step.type == self._TaskStep.TYPE_SEND_FILE:
-                self._execute_send_file(task_step, task_step_index, working_dir, connection, exec_file_log_util)
+                self._execute_send_file(task_step, task_step_index, working_dir, connection)
 
             elif task_step.type == self._TaskStep.TYPE_GET_FILE:
-                self._execute_get_file(task_step, task_step_index, working_dir, connection, exec_file_log_util)
+                self._execute_get_file(task_step, task_step_index, working_dir, connection)
 
             if task_step.type != self._TaskStep.TYPE_RUN_FUNCTION:
                 task_step_index = task_step_index + 1
@@ -437,10 +437,10 @@ class RuntimeTask(object):
                         self._execute_run_command_step(function_step, task_step_index, connection, debug, exec_file_log_util)
 
                     elif function_step.type == self._TaskStep.TYPE_SEND_FILE:
-                        self._execute_send_file(function_step, task_step_index, working_dir, connection, exec_file_log_util)
+                        self._execute_send_file(function_step, task_step_index, working_dir, connection)
 
                     elif function_step.type == self._TaskStep.TYPE_GET_FILE:
-                        self._execute_get_file(function_step, task_step_index, working_dir, connection, exec_file_log_util)
+                        self._execute_get_file(function_step, task_step_index, working_dir, connection)
 
                 self.log.debug(f'Finished executing the generated steps that are necessary to execute the python '
                                f'function `{task_step.function.__name__}` remotely.')
@@ -519,8 +519,7 @@ class RuntimeTask(object):
         if result.exited != 0:
             raise TaskExecutionError(task_step_index, self, connection.original_host, result.stdout)
 
-    def _execute_send_file(self, task_step, task_step_index: int, working_dir: str, connection: Connection,
-                           file_log: ExecutionFileLogUtil):
+    def _execute_send_file(self, task_step, task_step_index: int, working_dir: str, connection: Connection):
         # Ensure that we have a valid remote path
         remote_path = task_step.remote_path
 
@@ -548,8 +547,7 @@ class RuntimeTask(object):
         self.log.info(f'Finished sending the file {task_step.local_path} to {task_step.remote_path} '
                       f'on host {connection.original_host}')
 
-    def _execute_get_file(self, task_step, task_step_index: int, working_dir: str, connection: Connection,
-                          file_log: ExecutionFileLogUtil):
+    def _execute_get_file(self, task_step, task_step_index: int, working_dir: str, connection: Connection):
         # Set working directory manually, so that it feels naturally for the user if he just
         # uses the filename without a path
         remote_path = task_step.remote_path
