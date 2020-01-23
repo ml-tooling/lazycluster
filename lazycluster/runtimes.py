@@ -517,7 +517,8 @@ class RuntimeTask(object):
         self._execution_log.append(result.stdout)
 
         if result.exited != 0:
-            raise TaskExecutionError(task_step_index, self, connection.original_host, result.stdout)
+            raise TaskExecutionError(task_step_index, self, connection.original_host,
+                                     exec_file_log_util.file_path, result.stdout)
 
     def _execute_send_file(self, task_step, task_step_index: int, working_dir: str, connection: Connection):
         # Ensure that we have a valid remote path
@@ -964,8 +965,8 @@ class Runtime(object):
         try:
             # use a relatively high timeout to prevent errors when sshing with slow network connections
             cxn = Connection(host=self.host, connect_kwargs=self._connection_kwargs,
-                             inline_ssh_env=True, connect_timeout=10)
-            stdout = cxn.run('python --version', env=self._env_variables, warn=False, hide=True, pty=True).stdout
+                             inline_ssh_env=True, connect_timeout=2)
+            stdout = cxn.run('python --version', env=self._env_variables, warn=False, hide=True, pty=True, timeout=10).stdout
         except NoValidConnectionsError:
             self.log.debug(f'No valid ssh connection to host {self.host}.')
             return False

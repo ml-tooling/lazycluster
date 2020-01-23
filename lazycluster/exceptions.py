@@ -29,7 +29,7 @@ class TaskExecutionError(LazyclusterError):
     """This error relates to exceptions occured during RuntimeTask execution.
     """
 
-    def __init__(self, task_step_index: int, task: 'RuntimeTask', host: str,
+    def __init__(self, task_step_index: int, task: 'RuntimeTask', host: str, execution_log_file_path: str,
                  output: str, predecessor_excp: Optional[Exception] = None):
         """Initialization method.
 
@@ -37,11 +37,14 @@ class TaskExecutionError(LazyclusterError):
             task_step_index: The index of the task step, where an error occured.
             task: The `RuntimeTask` during which execution the error occured.
             host: The host where the execution failed.
+            execution_log_file_path: The path to the execution log file on the manager.
             output: Thr ouput (stdout/stderr) generated on the Runtime during execution.
             predecessor_excp: Optionally, a predecessor exception can be passed on.
         """
         super().__init__(f'An error occurred during the execution of RuntimeTask {task.name} on host {host} in '
-                         f'task step {str(task_step_index)}. The output was:\n {output}', predecessor_excp)
+                         f'task step {str(task_step_index)}. Please check the respective execution '
+                         f'log file `{execution_log_file_path}`. The output on the Runtime was:\n {output}',
+                         predecessor_excp)
         self.task_step_index = task_step_index
         self.task = task
 
