@@ -54,16 +54,12 @@ class RuntimeTask(object):
         ```
     """
 
-    def __init__(self, name: Optional[str] = None, needs_explicit_termination: bool = False):
+    def __init__(self, name: Optional[str] = None):
         """Initialization method.
         
         Args:
             name: The name of the task. Defaults to None and consequently a unique identifier is generated via Python's
                   id() function.
-            needs_explicit_termination: This parameter needs to be set to True, if the RuntimeTask will not terminate
-                                        regularly. E.g. in case it starts a cluster worker instance. This information
-                                        is required in self.join(), since we call join on the executing process.
-                                        Obviously, this would block forever in such a case. Defaults to False.
         """
 
         # Create the Logger
@@ -78,7 +74,7 @@ class RuntimeTask(object):
         self._function_return_pkl_paths = []  # file paths to files with function's pickled return data
         self._process = None
 
-        self.needs_explicit_termination = needs_explicit_termination
+        self.omit_on_join = False
 
         self._env_variables = {}  # will be passed on to the fabric connection
 
@@ -114,7 +110,7 @@ class RuntimeTask(object):
         self._copy_index += 1
         new_name = f'{self.name}-{self._copy_index}'
 
-        copied_task = RuntimeTask(new_name, needs_explicit_termination=self.needs_explicit_termination)
+        copied_task = RuntimeTask(new_name)
 
         # Copy the task steps and re-execute run_function on the copied task,
         # since there will be individual file paths created among others.
@@ -125,6 +121,7 @@ class RuntimeTask(object):
                 copied_task.run_function(step.function, **step.func_kwargs)
 
         copied_task._env_variables = self._env_variables
+        copied_task.omit_on_join = self.omit_on_join
 
         self.log.debug(f'Deep copy [{self._copy_index}] of RuntimeTask {self.name} created by using its custom '
                        f'__deepcopy__ implementation.')
@@ -454,10 +451,10 @@ class RuntimeTask(object):
         """Block the execution until the `RuntimeTask` finished its asynchronous execution.
 
         Note:
-            If self.needs_explicit_termination is set, then the execution is omitted in order to prevent a deadlock.
+            If self.omit_on_join is set, then the execution is omitted in order to prevent a deadlock.
 
         """
-        if self.needs_explicit_termination and self.process:
+        if self.omit_on_join and self.process:
             self.log.debug(f'The execution of join() of RuntimeTask {self.name} is omitted, since this task is marked '
                            f'as needs explicit termination.')
             return
@@ -1019,7 +1016,8 @@ class Runtime(object):
 
         raise NoPortsLeftError()
 
-    def execute_task(self, task: RuntimeTask, execute_async: Optional[bool] = True, debug: bool = False):
+    def execute_task(self, task: RuntimeTask, execute_async: Optional[bool] = True,
+                     omit_on_join: bool = False, debug: bool = False):
         """Execute a given `RuntimeTask` in the `Runtime`.
 
         Note:
@@ -1028,6 +1026,8 @@ class Runtime(object):
         Args:
             task: The RuntimeTask to be executed.
             execute_async: The execution will be done in a separate process if True. Defaults to True.
+            omit_on_join: If True, then a call to join() won't wait for the termination of the corresponding process.
+                          Defaults to False. This parameter has no effect in case of synchronous execution.
             debug : If `True`, stdout/stderr from the remote host will be printed to stdout. If, `False`
                     then the stdout/stderr will be written to execution log files. Defaults to `False`.
 
@@ -1051,6 +1051,7 @@ class Runtime(object):
             # Initialize logs with managed list (multiprocessing)
             # => We can access the logs although it is executed in another process
             task._execution_log = self._process_manager.list()
+            task.omit_on_join = omit_on_join
             process = Process(target=execute_remote_wrapper)
             process.start()
             self._processes.update({self._create_process_key_for_task_execution(task): process})

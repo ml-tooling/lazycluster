@@ -393,7 +393,8 @@ class RuntimeGroup(object):
         return group_port
 
     def execute_task(self, task: RuntimeTask, host: Optional[str] = None, broadcast: bool = False,
-                     execute_async: bool = True, debug: bool = False) -> RuntimeTask or List[RuntimeTask]:
+                     execute_async: bool = True, omit_on_join: bool = False,
+                     debug: bool = False) -> RuntimeTask or List[RuntimeTask]:
         """Execute a `RuntimeTask` in the whole group or in a single `Runtime`.
 
         Note:
@@ -408,6 +409,8 @@ class RuntimeGroup(object):
                   chosen.
             broadcast: True, if the task will be executed on all `Runtimes`. Defaults to False.
             execute_async: True, if execution will take place async. Defaults to True.
+            omit_on_join: If True, then a call to join() won't wait for the termination of the corresponding process.
+                          Defaults to False. This parameter has no effect in case of synchronous execution.
             debug : If `True`, stdout/stderr from the remote host will be printed to stdout. If, `False`
                     then the stdout/stderr will be written to execution log files. Defaults to `False`.
 
@@ -423,6 +426,8 @@ class RuntimeGroup(object):
             self.log.debug(f'Start executing task {task.name} in RuntimeGroup (no broadcasting).')
         else:
             self.log.debug(f'Start broadcasting task {task.name} in RuntimeGroup.')
+
+        task.omit_on_join = omit_on_join
 
         if broadcast:
             tasks = []
