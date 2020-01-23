@@ -33,7 +33,7 @@ and convenient cluster setup with Python for various distributed machine learnin
 - **High-Level API for starting clusters:** 
     - [DASK](https://distributed.dask.org/en/latest/)
     - [Hyperopt](https://github.com/hyperopt/hyperopt) 
-    - *More *lazyclusters* (e.g. PyTorch, Tensorflow, Horovod, Spark) to come ...*
+    - *More *lazyclusters* (e.g. Ray, PyTorch, Tensorflow, Horovod, Spark) to come ...*
 - **Lower-level API for:**
     - Managing [Runtimes](./docs/runtimes.md#runtime-class) or [RuntimeGroups](./docs/runtime_mgmt.md#runtimegroup-class) to:
         - A-/synchronously execute [RuntimeTasks](./docs/runtimes.md#runtimetask-class) by leveraging the power of ssh
@@ -104,7 +104,30 @@ pip install lazycluster
 
   Passwordless ssh needs to be setup for the hosts to be used as [Runtimes](./docs/runtimes.md#runtime-class) for the most convenient user experience. Otherwise, you need to pass the connection details to Runtime.\_\_init__ via connection_kwargs. These parameters will be passed on to the [fabric.Connection](http://docs.fabfile.org/en/2.4/api/connection.html#connect-kwargs-arg).
 
-### Usage example
+### Usage example high-level API
+Start a [Dask](https://distributed.dask.org/en/latest/) cluster.
+```python
+from lazycluster import RuntimeManager
+from lazycluster.cluster import DaskCluster
+
+# Automatically generate a group based on the ssh configuration
+runtime_manager = RuntimeManager()
+runtime_group = runtime_manager.create_group() 
+
+# Start the Dask cluster instances using the RuntimeGroup
+dask_cluster = DaskCluster(runtime_group)
+dask_cluster.start()
+
+# => Now, you can start using the running Dask cluster
+
+# Get Dask client to interact with the cluster
+# Note: This will give you a dask.distributed.Client which is not 
+#       a lazycluster cluster but a Dask one instead
+client = cluster.get_client()
+```  
+
+### Usage example lower-level API
+Execute a Python function on a remote host and access the return data.
 ```python
 from lazycluster import RuntimeTask, Runtime
 
@@ -365,7 +388,7 @@ for chunk in runtime_group.function_returns:
 ```
 </details>
 
-### Scalable analytics with [Dask](https://dask.org/)
+### Start a [Dask](https://dask.org/) cluster for scalable analytics
 Most simple way to use DASK in a cluster based on a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) created by the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class). The `RuntimeManager` can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on the [manager's](#manager) ssh config and eventually create a necessary `RuntimeGroup` for you. This `RuntimeGroup` is then handed over to [DaskCluster](./docs/cluster.dask_cluster.md#daskcluster-class) during initialization.
 
 The DASK `scheduler` instance gets started on the [manager](#manager). Additionally, multiple DASK `worker` processes get started in the `RuntimeGroup`, i.e. in the contained `Runtimes`. The default number of workers is equal to the number of `Runtimes` contained in the `RuntimeGroup`.
@@ -375,7 +398,7 @@ The DASK `scheduler` instance gets started on the [manager](#manager). Additiona
 
 ```python
 from lazycluster import RuntimeManager
-from lazycluster.cluster.dask_cluster import DaskCluster
+from lazycluster.cluster import DaskCluster
 
 # 1st: Create a RuntimeGroup, e.g. by letting the RuntimeManager detect 
 #      available hosts (i.e. Runtimes) and create the group for you. 
@@ -416,7 +439,7 @@ print('Result: ' + str(res))
 ```
 </details>
 
-Use different strategies for launching the master and the worker instance by providing custom implementation of `MasterLauncher` and `WorkerLauncher`.
+Use different strategies for launching the master and the worker instance by providing custom implementation of `lazycluster.cluster.MasterLauncher` and `lazycluster.cluster.WorkerLauncher`. The default implementations are `lazycluster.cluster.dask_cluster.LocalMasterLauncher` and `lazycluster.cluster.dask_cluster.RoundRobinLauncher`. 
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
@@ -446,7 +469,7 @@ For a detailed documentation of customizing options and default values check out
 
 ```python
 from lazycluster import RuntimeManager
-from lazycluster.cluster.hyperopt_cluster import HyperoptCluster
+from lazycluster.cluster import HyperoptCluster
 
 # 1st: Create a RuntimeGroup, e.g. by letting the RuntimeManager detect 
 #      available hosts (i.e. Runtimes) and create the group for you. 
@@ -609,7 +632,8 @@ Next, you typically use some training - and test dataset on your Runtimes inside
 </details>
 
 <br />
-Use different strategies for launching the master and the worker instances by providing custom implementation of `MasterLauncher` and `WorkerLauncher`.
+
+Use different strategies for launching the master and the worker instance by providing custom implementation of `lazycluster.cluster.MasterLauncher` and `lazycluster.cluster.WorkerLauncher`. The default implementations are `lazycluster.cluster.hyperopt_cluster.LocalMongoLauncher` and `lazycluster.cluster.hyperopt_cluster.RoundRobinLauncher`. 
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
@@ -718,8 +742,6 @@ Each created error class inherits from our base class [LazyclusterError](./docs/
 </details>
 
 ---
-
-<br>
 
 ## Contribution
 
