@@ -58,7 +58,7 @@ class Environment(object):
 
     main_directory = os.path.abspath('./lazycluster')
 
-    third_party_log_level = logging.ERROR
+    third_party_log_level = logging.CRITICAL
 
     @classmethod
     def set_main_directory(cls, dir: str):
