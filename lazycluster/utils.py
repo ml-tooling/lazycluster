@@ -86,11 +86,12 @@ class Environment(object):
             log_level: Standard python log level values as defined in `logging` like `logging.ERROR`.
         """
         if log_level == logging.ERROR or log_level == logging.CRITICAL:
-            logging.basicConfig(format='[%(levelname)s] %(message)s')
+            logging.basicConfig(format='[%(levelname)s] %(message)s', level=logging.INFO)
         else:
-            logging.basicConfig(format='[%(levelname)s] %(name)s %(message)s')
+            logging.basicConfig(format='[%(levelname)s] %(name)s %(message)s', level=logging.INFO)
 
         logging.getLogger('paramiko').setLevel(log_level)
+        logging.getLogger('invoke').setLevel(log_level)
 
 
 class Timestamp(object):

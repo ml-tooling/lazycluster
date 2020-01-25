@@ -8,6 +8,4 @@ from lazycluster.runtime_mgmt import *
 
 from lazycluster.utils import Environment
 
-
 Environment.set_third_party_log_level(Environment.third_party_log_level)
-logging.basicConfig(format='[%(levelname)s] %(message)s', level=logging.INFO)
