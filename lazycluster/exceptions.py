@@ -91,7 +91,7 @@ class PortInUseError(LazyclusterError):
             msg = 'Port ' + str(port) + ' is already in use in at least one `Runtime` in the group or on the local ' \
                   'machine. Group: ' + str(group)
         elif runtime:
-            msg = 'Port ' + str(port) + ' is already in use in ' + runtime.type_str + ' ' + runtime.host + \
+            msg = 'Port ' + str(port) + ' is already in use on Runtime ' + runtime.host + \
                   '. Runtime: ' + str(runtime)
         else:
             msg = 'Port ' + str(port) + ' is already in use.'
