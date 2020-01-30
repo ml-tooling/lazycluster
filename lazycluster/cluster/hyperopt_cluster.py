@@ -30,7 +30,7 @@ class LocalMongoLauncher(MasterLauncher):
         super().__init__(runtime_group)
         self.dbpath = None
 
-    def start(self, ports: Union[List[int], int], timeout: int = 3, debug: bool = False) -> List[int]:
+    def start(self, ports: Union[List[int], int], timeout: int = 0, debug: bool = False) -> List[int]:
         """Launch a master instance.
 
         Note:
@@ -94,7 +94,7 @@ class LocalMongoLauncher(MasterLauncher):
 
         # Sets up ssh tunnel for scheduler such that all communication is routed over the
         # local machine and all entities can talk to each the scheduler on localhost.
-        self.log.debug(f'Expose the MongoDB port in the RuntimeGroup.')
+        self.log.info(f'Expose the MongoDB port in the RuntimeGroup.')
         self._group.expose_port_to_runtimes(self._port)
 
         return ports

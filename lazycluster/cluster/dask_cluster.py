@@ -46,6 +46,9 @@ class LocalMasterLauncher(MasterLauncher):
             MasterStartError: If master was not started after the specified `timeout`.
         """
 
+        if debug:
+            self.log.debug('The debug flag has no effect in LocalMongoLauncher.')
+
         if not isinstance(ports, list):
             if _utils.localhost_has_free_port(ports) and \
                self._group.has_free_port(ports, exclude_hosts=Runtime.LOCALHOST):
@@ -63,8 +66,9 @@ class LocalMasterLauncher(MasterLauncher):
 
         if not _utils.localhost_has_free_port(master_port):
             self._port = master_port
-            self.log.debug('Dask scheduler started on localhost on port ' + str(self._port))
+            self.log.info('Dask scheduler started on localhost on port ' + str(self._port))
         else:
+            self.log.debug('Dask scheduler could NOT be started successfully on port ' + str(self._port))
             cause = f'The master port {master_port} is still free when checking after the timeout of {timeout} seconds.'
             raise MasterStartError('localhost', master_port, cause)
 

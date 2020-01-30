@@ -90,7 +90,7 @@ class Environment(object):
         else:
             logging.basicConfig(format='[%(levelname)s] %(name)s %(message)s', level=logging.INFO)
 
-        logging.getLogger('paramiko').setLevel(log_level)
+            logging.getLogger('paramiko').setLevel(log_level)
         logging.getLogger('invoke').setLevel(log_level)
 
 
