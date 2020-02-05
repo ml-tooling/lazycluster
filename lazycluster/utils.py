@@ -60,7 +60,7 @@ class Environment(object):
 
     third_party_log_level = logging.CRITICAL
 
-    use_dev_version = True
+    use_dev_version = False
 
     @classmethod
     def set_main_directory(cls, dir: str):
@@ -87,13 +87,14 @@ class Environment(object):
         Args:
             log_level: Standard python log level values as defined in `logging` like `logging.ERROR`.
         """
+        logging.getLogger('paramiko').setLevel(log_level)
+        logging.getLogger('invoke').setLevel(log_level)
+
         if log_level == logging.ERROR or log_level == logging.CRITICAL:
             logging.basicConfig(format='[%(levelname)s] %(message)s', level=logging.INFO)
         else:
             logging.basicConfig(format='[%(levelname)s] %(name)s %(message)s', level=logging.INFO)
 
-            logging.getLogger('paramiko').setLevel(log_level)
-        logging.getLogger('invoke').setLevel(log_level)
 
     @classmethod
     def use_lazycluster_dev_version(cls):
