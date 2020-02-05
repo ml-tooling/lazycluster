@@ -71,11 +71,11 @@ and convenient cluster setup with Python for various distributed machine learnin
 
 ### Installation
 ```bash
-# Most up-to-date development version
-pip install --upgrade git+https://github.com/ml-tooling/lazycluster.git@develop
+pip install lazycluster
 ``` 
 ```bash
-pip install lazycluster
+# Most up-to-date development version
+pip install --upgrade git+https://github.com/ml-tooling/lazycluster.git@develop
 ``` 
 
 ### Prerequisites
@@ -263,6 +263,9 @@ runtime_group = RuntimeManager().create_group()
 Most simple way to use Dask in a cluster based on a [RuntimeGroup](./docs/runtime_mgmt.md#runtimegroup-class) created by the [RuntimeManager](./docs/runtime_mgmt.md#runtimemanager-class). The `RuntimeManager` can automatically detect all available [Runtimes](./docs/runtimes.md#runtime-class) based on the [manager's](#manager) ssh config and eventually create a necessary `RuntimeGroup` for you. This `RuntimeGroup` is then handed over to [DaskCluster](./docs/cluster.dask_cluster.md#daskcluster-class) during initialization.
 
 The DASK `scheduler` instance gets started on the [manager](#manager). Additionally, multiple DASK `worker` processes get started in the `RuntimeGroup`, i.e. in the `Runtimes`. The default number of workers is equal to the number of `Runtimes` in the `RuntimeGroup`.
+
+**Prerequisite**:
+    Please make sure that you have Dask installed on the [manager](#manager). This can be done using `pip install -q "dask[complete]"`.
 
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
@@ -612,7 +615,7 @@ runtime_group.expose_port_from_runtime_to_group('host-1', 40000)
 <details>
 <summary><b>Details</b> (click to expand...)</summary>
 
-A `RuntimeTask` is capable of sending a file from the [manager](#manager) to a `Runtime` or vice versa. Moreover, the `Runtime` class as well as the `RuntimeGroup` provide convenient methods for this purpose that internally create the `RuntimeTasks` for you.
+A `RuntimeTask` is capable of sending a file from the [manager](#manager) to a `Runtime` or vice versa. Moreover, the `Runtime` class as well as the `RuntimeGroup` provide convenient methods for this purpose that internally creates the `RuntimeTasks` for you.
 
 In the following example, the `file.csv` will be transferred to the `Runtime's` working directory. Another path on the Runtime can be specified by supplying a `remote_path` as argument. See [Runtime](./docs/runtimes.md#runtime-class) docs for further details on the working directory.
 
