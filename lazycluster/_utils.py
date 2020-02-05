@@ -6,6 +6,7 @@ import platform
 import subprocess
 import socket
 import lazycluster.settings as settings
+from lazycluster.utils import Environment
 
 
 def get_remaining_ports(ports: List[int], last_used_port: int) -> List[int]:
@@ -100,10 +101,10 @@ def localhost_has_free_port(port: int) -> bool:
 
 def get_pip_install_cmd() -> str:
 
-    if not settings.BRANCH:
+    if Environment.use_dev_version:
+        return 'pip install -q --upgrade git+' + settings.GITHUB_URL + '@' + settings.BRANCH
+    else:
         return 'pip install -q --upgrade ' + settings.PIP_PROJECT_NAME
-
-    return 'pip install -q --upgrade git+' + settings.GITHUB_URL + '@' + settings.BRANCH
 
 
 def read_host_info(host: str) -> dict:

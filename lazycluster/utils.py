@@ -60,6 +60,8 @@ class Environment(object):
 
     third_party_log_level = logging.CRITICAL
 
+    use_dev_version = True
+
     @classmethod
     def set_main_directory(cls, dir: str):
         """Setter for the library's main directory on the manager.
@@ -92,6 +94,16 @@ class Environment(object):
 
             logging.getLogger('paramiko').setLevel(log_level)
         logging.getLogger('invoke').setLevel(log_level)
+
+    @classmethod
+    def use_lazycluster_dev_version(cls):
+        """This methods makes sure that the latest lazycluster developement version will be installed on the Runtimes. 
+        This means the latest commit in the develop branch will be installed on the Runtimes. 
+
+        Note:
+            Please make sure that you install the same version on the manager as well. 
+        """
+        cls.use_dev_version = True
 
 
 class Timestamp(object):
