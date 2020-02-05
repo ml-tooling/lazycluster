@@ -1,6 +1,5 @@
 fabric >= 2.2
 stormssh
 cloudpickle >= 1.0.0
-distributed
 psutil
 click-spinner
