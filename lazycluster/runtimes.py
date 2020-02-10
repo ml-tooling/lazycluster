@@ -2,7 +2,7 @@
 
 This module comprises classes for executing so called `RuntimeTasks` in `Runtimes` by leveraging the power of ssh.
 The `RuntimeTask` class is a container for defining a sequence of elegantly task steps. This `RuntimeTask` can then be
-executed either standalone of by passing it over to a `Runtime` instance. Passwordless ssh should be configured for all
+executed either standalone or by passing it over to a `Runtime` instance. Passwordless ssh should be configured for all
 hosts that should act as a `Runtime` to be able to conveniently manage those entities.
 
 """
@@ -639,7 +639,7 @@ class Runtime(object):
     This might be especially of interest when executing python functions remotely.
     
     Note:
-        [Passwordless ssh](https://linuxize.com/post/how-to-setup-passwordless-ssh-login/)access should be be setup in
+        [Passwordless SSH access](https://linuxize.com/post/how-to-setup-passwordless-ssh-login/) should be be setup in
         advance. Otherwise the connection kwargs of fabric must be used for setting up the ssh connection.
 
     Examples:
@@ -684,8 +684,8 @@ class Runtime(object):
                                  for further details.
 
         Raises:
-            InvalidRuntimeError: If is_valid_runtime() check fails.
-            PathCreationError: If the working_dir path could not be created successfully.
+            InvalidRuntimeError: If `is_valid_runtime()` check fails.
+            PathCreationError: If the `working_dir` path could not be created successfully.
         """
 
         # Create the Logger
