@@ -1,36 +1,43 @@
 
-**Source:** [/lazycluster/cluster/exceptions.py#L0](/lazycluster/cluster/exceptions.py#L0)
+<a href="/lazycluster/cluster/exceptions.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+# <kbd>module</kbd> `lazycluster.cluster.exceptions`
+Exception module for cluster classes.
+
+
+**Note:**
+
+ It is intended that the lazycluster.exception.LazyclusterError should be the parent class of all defined exception
+ classes here.
+
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/exceptions.py#L11)</span>
+<a href="/lazycluster/cluster/exceptions.py#L11"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-## MasterStartError class
-
+## <kbd>class</kbd> `MasterStartError`
 Error indicating that the cluster master instance could not be started successfully. 
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/cluster/exceptions.py#L14)</span>
+<a href="/lazycluster/cluster/exceptions.py#L14"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-### MasterStartError.`__init__`
+### <kbd>method</kbd> `MasterStartError.__init__`
 
 ```python
-__init__(self, host:  str, port:  int, cause:  str)
+__init__(host: str, port: int, cause: str)
 ```
-
 Initialization method.
-
 
 
 **Args:**
 
 
- - `host`:  The host where the cluster master instance should be started.
+ - <b>`host`</b>:  The host where the cluster master instance should be started.
 
- - `port`:  The port of the cluster master instance.
+ - <b>`port`</b>:  The port of the cluster master instance.
 
- - `cause`:  More detailed information of the actual root
+ - <b>`cause`</b>:  More detailed information of the actual root
 
 
 

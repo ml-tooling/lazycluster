@@ -1,253 +1,214 @@
 
-**Source:** [/lazycluster/exceptions.py#L0](/lazycluster/exceptions.py#L0)
+<a href="/lazycluster/exceptions.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+# <kbd>module</kbd> `lazycluster.exceptions`
+Exception module.
+
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/exceptions.py#L6)</span>
+<a href="/lazycluster/exceptions.py#L6"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-## LazyclusterError class
-
+## <kbd>class</kbd> `LazyclusterError`
 Basic exception class for `lazycluster` library errors.
-
-  
+ 
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/exceptions.py#L10)</span>
+<a href="/lazycluster/exceptions.py#L10"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-### LazyclusterError.`__init__`
+### <kbd>method</kbd> `LazyclusterError.__init__`
 
 ```python
-__init__(
-    self,
-    msg:  str,
-    predecessor_excp:  Union[Exception,
-    NoneType]  =  None
-)
+__init__(msg: str, predecessor_excp: Optional[Exception] = None)
 ```
-
 Constructor method.
-
 
 
 **Args:**
 
 
- - `msg`:  The error message.
+ - <b>`msg`</b>:  The error message.
 
- - `predecessor_excp`:  Optionally, a predecessor exception can be passed on.
+ - <b>`predecessor_excp`</b>:  Optionally, a predecessor exception can be passed on.
 
 
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/exceptions.py#L28)</span>
+<a href="/lazycluster/exceptions.py#L28"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-## TaskExecutionError class
-
+## <kbd>class</kbd> `TaskExecutionError`
 This error relates to exceptions occured during RuntimeTask execution.
-
-  
+ 
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/exceptions.py#L32)</span>
+<a href="/lazycluster/exceptions.py#L32"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-### TaskExecutionError.`__init__`
+### <kbd>method</kbd> `TaskExecutionError.__init__`
 
 ```python
 __init__(
-    self,
-    task_step_index:  int,
-    task:  'RuntimeTask',
-    host:  str,
-    execution_log_file_path:  str,
-    output:  str,
-    predecessor_excp:  Union[Exception,
-    NoneType]  =  None
+    task_step_index: int,
+    task: 'RuntimeTask',
+    host: str,
+    execution_log_file_path: str,
+    output: str,
+    predecessor_excp: Optional[Exception] = None
 )
 ```
-
 Initialization method.
 
 
-
 **Args:**
 
 
- - `task_step_index`:  The index of the task step, where an error occured.
+ - <b>`task_step_index`</b>:  The index of the task step, where an error occured.
 
- - `task`:  The `RuntimeTask` during which execution the error occured.
+ - <b>`task`</b>:  The `RuntimeTask` during which execution the error occured.
 
- - `host`:  The host where the execution failed.
+ - <b>`host`</b>:  The host where the execution failed.
 
- - `execution_log_file_path`:  The path to the execution log file on the manager.
+ - <b>`execution_log_file_path`</b>:  The path to the execution log file on the manager.
 
- - `output`:  Thr ouput (stdout/stderr) generated on the Runtime during execution.
+ - <b>`output`</b>:  Thr ouput (stdout/stderr) generated on the Runtime during execution.
 
- - `predecessor_excp`:  Optionally, a predecessor exception can be passed on.
+ - <b>`predecessor_excp`</b>:  Optionally, a predecessor exception can be passed on.
 
 
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/exceptions.py#L52)</span>
+<a href="/lazycluster/exceptions.py#L52"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-## InvalidRuntimeError class
-
+## <kbd>class</kbd> `InvalidRuntimeError`
 Error indicating that a `Runtime` can not be instantiated properly.
-
-  
+ 
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/exceptions.py#L56)</span>
+<a href="/lazycluster/exceptions.py#L56"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-### InvalidRuntimeError.`__init__`
+### <kbd>method</kbd> `InvalidRuntimeError.__init__`
 
 ```python
-__init__(self, host:  str)
+__init__(host: str)
 ```
-
 Constructor method.
-
 
 
 **Args:**
 
 
- - `host`:  The host which cannot be instantiated as `Runtime`.
+ - <b>`host`</b>:  The host which cannot be instantiated as `Runtime`.
 
 
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/exceptions.py#L67)</span>
+<a href="/lazycluster/exceptions.py#L67"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-## NoRuntimesDetectedError class
-
+## <kbd>class</kbd> `NoRuntimesDetectedError`
 Error indicating that no `Runtime` could be detcted automatically by a `RuntimeManager` for example.
-
-  
+ 
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/exceptions.py#L70)</span>
+<a href="/lazycluster/exceptions.py#L70"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-### NoRuntimesDetectedError.`__init__`
+### <kbd>method</kbd> `NoRuntimesDetectedError.__init__`
 
 ```python
-__init__(self, predecessor_excp:  Union[Exception, NoneType]  =  None)
+__init__(predecessor_excp: Optional[Exception] = None)
 ```
 
-Constructor method.
-
-
-
-**Args:**
-
-
- - `msg`:  The error message.
-
- - `predecessor_excp`:  Optionally, a predecessor exception can be passed on.
 
 
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/exceptions.py#L74)</span>
+<a href="/lazycluster/exceptions.py#L74"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-## PortInUseError class
-
+## <kbd>class</kbd> `PortInUseError`
 Error indicating that a port is already in use in a `RuntimeGroup` or on the local machine.
-
-  
+ 
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/exceptions.py#L78)</span>
+<a href="/lazycluster/exceptions.py#L78"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-### PortInUseError.`__init__`
+### <kbd>method</kbd> `PortInUseError.__init__`
 
 ```python
 __init__(
-    self,
-    port:  int,
-    group:  Union[ForwardRef('RuntimeGroup'
-), NoneType]  =  None, runtime:  Union[ForwardRef('Runtime'), NoneType]  =  None)
+    port: int,
+    group: Optional[ForwardRef('RuntimeGroup')] = None,
+    runtime: Optional[ForwardRef('Runtime')] = None
+)
 ```
-
 Constructor method.
-
 
 
 **Args:**
 
 
- - `port` (int):  The port in use.
+ - <b>`port`</b> (int):  The port in use.
 
- - `group` (Optional[RuntimeGroup]):  The group object where the port is in use.
+ - <b>`group`</b> (Optional[RuntimeGroup]):  The group object where the port is in use.
 
-runtime (Optional[Runtime]: The runtime object where the port is in use.
+ - <b>`runtime (Optional[Runtime]`</b>:  The runtime object where the port is in use.
 
 
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/exceptions.py#L102)</span>
+<a href="/lazycluster/exceptions.py#L102"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-## NoPortsLeftError class
-
+## <kbd>class</kbd> `NoPortsLeftError`
 Error indicating that there are no more ports left from the given port list.
-
-  
+ 
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/exceptions.py#L106)</span>
+<a href="/lazycluster/exceptions.py#L106"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-### NoPortsLeftError.`__init__`
+### <kbd>method</kbd> `NoPortsLeftError.__init__`
 
 ```python
-__init__(self)
+__init__()
 ```
-
 Constructor method.
-
-  
+ 
 
 
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/exceptions.py#L113)</span>
+<a href="/lazycluster/exceptions.py#L113"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-## PathCreationError class
-
+## <kbd>class</kbd> `PathCreationError`
 Error indicating that a given path could not be created.
-
-  
+ 
 
 
 -------------------
-<span style="float:right;">[[source]](/lazycluster/exceptions.py#L117)</span>
+<a href="/lazycluster/exceptions.py#L117"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-### PathCreationError.`__init__`
+### <kbd>method</kbd> `PathCreationError.__init__`
 
 ```python
-__init__(self, path:  str, host:  Union[str, NoneType]  =  None)
+__init__(path: str, host: Optional[str] = None)
 ```
-
 Constructor method.
-
 
 
 **Args:**
 
 
- - `path`:  The path which should be created.
+ - <b>`path`</b>:  The path which should be created.
 
- - `host`:  The host where the path should be created.
+ - <b>`host`</b>:  The host where the path should be created.
 
 
 
