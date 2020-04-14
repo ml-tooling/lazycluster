@@ -63,12 +63,12 @@ def get_localhost_info() -> dict:
         dict: Current dict keys: 'os', 'cpu_cores', 'memory', 'python_version', 'workspace_version', 'gpus'.
     """
     info = {
-        'os': _get_os_on_localhost(),
-        'cpu_cores': _get_cpu_count_on_localhost(),
-        'memory': _get_memory_on_localhost(),
-        'python_version': _get_python_version_on_localhost(),
-        'workspace_version': _get_workspace_version_on_localhost(),
-        'gpus': _get_gpu_info_for_localhost()
+        "os": _get_os_on_localhost(),
+        "cpu_cores": _get_cpu_count_on_localhost(),
+        "memory": _get_memory_on_localhost(),
+        "python_version": _get_python_version_on_localhost(),
+        "workspace_version": _get_workspace_version_on_localhost(),
+        "gpus": _get_gpu_info_for_localhost(),
     }
     return info
 
@@ -76,13 +76,14 @@ def get_localhost_info() -> dict:
 def print_localhost_info():
     """Prints the dictionary retrieved by `get_localhost_info()`."""
     from json import dumps
+
     json_str = dumps(get_localhost_info())
     print(json_str)
 
 
 def command_exists_on_localhost(command: str) -> bool:
     """Check if a command exists on localhost"""
-    cmd_ext = 'hash ' + command + ' 2>/dev/null && echo "True" || echo ""'
+    cmd_ext = "hash " + command + ' 2>/dev/null && echo "True" || echo ""'
     return True if os.popen(cmd_ext).read() else False
 
 
@@ -95,16 +96,21 @@ def localhost_has_free_port(port: int) -> bool:
         bool: True if port is free, else False.
     """
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    is_success = sock.connect_ex(('localhost', port))
+    is_success = sock.connect_ex(("localhost", port))
     return True if is_success else False
 
 
 def get_pip_install_cmd() -> str:
 
     if Environment.use_dev_version:
-        return 'pip install -q --upgrade git+' + settings.GITHUB_URL + '@' + settings.BRANCH
+        return (
+            "pip install -q --upgrade git+"
+            + settings.GITHUB_URL
+            + "@"
+            + settings.BRANCH
+        )
     else:
-        return 'pip install -q --upgrade ' + settings.PIP_PROJECT_NAME
+        return "pip install -q --upgrade " + settings.PIP_PROJECT_NAME
 
 
 def read_host_info(host: str) -> dict:
@@ -116,12 +122,13 @@ def read_host_info(host: str) -> dict:
     from lazycluster import RuntimeTask
     from fabric import Connection
     import json
-    task = RuntimeTask('get-host-info')
+
+    task = RuntimeTask("get-host-info")
     task.run_command(get_pip_install_cmd())
     task.run_function(print_localhost_info)
     task.execute(Connection(host))
     runtime_info = json.loads(task.execution_log[2])
-    runtime_info['host'] = host
+    runtime_info["host"] = host
     return runtime_info
 
 
@@ -136,6 +143,7 @@ def _get_cpu_count_on_localhost() -> float:
     """Fail-safe method to get cpu count. Also respects docker/cgroup limitations."""
     try:
         import psutil
+
         cpu_count = psutil.cpu_count()
     except:
         # psutil is probably not installed
@@ -143,10 +151,13 @@ def _get_cpu_count_on_localhost() -> float:
 
     try:
         import math
+
         # Try to read out docker cpu quota if it exists
         quota_file = "/sys/fs/cgroup/cpu/cpu.cfs_quota_us"
         if os.path.isfile(quota_file):
-            cpu_quota = math.ceil(int(os.popen('cat ' + quota_file).read().replace('\n', '')) / 100000)
+            cpu_quota = math.ceil(
+                int(os.popen("cat " + quota_file).read().replace("\n", "")) / 100000
+            )
             if 0 < cpu_quota < cpu_count:
                 cpu_count = cpu_quota
     except:
@@ -159,11 +170,12 @@ def _get_cpu_count_on_localhost() -> float:
 def _get_memory_on_localhost() -> int:
     """Fail-safe method to get total memory. Also respects docker/cgroup limitations."""
     import psutil
+
     memory = psutil.virtual_memory().total
     try:
         if os.path.isfile("/sys/fs/cgroup/memory/memory.limit_in_bytes"):
-            with open('/sys/fs/cgroup/memory/memory.limit_in_bytes', 'r') as file:
-                mem_limit = file.read().replace('\n', '').strip()
+            with open("/sys/fs/cgroup/memory/memory.limit_in_bytes", "r") as file:
+                mem_limit = file.read().replace("\n", "").strip()
                 if mem_limit and 0 < int(mem_limit) < int(memory):
                     # if mem limit from cgroup bigger than total memory -> use total memory
                     memory = int(mem_limit)
@@ -175,15 +187,21 @@ def _get_memory_on_localhost() -> int:
 
 
 def _get_python_version_on_localhost() -> str:
-    return str(sys.version_info.major) + '.' + str(sys.version_info.minor) + '.' + str(sys.version_info.micro)
+    return (
+        str(sys.version_info.major)
+        + "."
+        + str(sys.version_info.minor)
+        + "."
+        + str(sys.version_info.micro)
+    )
 
 
 def _get_workspace_version_on_localhost() -> str:
-    return os.environ['WORKSPACE_VERSION']
+    return os.environ["WORKSPACE_VERSION"]
 
 
 def _get_gpu_info_for_localhost() -> list:
-    NVIDIA_CMD = 'nvidia-smi'
+    NVIDIA_CMD = "nvidia-smi"
 
     if not command_exists_on_localhost(NVIDIA_CMD):
         return []
@@ -191,16 +209,18 @@ def _get_gpu_info_for_localhost() -> list:
     gpus = []
 
     try:
-        sp = subprocess.Popen(['nvidia-smi', '-q'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        sp = subprocess.Popen(
+            ["nvidia-smi", "-q"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         out_str = sp.communicate()
-        out_list = out_str[0].decode("utf-8").split('\n')
+        out_list = out_str[0].decode("utf-8").split("\n")
 
         count_gpu = 0
         for item in out_list:
             try:
-                key, val = item.split(':')
+                key, val = item.split(":")
                 key, val = key.strip(), val.strip()
-                if key == 'Product Name':
+                if key == "Product Name":
                     count_gpu += 1
                     gpus.append(val)
             except:

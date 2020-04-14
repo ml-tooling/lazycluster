@@ -19,9 +19,9 @@ class ExecutionFileLogUtil(object):
         """
         self.runtime_host = runtime_host
         self.taskname = taskname
-        self.file_extension = 'log'
+        self.file_extension = "log"
         self.log = logging.getLogger(__name__)
-        self._main_dir = os.path.join(Environment.main_directory, 'execution_log')
+        self._main_dir = os.path.join(Environment.main_directory, "execution_log")
         self._creation_timestamp = Timestamp()
 
     @property
@@ -33,14 +33,17 @@ class ExecutionFileLogUtil(object):
             gets written when the execution of the `RuntimeTask` is started.
 
         """
-        return os.path.join(self.directory_path, f'{self.taskname}_{self._creation_timestamp.get_unformatted()}'
-                                                 f'.{self.file_extension}')
+        return os.path.join(
+            self.directory_path,
+            f"{self.taskname}_{self._creation_timestamp.get_unformatted()}"
+            f".{self.file_extension}",
+        )
 
     @property
     def directory_path(self) -> str:
         """Get the full path to the directory where this logfile gets written to.
         """
-        path = os.path.join(self._main_dir, f'{self.runtime_host}')
+        path = os.path.join(self._main_dir, f"{self.runtime_host}")
 
         if not os.path.exists(path):
             os.makedirs(path)
@@ -49,14 +52,14 @@ class ExecutionFileLogUtil(object):
 
     def get_write_mode(self) -> str:
         # Append if file exists otherwise create the file
-        return 'a' if os.path.exists(self.file_path) else 'w+'
+        return "a" if os.path.exists(self.file_path) else "w+"
 
 
 class Environment(object):
     """This class contains environment variables.
     """
 
-    main_directory = os.path.abspath('./lazycluster')
+    main_directory = os.path.abspath("./lazycluster")
 
     third_party_log_level = logging.CRITICAL
 
@@ -87,14 +90,17 @@ class Environment(object):
         Args:
             log_level: Standard python log level values as defined in `logging` like `logging.ERROR`.
         """
-        logging.getLogger('paramiko').setLevel(log_level)
-        logging.getLogger('invoke').setLevel(log_level)
+        logging.getLogger("paramiko").setLevel(log_level)
+        logging.getLogger("invoke").setLevel(log_level)
 
         if log_level == logging.ERROR or log_level == logging.CRITICAL:
-            logging.basicConfig(format='[%(levelname)s] %(message)s', level=logging.INFO)
+            logging.basicConfig(
+                format="[%(levelname)s] %(message)s", level=logging.INFO
+            )
         else:
-            logging.basicConfig(format='[%(levelname)s] %(name)s %(message)s', level=logging.INFO)
-
+            logging.basicConfig(
+                format="[%(levelname)s] %(name)s %(message)s", level=logging.INFO
+            )
 
     @classmethod
     def use_lazycluster_dev_version(cls):
@@ -121,12 +127,32 @@ class Timestamp(object):
 
         # Ensure that each field has a fixed number of letters, so needed for representations w/o delimiters
         self.year = str(self._time_obj.tm_year)
-        self.month = str(self._time_obj.tm_mon) if len(str(self._time_obj.tm_mon)) == 2 else f'0{str(self._time_obj.tm_mon)}'
-        self.day = str(self._time_obj.tm_mday) if len(str(self._time_obj.tm_mday)) == 2 else f'0{str(self._time_obj.tm_mday)}'
+        self.month = (
+            str(self._time_obj.tm_mon)
+            if len(str(self._time_obj.tm_mon)) == 2
+            else f"0{str(self._time_obj.tm_mon)}"
+        )
+        self.day = (
+            str(self._time_obj.tm_mday)
+            if len(str(self._time_obj.tm_mday)) == 2
+            else f"0{str(self._time_obj.tm_mday)}"
+        )
 
-        self.hour = str(self._time_obj.tm_hour) if len(str(self._time_obj.tm_hour)) == 2 else f'0{str(self._time_obj.tm_hour)}'
-        self.min = str(self._time_obj.tm_min) if len(str(self._time_obj.tm_min)) == 2 else f'0{str(self._time_obj.tm_min)}'
-        self.sec = str(self._time_obj.tm_sec) if len(str(self._time_obj.tm_sec)) == 2 else f'0{str(self._time_obj.tm_sec)}'
+        self.hour = (
+            str(self._time_obj.tm_hour)
+            if len(str(self._time_obj.tm_hour)) == 2
+            else f"0{str(self._time_obj.tm_hour)}"
+        )
+        self.min = (
+            str(self._time_obj.tm_min)
+            if len(str(self._time_obj.tm_min)) == 2
+            else f"0{str(self._time_obj.tm_min)}"
+        )
+        self.sec = (
+            str(self._time_obj.tm_sec)
+            if len(str(self._time_obj.tm_sec)) == 2
+            else f"0{str(self._time_obj.tm_sec)}"
+        )
 
     def get_unformatted(self) -> str:
         """Fixed length representation w/o delimiters in format: yyyymmddhhmmss.
@@ -136,4 +162,4 @@ class Timestamp(object):
     def get_formatted(self) -> str:
         """Formatted fixed length representation with delimiters in format: yyyy-mm-dd hh:mm:ss.
         """
-        return f'{self.year}-{self.month}-{self.day} {self.hour}:{self.min}:{self.sec}'
+        return f"{self.year}-{self.month}-{self.day} {self.hour}:{self.min}:{self.sec}"

@@ -21,7 +21,9 @@ class LocalMasterLauncher(MasterLauncher):
     This class implements the logic for starting a the DASK master instance (i.e. scheduler in DASK terms) on localhost.
     """
 
-    def start(self, ports: Union[List[int], int], timeout: int = 3, debug: bool = False) -> List[int]:
+    def start(
+        self, ports: Union[List[int], int], timeout: int = 3, debug: bool = False
+    ) -> List[int]:
         """Launch a master instance.
 
         Note:
@@ -47,11 +49,12 @@ class LocalMasterLauncher(MasterLauncher):
         """
 
         if debug:
-            self.log.debug('The debug flag has no effect in LocalMongoLauncher.')
+            self.log.debug("The debug flag has no effect in LocalMongoLauncher.")
 
         if not isinstance(ports, list):
-            if _utils.localhost_has_free_port(ports) and \
-               self._group.has_free_port(ports, exclude_hosts=Runtime.LOCALHOST):
+            if _utils.localhost_has_free_port(ports) and self._group.has_free_port(
+                ports, exclude_hosts=Runtime.LOCALHOST
+            ):
                 master_port = ports
             else:
                 raise PortInUseError(ports, self._group)
@@ -60,21 +63,26 @@ class LocalMasterLauncher(MasterLauncher):
             master_port = self._group.get_free_port(ports)  # Raises NoPortsLeftError
             ports = _utils.get_remaining_ports(ports, master_port)
 
-        self._process = Popen(['dask-scheduler', '--port', str(master_port)])
+        self._process = Popen(["dask-scheduler", "--port", str(master_port)])
 
         time.sleep(timeout)  # Needed for being able to check the port
 
         if not _utils.localhost_has_free_port(master_port):
             self._port = master_port
-            self.log.info('Dask scheduler started on localhost on port ' + str(self._port))
+            self.log.info(
+                "Dask scheduler started on localhost on port " + str(self._port)
+            )
         else:
-            self.log.debug('Dask scheduler could NOT be started successfully on port ' + str(self._port))
-            cause = f'The master port {master_port} is still free when checking after the timeout of {timeout} seconds.'
-            raise MasterStartError('localhost', master_port, cause)
+            self.log.debug(
+                "Dask scheduler could NOT be started successfully on port "
+                + str(self._port)
+            )
+            cause = f"The master port {master_port} is still free when checking after the timeout of {timeout} seconds."
+            raise MasterStartError("localhost", master_port, cause)
 
         # Sets up ssh tunnel for scheduler such that all communication is routed over the
         # local machine and all entities can talk to each the scheduler on localhost.
-        self.log.debug(f'Expose the Dask scheduler port in the RuntimeGroup.')
+        self.log.debug(f"Expose the Dask scheduler port in the RuntimeGroup.")
         self._group.expose_port_to_runtimes(self._port)
 
         return ports
@@ -82,7 +90,7 @@ class LocalMasterLauncher(MasterLauncher):
     def cleanup(self):
         """Release all resources.
         """
-        self.log.info('Cleanup the LocalMasterLauncher ...')
+        self.log.info("Cleanup the LocalMasterLauncher ...")
         super().cleanup()
 
 
@@ -100,9 +108,11 @@ class RoundRobinLauncher(WorkerLauncher):
         super().__init__(runtime_group)
         self._ports = None
 
-        self.log.debug('RoundRobinLauncher initialized.')
+        self.log.debug("RoundRobinLauncher initialized.")
 
-    def start(self, worker_count: int, master_port: int, ports: List[int], debug: bool = False) -> List[int]:
+    def start(
+        self, worker_count: int, master_port: int, ports: List[int], debug: bool = False
+    ) -> List[int]:
         """Launches the worker instances in the `RuntimeGroup`.
 
         Args:
@@ -127,15 +137,21 @@ class RoundRobinLauncher(WorkerLauncher):
         # Launch each desired worker one by one
         for worker_index in range(worker_count):
             # Determine the runtime where the next worker will be started in
-            runtime_index = (self._group.runtime_count + worker_index) % self._group.runtime_count
+            runtime_index = (
+                self._group.runtime_count + worker_index
+            ) % self._group.runtime_count
             # Get the actual host corresponding to the index
             host = hosts[runtime_index]
             working_dir = runtimes[runtime_index].working_dir
             assert host == runtimes[runtime_index].host
 
-            self.log.debug(f'Launch Dask worker with index {worker_index} on Runtime {host}')
+            self.log.debug(
+                f"Launch Dask worker with index {worker_index} on Runtime {host}"
+            )
 
-            worker_port = self._launch_single_worker(host, worker_index, master_port, working_dir, debug)  # NoPortsLeftError
+            worker_port = self._launch_single_worker(
+                host, worker_index, master_port, working_dir, debug
+            )  # NoPortsLeftError
             # Remember which worker ports are now used per `Runtime`
             if host in self._ports_per_host:
                 self._ports_per_host[host].append(worker_port)
@@ -147,7 +163,14 @@ class RoundRobinLauncher(WorkerLauncher):
 
         return self._ports
 
-    def _launch_single_worker(self, host: str, worker_index: int, master_port: int, working_dir: str, debug: bool):
+    def _launch_single_worker(
+        self,
+        host: str,
+        worker_index: int,
+        master_port: int,
+        working_dir: str,
+        debug: bool,
+    ):
         """Launch a single worker instance in a `Runtime` in the `RuntimeGroup`.
 
         Raises:
@@ -157,26 +180,36 @@ class RoundRobinLauncher(WorkerLauncher):
         worker_port = self._group.get_free_port(self._ports)  # Raises NoPortsLeftError
         self._ports = _utils.get_remaining_ports(self._ports, worker_port)
         # 2. Start the worker on this port
-        task = RuntimeTask('launch-dask-worker-' + str(worker_index))
+        task = RuntimeTask("launch-dask-worker-" + str(worker_index))
         task.run_command(DaskCluster.PIP_INSTALL_COMMAND)
-        task.run_command(self._get_launch_command(master_port, worker_port, working_dir))
+        task.run_command(
+            self._get_launch_command(master_port, worker_port, working_dir)
+        )
         self._group.execute_task(task, host, omit_on_join=True, debug=debug)
         return worker_port
 
     @classmethod
-    def _get_launch_command(cls, master_port: int, worker_port: int, working_directory: str) -> str:
+    def _get_launch_command(
+        cls, master_port: int, worker_port: int, working_directory: str
+    ) -> str:
         """Get the shell command for starting a worker instance.
 
         Returns:
              str: The launch command.
         """
-        return 'dask-worker --worker-port=' + str(worker_port) + ' --local-directory=' + working_directory \
-               + ' localhost:' + str(master_port)
+        return (
+            "dask-worker --worker-port="
+            + str(worker_port)
+            + " --local-directory="
+            + working_directory
+            + " localhost:"
+            + str(master_port)
+        )
 
     def cleanup(self):
         """Release all resources.
         """
-        self.log.info('Cleanup the RoundRobinLauncher ...')
+        self.log.info("Cleanup the RoundRobinLauncher ...")
         super().cleanup()
 
 
@@ -198,9 +231,13 @@ class DaskCluster(MasterWorkerCluster):
     DEFAULT_MASTER_PORT = 8786
     PIP_INSTALL_COMMAND = 'pip install -q "dask[complete]"'
 
-    def __init__(self, runtime_group: RuntimeGroup, ports: Optional[List[int]] = None,
-                 master_launcher: Optional[MasterLauncher] = None,
-                 worker_launcher: Optional[WorkerLauncher] = None):
+    def __init__(
+        self,
+        runtime_group: RuntimeGroup,
+        ports: Optional[List[int]] = None,
+        master_launcher: Optional[MasterLauncher] = None,
+        worker_launcher: Optional[WorkerLauncher] = None,
+    ):
         """Initialization method.
 
         Args:
@@ -216,10 +253,14 @@ class DaskCluster(MasterWorkerCluster):
         """
         super().__init__(runtime_group, ports)
 
-        self._master_launcher = master_launcher if master_launcher else LocalMasterLauncher(runtime_group)
-        self._worker_launcher = worker_launcher if worker_launcher else RoundRobinLauncher(runtime_group)
+        self._master_launcher = (
+            master_launcher if master_launcher else LocalMasterLauncher(runtime_group)
+        )
+        self._worker_launcher = (
+            worker_launcher if worker_launcher else RoundRobinLauncher(runtime_group)
+        )
 
-        self.log.debug('DaskCluster initialized.')
+        self.log.debug("DaskCluster initialized.")
 
     def get_client(self, timeout: int = 2) -> Client:
         """Get a connected Dask client. 
@@ -230,10 +271,12 @@ class DaskCluster(MasterWorkerCluster):
         Raises:
             TimeoutError: If client connection `timeout` expires.
         """
-        return Client('localhost:' + str(self.master_port), timeout=timeout)  # Raises TimeoutError
+        return Client(
+            "localhost:" + str(self.master_port), timeout=timeout
+        )  # Raises TimeoutError
 
     def cleanup(self):
         """Release all resources.
         """
-        self.log.info('Cleanup the RoundRobinLauncher ...')
+        self.log.info("Cleanup the RoundRobinLauncher ...")
         super().cleanup()

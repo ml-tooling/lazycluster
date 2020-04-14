@@ -25,10 +25,10 @@ class MasterLauncher(object):
         self.log = logging.getLogger(__name__)
 
         self._group = runtime_group
-        self._port = None            # Needs to be set in self.start()
+        self._port = None  # Needs to be set in self.start()
         self._process: Optional[Popen] = None  # Needs to be set in self.start()
 
-        self.log.debug('MasterLauncher initialized.')
+        self.log.debug("MasterLauncher initialized.")
 
     @property
     def port(self) -> int:
@@ -48,7 +48,9 @@ class MasterLauncher(object):
         """
         return self._process
 
-    def start(self, ports: Union[List[int], int], timeout: int = 3, debug: bool = False) -> List[int]:
+    def start(
+        self, ports: Union[List[int], int], timeout: int = 3, debug: bool = False
+    ) -> List[int]:
         """Launch a master instance.
 
         Note:
@@ -82,7 +84,7 @@ class MasterLauncher(object):
     def cleanup(self):
         """Release all resources.
         """
-        self.log.debug('Cleaning up MasterLauncher ...')
+        self.log.debug("Cleaning up MasterLauncher ...")
         if self._process:
             self.process.terminate()
 
@@ -108,9 +110,11 @@ class WorkerLauncher(object):
         self.log = logging.getLogger(__name__)
 
         self._group = runtime_group
-        self._ports_per_host: Dict[str, List[int]] = {}  # Needs to be set in `self.start()`
+        self._ports_per_host: Dict[
+            str, List[int]
+        ] = {}  # Needs to be set in `self.start()`
 
-        self.log.debug('Worker launcher initialized')
+        self.log.debug("Worker launcher initialized")
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__, self.__dict__)
@@ -125,7 +129,9 @@ class WorkerLauncher(object):
         """
         return self._ports_per_host
 
-    def start(self, worker_count: int, master_port: int, ports: List[int], debug: bool = False) -> List[int]:
+    def start(
+        self, worker_count: int, master_port: int, ports: List[int], debug: bool = False
+    ) -> List[int]:
         """Launches the worker instances in the `RuntimeGroup`.
 
         Args:
@@ -164,16 +170,18 @@ class WorkerLauncher(object):
             PortInUseError: If `group_port` is occupied on the local machine.
             NoPortsLeftError: If `group_ports` was given and none of the ports was free.
         """
-        self.log.info('Setting up ssh tunnel for inter worker communication.')
+        self.log.info("Setting up ssh tunnel for inter worker communication.")
         for host, ports in self.ports_per_host.items():
             for worker_port in ports:
-                self._group.expose_port_from_runtime_to_group(host, worker_port)  # Raises all errors
+                self._group.expose_port_from_runtime_to_group(
+                    host, worker_port
+                )  # Raises all errors
 
     def cleanup(self):
         """Release all resources.
         """
-        self.log.debug('Cleaning up WorkerLauncher ...')
-        self.log.debug('No WorkerLauncher resources to be released')
+        self.log.debug("Cleaning up WorkerLauncher ...")
+        self.log.debug("No WorkerLauncher resources to be released")
 
 
 class RuntimeCluster(object):
@@ -216,11 +224,15 @@ class MasterWorkerCluster(RuntimeCluster):
 
     DEFAULT_MASTER_PORT = 60000
     DEFAULT_PORT_RANGE_START = 60001  # Can be overwritten in subclasses
-    DEFAULT_PORT_RANGE_END = 60200    # Can be overwritten in subclasses
+    DEFAULT_PORT_RANGE_END = 60200  # Can be overwritten in subclasses
 
-    def __init__(self, runtime_group: RuntimeGroup, ports: Optional[List[int]] = None,
-                 master_launcher: Optional[MasterLauncher] = None,
-                 worker_launcher: Optional[WorkerLauncher] = None):
+    def __init__(
+        self,
+        runtime_group: RuntimeGroup,
+        ports: Optional[List[int]] = None,
+        master_launcher: Optional[MasterLauncher] = None,
+        worker_launcher: Optional[WorkerLauncher] = None,
+    ):
         """Initialization method.
 
         Args:
@@ -239,17 +251,21 @@ class MasterWorkerCluster(RuntimeCluster):
         self.log = logging.getLogger(__name__)
 
         self._group = runtime_group
-        self._ports = ports if ports else list(range(self.DEFAULT_PORT_RANGE_START, self.DEFAULT_PORT_RANGE_END))
+        self._ports = (
+            ports
+            if ports
+            else list(range(self.DEFAULT_PORT_RANGE_START, self.DEFAULT_PORT_RANGE_END))
+        )
         self._master_launcher = master_launcher
         self._worker_launcher = worker_launcher
 
         # Cleanup will be done atexit since usage of destructor may lead to exceptions
         atexit.register(self.cleanup)
 
-        self.log.debug('MasterWorkerCluster initialized.')
+        self.log.debug("MasterWorkerCluster initialized.")
 
     def __str__(self):
-        return type(self).__name__ + ' with ' + str(self._group)
+        return type(self).__name__ + " with " + str(self._group)
 
     @property
     def master_port(self) -> int:
@@ -269,7 +285,12 @@ class MasterWorkerCluster(RuntimeCluster):
         """
         return self._group
 
-    def start(self, worker_count: Optional[int] = None, master_port: Optional[int] = None, debug: bool = False):
+    def start(
+        self,
+        worker_count: Optional[int] = None,
+        master_port: Optional[int] = None,
+        debug: bool = False,
+    ):
         """Convenient method for launching the cluster.
 
         Internally, `self.start_master()` and `self.start_workers()` will be called.
@@ -284,11 +305,13 @@ class MasterWorkerCluster(RuntimeCluster):
                    `False`.
 
         """
-        self.log.info('Starting the cluster ...')
+        self.log.info("Starting the cluster ...")
         self.start_master(master_port, debug=debug)
         self.start_workers(worker_count, debug=debug)
 
-    def start_master(self, master_port: Optional[int] = None, timeout: int = 3, debug: bool = False):
+    def start_master(
+        self, master_port: Optional[int] = None, timeout: int = 3, debug: bool = False
+    ):
         """Start the master instance.
 
         Note:
@@ -320,7 +343,9 @@ class MasterWorkerCluster(RuntimeCluster):
             overwrite_port_list = True
 
         # 2. Trigger the actual logic for starting the master instance
-        ports = self._master_launcher.start(ports, timeout, debug)  # Raises the possible exceptions
+        ports = self._master_launcher.start(
+            ports, timeout, debug
+        )  # Raises the possible exceptions
 
         if overwrite_port_list:
             self._ports = ports
@@ -330,11 +355,13 @@ class MasterWorkerCluster(RuntimeCluster):
         # => indicates a wrong implementation of the given launcher class
         assert self._master_launcher.port
         if not self._master_launcher.process:
-            self.log.debug('No self._master_launcher.process is set after starting the cluster master. If the master'
-                           'instance was not started as a deamon, then this could indicate buggy implementation. The'
-                           'variable should be set to be able to eventually shutdown the cluster.')
+            self.log.debug(
+                "No self._master_launcher.process is set after starting the cluster master. If the master"
+                "instance was not started as a deamon, then this could indicate buggy implementation. The"
+                "variable should be set to be able to eventually shutdown the cluster."
+            )
 
-        self.log.info(f'Master instance started on port {str(self.master_port)}.')
+        self.log.info(f"Master instance started on port {str(self.master_port)}.")
 
     def start_workers(self, count: Optional[int] = None, debug: bool = False):
         """Start the worker instances.
@@ -356,14 +383,16 @@ class MasterWorkerCluster(RuntimeCluster):
         if not count:
             count = self._group.runtime_count
 
-        self._ports = self._worker_launcher.start(count, self.master_port, self._ports, debug)
+        self._ports = self._worker_launcher.start(
+            count, self.master_port, self._ports, debug
+        )
 
         # Some attributes must be set in the given MasterLauncher implementation after
         # starting the master to ensure correct behavior of MasterWorkerCluster
         # => indicates a wrong implementation of the given launcher class
         # e.g. for DASK -> assert self._worker_launcher.ports_per_host
 
-        self.log.info('Worker instances started.')
+        self.log.info("Worker instances started.")
 
     def print_log(self):
         """Print the execution log.
@@ -377,7 +406,7 @@ class MasterWorkerCluster(RuntimeCluster):
     def cleanup(self):
         """Release all resources.
         """
-        self.log.info('Shutting down the MasterWorkerCluster ...')
+        self.log.info("Shutting down the MasterWorkerCluster ...")
         self._worker_launcher.cleanup()
         self._master_launcher.cleanup()
         self._group.cleanup()
