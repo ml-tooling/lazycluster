@@ -400,7 +400,7 @@ class RuntimeTask(object):
             "pickle.dump(result, file); file.close();"
         )
 
-        run_cmd = 'python -c "' + run_function_code + '"'
+        run_cmd = 'python3 -c "' + run_function_code + '"'
         steps.append(self._TaskStep.create_run_command_instance(run_cmd))
         self.log.debug(
             f"Step for running the command `{run_cmd}` was added to RuntimeTask {self.name}."
@@ -1164,7 +1164,7 @@ class Runtime(object):
                 connect_timeout=2,
             )
             stdout = cxn.run(
-                "python --version",
+                "python3 --version",
                 env=self._env_variables,
                 warn=False,
                 hide=True,
