@@ -11,6 +11,7 @@
 <p align="center">
     <a href="https://github.com/ml-tooling/lazycluster/blob/master/LICENSE" title="ML Hub License"><img src="https://img.shields.io/badge/License-Apache%202.0-green.svg"></a>
     <a href="https://gitter.im/ml-tooling/lazycluster" title="Chat on Gitter"><img src="https://badges.gitter.im/ml-tooling/lazycluster.svg"></a>
+<a href="https://app.fossa.com/projects/git%2Bgithub.com%2Fml-tooling%2Flazycluster?ref=badge_shield" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2Fml-tooling%2Flazycluster.svg?type=shield"/></a>
     <a href="https://twitter.com/mltooling" title="ML Tooling on Twitter"><img src="https://img.shields.io/twitter/follow/mltooling.svg?style=social"></a>
 </p>
 
@@ -27,6 +28,9 @@
 **lazycluster** is a Python library intended to liberate data scientists and machine learning engineers by abstracting 
 away cluster management and configuration so that they are able to focus on their actual tasks. Especially, the easy 
 and convenient cluster setup with Python for various distributed machine learning frameworks is emphasized.
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fml-tooling%2Flazycluster.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fml-tooling%2Flazycluster?ref=badge_large)
 
 ## Highlights
 
