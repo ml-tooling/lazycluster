@@ -1,20 +1,22 @@
 """Runtime management module. This module contains convenient classes for working with `Runtimes` and `RuntimeTasks`."""
 
-from typing import Optional, List, Dict, Generator, Union
-from storm import Storm
-from multiprocessing import Process, Pool
-import warnings
-import logging
 import atexit
+import logging
+import warnings
 from copy import deepcopy
+from multiprocessing import Pool, Process
+from typing import Dict, Generator, List, Optional, Union
 
-from lazycluster import RuntimeTask, Runtime
-from lazycluster import _utils
+from storm import Storm
+
 from lazycluster import (
-    PortInUseError,
     InvalidRuntimeError,
     NoPortsLeftError,
     NoRuntimesDetectedError,
+    PortInUseError,
+    Runtime,
+    RuntimeTask,
+    _utils,
 )
 
 
@@ -76,7 +78,7 @@ class RuntimeGroup(object):
         working_dir: Optional[str] = None,
     ):
         """Initialization method.
-        
+
         Args:
             runtimes: List of `Runtimes`. If not given, then `hosts` must be supplied.
             hosts: List of hosts, which will be used to instantiate `Runtime` objects. If not given, then `runtimes`
@@ -102,12 +104,12 @@ class RuntimeGroup(object):
             self._runtimes = {
                 host: Runtime(host) for host in hosts
             }  # Throws InvalidRuntimeError
-        self._proc_keys = []
-        self._tasks = []
+        self._proc_keys: List[str] = []
+        self._tasks: List[RuntimeTask] = []
         # Cleanup will be done atexit since usage of destructor may lead to exceptions
         atexit.register(self.cleanup)
 
-        self.log.debug(f"RuntimeGroup initialized.")
+        self.log.debug("RuntimeGroup initialized.")
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__, self.__dict__)
@@ -124,7 +126,7 @@ class RuntimeGroup(object):
     @property
     def hosts(self) -> List[str]:
         """Contained hosts in the group.
-        
+
         Returns:
             List[str]: List with hosts of all `Runtimes`.
         """
@@ -173,7 +175,7 @@ class RuntimeGroup(object):
         Returns:
             Generator[object, None, None]: The unpickled return data.
         """
-        self.log.debug(f"Start generating function returns for RuntimeGroup.")
+        self.log.debug("Start generating function returns for RuntimeGroup.")
         for task in self._tasks:
             for return_data in task.function_returns:
                 yield return_data
@@ -204,8 +206,7 @@ class RuntimeGroup(object):
             runtime.add_env_variables(env_variables)
 
     def print_hosts(self):
-        """Print the hosts of the group.
-        """
+        """Print the hosts of the group."""
         if not self.hosts:
             print("The group is empty!")
             return
@@ -214,8 +215,7 @@ class RuntimeGroup(object):
             print(hostname)
 
     def print_runtime_info(self):
-        """Print information of contained `Runtimes`.
-        """
+        """Print information of contained `Runtimes`."""
         # Ensure that all runtime info are read asynchronously before printing.
         # Otherwise each runtime will read its information synchronously.
         self.fill_runtime_info_buffers_async()
@@ -260,7 +260,7 @@ class RuntimeGroup(object):
         self, host: Optional[str] = None, runtime: Optional[Runtime] = None
     ):
         """Add a `Runtime` to the group either by host or as a `Runtime` object.
-        
+
         Args:
             host: The host of the runtime. Defaults to None.
             runtime: The `Runtime` object to be added to the group. Defaults to None.
@@ -286,13 +286,14 @@ class RuntimeGroup(object):
         elif host:
             rt = Runtime(host)
         else:
+            assert isinstance(runtime, Runtime)
             rt = runtime
         self._runtimes[rt.host] = rt
         self.log.info(rt.host + " added as " + rt.class_name + " to the group.")
 
     def remove_runtime(self, host: str):
         """Remove a runtime from the group by host.
-        
+
         Args:
             host: The host of the `Runtime` to be removed from the group.
         """
@@ -309,11 +310,11 @@ class RuntimeGroup(object):
         runtime_port: Union[int, List[int], None] = None,
         exclude_hosts: Union[str, List[str], None] = None,
     ) -> int:
-        """ Expose a port from localhost to all Runtimes beside the excluded ones so that all traffic on the
+        """Expose a port from localhost to all Runtimes beside the excluded ones so that all traffic on the
         `runtime_port` is forwarded to the `local_port` on the local machine. This corresponds to remote
         port forwarding in ssh tunneling terms. Additionally, all relevant runtimes will be checked if the port is
         actually free.
-        
+
         Args:
             local_port: The port on the local machine.
             runtime_port: The port on the runtimes where the `local_port` shall be exposed to. May raise PortInUseError
@@ -334,33 +335,43 @@ class RuntimeGroup(object):
             f"Start exposing the local port {str(local_port)} in the RuntimeGroup."
         )
 
-        # 1. Determine a free runtime port
-        if not runtime_port or not isinstance(runtime_port, list):
-            if not runtime_port:
-                runtime_port = local_port
-            if not self.has_free_port(runtime_port):
-                raise PortInUseError(runtime_port, self)
+        selected_runtime_port = runtime_port
 
-        elif isinstance(runtime_port, list):
-            runtime_port = self.get_free_port(runtime_port)  # Raises NoPortsLeftError
+        # 1. Determine a free runtime port
+        if not selected_runtime_port or not isinstance(selected_runtime_port, list):
+            if not selected_runtime_port:
+                selected_runtime_port = local_port
+            if not isinstance(selected_runtime_port, list) and not self.has_free_port(
+                selected_runtime_port
+            ):
+                raise PortInUseError(selected_runtime_port, self)
+
+        elif isinstance(selected_runtime_port, list):
+            selected_runtime_port = self.get_free_port(
+                selected_runtime_port
+            )  # Raises NoPortsLeftError
+
+        assert isinstance(selected_runtime_port, int)
 
         # Ensure that we work with a list and not a single value
         exclude_hosts = _utils.create_list_from_parameter_value(exclude_hosts)
 
         if not self.has_free_port(
-            runtime_port, exclude_hosts=exclude_hosts + [Runtime.LOCALHOST]
+            selected_runtime_port, exclude_hosts=exclude_hosts + [Runtime.LOCALHOST]
         ):
-            raise PortInUseError(runtime_port, self)
+            raise PortInUseError(selected_runtime_port, self)
 
         for runtime in self.get_runtimes(
             exclude_hosts=exclude_hosts
         ).values():  # Raises ValueError
-            process_key = runtime.expose_port_to_runtime(local_port, runtime_port)
+            process_key = runtime.expose_port_to_runtime(
+                local_port, selected_runtime_port
+            )
             if process_key:
                 self._proc_keys.append(process_key)
 
         self.log.debug(f"Port {str(runtime_port)} used as runtime_port.")
-        return runtime_port
+        return selected_runtime_port
 
     def expose_port_from_runtime_to_group(
         self,
@@ -370,7 +381,7 @@ class RuntimeGroup(object):
     ) -> int:
         """Expose a port from a `Runtime` to all other `Runtimes` in the `RuntimeGroup` so that all traffic to the
         `group_port` is forwarded to the `runtime_port` of the runtime.
-        
+
         Args:
             host: The host of the `Runtime`.
             runtime_port: The port on the runtime.
@@ -393,20 +404,26 @@ class RuntimeGroup(object):
             f"Start exposing the port {str(runtime_port)} from Runtime {host} in the RuntimeGroup."
         )
 
-        # 1. Determine a free group port
-        if not group_port or not isinstance(group_port, list):
-            if not group_port:
-                group_port = runtime_port
-            if not self.has_free_port(group_port, exclude_hosts=[host]):
-                raise PortInUseError(group_port, self)
+        selected_group_port = group_port
 
-        elif isinstance(group_port, list):
-            group_port = self.get_free_port(group_port)
+        # 1. Determine a free group port
+        if not selected_group_port or not isinstance(selected_group_port, list):
+            if not selected_group_port:
+                selected_group_port = runtime_port
+            if not isinstance(selected_group_port, list) and not self.has_free_port(
+                selected_group_port, exclude_hosts=[host]
+            ):
+                raise PortInUseError(selected_group_port, self)
+
+        elif isinstance(selected_group_port, list):
+            selected_group_port = self.get_free_port(selected_group_port)
+
+        assert isinstance(selected_group_port, int)
 
         # 2. Determine a free port on localhost, since all traffic is tunneled over the local machine
         local_port = None
-        if _utils.localhost_has_free_port(group_port):
-            local_port = group_port
+        if _utils.localhost_has_free_port(selected_group_port):
+            local_port = selected_group_port
         else:
             # Get the first free port from the local port range
             for current_port in self._internal_port_range:
@@ -427,11 +444,13 @@ class RuntimeGroup(object):
             if runtime.host == host:
                 process_key = runtime.expose_port_from_runtime(runtime_port, local_port)
             else:
-                process_key = runtime.expose_port_to_runtime(local_port, group_port)
+                process_key = runtime.expose_port_to_runtime(
+                    local_port, selected_group_port
+                )
             if process_key:
                 self._proc_keys.append(process_key)
-        self.log.debug(f"Port {str(group_port)} used as group_port.")
-        return group_port
+        self.log.debug(f"Port {str(selected_group_port)} used as selected_group_port.")
+        return selected_group_port
 
     def execute_task(
         self,
@@ -441,14 +460,14 @@ class RuntimeGroup(object):
         execute_async: bool = True,
         omit_on_join: bool = False,
         debug: bool = False,
-    ) -> RuntimeTask or List[RuntimeTask]:
+    ) -> Union[RuntimeTask, List[RuntimeTask]]:
         """Execute a `RuntimeTask` in the whole group or in a single `Runtime`.
 
         Note:
             When broadcasting a `RuntimeTask` in the group then actually deep copies of the RuntimeTask are created (by using
             its custom __deepcopy__ implementation), since each RuntimeTask holds state related to its own execution. Thus,
             multiple `RuntimeTasks` will be returned in this case.
-        
+
         Args:
             task: The RuntimeTask to be executed.
             host: If `RuntimeTask` should be executed in one Runtime. Optionally, the host could be set in order to ensure
@@ -552,8 +571,7 @@ class RuntimeGroup(object):
         return tasks
 
     def join(self):
-        """Blocks until `RuntimeTasks` which were started via the `group.execute_task()` method terminated.
-        """
+        """Blocks until `RuntimeTasks` which were started via the `group.execute_task()` method terminated."""
         self.log.info(
             "Joining all processes executing a RuntimeTask that were started via the RuntimeGroup"
         )
@@ -561,8 +579,7 @@ class RuntimeGroup(object):
             task.join()
 
     def print_log(self):
-        """Print the execution logs of the contained `Runtimes` that were executed in the group.
-        """
+        """Print the execution logs of the contained `Runtimes` that were executed in the group."""
         for runtime in self._runtimes.values():
             print(f"Execution Log of Runtime {runtime.host}:")
             runtime.print_log()
@@ -622,7 +639,7 @@ class RuntimeGroup(object):
 
         Raises:
             ValueError: Only hosts or exclude_hosts must be provided or Hostname is
-                        not contained in the group.                     
+                        not contained in the group.
         """
         is_free = True
 
@@ -649,10 +666,9 @@ class RuntimeGroup(object):
         return True if host in self.hosts else False
 
     def clear_tasks(self):
-        """Clears all internal state related to `RuntimeTasks`.
-        """
+        """Clears all internal state related to `RuntimeTasks`."""
         self.log.info(
-            f"Clear all RuntimeTasks and kill related processes in the RuntimeGroup."
+            "Clear all RuntimeTasks and kill related processes in the RuntimeGroup."
         )
         # 1: Clean up all state on group level
         self._tasks = []
@@ -687,7 +703,7 @@ class RuntimeGroup(object):
         elif host:
             return self._runtimes[host]
         else:
-            self._get_least_busy_runtime()
+            return self._get_least_busy_runtime()
 
     def get_runtimes(
         self,
@@ -743,13 +759,12 @@ class RuntimeGroup(object):
         """Release all acquired resources and terminate all processes by calling the cleanup method on all contained
         `Runtimes`.
         """
-        self.log.info(f"Start cleanup of RuntimeGroup.")
+        self.log.info("Start cleanup of RuntimeGroup.")
         for runtime in self.get_runtimes().values():
             runtime.cleanup()
 
     def _get_least_busy_runtime(self) -> Runtime:
-        """Get the least busiest runtime in terms of alive `RuntimeTask` processes.
-        """
+        """Get the least busiest runtime in terms of alive `RuntimeTask` processes."""
         final_rt = None
 
         for runtime in self.get_runtimes().values():
@@ -757,6 +772,7 @@ class RuntimeGroup(object):
                 final_rt = runtime
             elif runtime.alive_task_process_count < final_rt.alive_task_process_count:
                 final_rt = runtime
+        assert isinstance(final_rt, Runtime)
         return final_rt
 
 
@@ -837,7 +853,7 @@ class RuntimeManager(object):
         working_dir: Optional[str] = None,
     ) -> RuntimeGroup:
         """Create a runtime group with either all detected `Runtimes` or with a subset thereof.
-        
+
         Args:
             include_hosts: Only these hosts will be included in the `RuntimeGroup`. Defaults to None, i.e. not
                            restricted.
@@ -857,12 +873,12 @@ class RuntimeManager(object):
 
         Returns:
             RuntimeGroup: The created `RuntimeGroup`.
-        
+
         Raises:
             ValueError: Only hosts or excluded_hosts must be provided or Hostname is not contained in the group.
             NoRuntimesError: If no `Runtime` matches the filter criteria or none could be detected.
         """
-        self.log.info(f"RuntimeManager starts looking for valid Runtimes.")
+        self.log.info("RuntimeManager starts looking for valid Runtimes.")
         runtimes_dict = self._group.get_runtimes(
             include_hosts, exclude_hosts
         )  # Raises ValueError
@@ -960,4 +976,3 @@ class RuntimeManager(object):
         """
         for host in self.inactive_hosts:
             print(f"{host} (inactive)")
-
