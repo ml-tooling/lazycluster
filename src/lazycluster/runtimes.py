@@ -867,7 +867,9 @@ class Runtime(object):
         # All attributes that need to be present before executing the valid Runtime check must be put here !!!!!
         self._host = host
         self._connection_kwargs = connection_kwargs
-        self._env_variables = (
+        self._env_variables: Dict[
+            str, str
+        ] = (
             {}
         )  # Will be passed on to fabric connect, so that they are available on the remote host
 
@@ -878,16 +880,18 @@ class Runtime(object):
         self._working_dir_is_temp = (
             False  # Indicates that a temp directory acts as working directory
         )
-        self._working_dir = None
+        self._working_dir: Optional[str] = None
         if working_dir:
             self.working_dir = working_dir  # raises PathCreationError
 
-        self._processes = (
+        self._processes: Dict[
+            str, Process
+        ] = (
             {}
         )  # The dict key is a generated process identifier and the value contains the process
-        self._info = {}
+        self._info: Dict[str, Union[str, List[str]]] = {}
         self._process_manager = Manager()
-        self._tasks = []
+        self._tasks: List[RuntimeTask] = []
 
         # Cleanup will be done atexit since usage of destructor may lead to exceptions
         atexit.register(self.cleanup)
@@ -914,7 +918,7 @@ class Runtime(object):
             str: The path of the working directory.
         """
         self._create_working_dir_if_not_exists()
-        return self._working_dir
+        return self._working_dir  # type: ignore
 
     @working_dir.setter
     def working_dir(self, working_dir: str):
@@ -995,6 +999,8 @@ class Runtime(object):
         """
         if not self._info:
             self._info = self._read_info()
+        if not isinstance(self._info["os"], str):
+            raise LazyclusterError("Runtime._info['os'] must be of type str")
         return self._info["os"]
 
     @property
@@ -1008,6 +1014,8 @@ class Runtime(object):
         """
         if not self._info:
             self._info = self._read_info()
+        if not isinstance(self._info["cpu_cores"], str):
+            raise LazyclusterError("Runtime._info['cpu_cores'] must be of type str")
         return int(self._info["cpu_cores"])
 
     @property
@@ -1019,6 +1027,8 @@ class Runtime(object):
         """
         if not self._info:
             self._info = self._read_info()
+        if not isinstance(self._info["memory"], str):
+            raise LazyclusterError("Runtime._info['memory'] must be of type str")
         return int(self._info["memory"])
 
     @property
@@ -1039,10 +1049,14 @@ class Runtime(object):
         """
         if not self._info:
             self._info = self._read_info()
+        if not isinstance(self._info["python_version"], str):
+            raise LazyclusterError(
+                "Runtime._info['python_version'] must be of type str"
+            )
         return self._info["python_version"]
 
     @property
-    def gpus(self) -> list:
+    def gpus(self) -> List[str]:
         """GPU information as list. Each list entry contains information for one GPU.
 
         Returns:
@@ -1050,6 +1064,8 @@ class Runtime(object):
         """
         if not self._info:
             self._info = self._read_info()
+        if not isinstance(self._info["gpus"], list):
+            raise LazyclusterError("Runtime._info['gpus'] must be of type List")
         return self._info["gpus"]
 
     @property
@@ -1104,6 +1120,9 @@ class Runtime(object):
         """
         self._env_variables = env_variables
         if self.WORKING_DIR_ENV_VAR_NAME not in self._env_variables:
+
+            assert self._working_dir, "Workind directory must not be empty here"
+
             self._env_variables.update(
                 {self.WORKING_DIR_ENV_VAR_NAME: self._working_dir}
             )
@@ -1356,7 +1375,7 @@ class Runtime(object):
 
     def execute_function(
         self,
-        function: callable,
+        function: Callable[..., Any],
         execute_async: bool = False,
         debug: bool = False,
         **func_kwargs,
@@ -1400,6 +1419,8 @@ class Runtime(object):
             self.working_dir = (
                 working_dir  # This will call the setter of self._working_dir
             )
+        if not self._working_dir:
+            raise LazyclusterError("Working Directory could not be created")
 
     def print_log(self):
         """Print the execution logs of each `RuntimeTask` that was executed in the `Runtime`."""
@@ -1830,7 +1851,7 @@ class Runtime(object):
             + self._PROCESS_KEY_DELIMITER
             + self._TASK_PROCESS_KEY_PREFIX
             + self._PROCESS_KEY_DELIMITER
-            + task.name
+            + str(task.name)
         )
 
     @classmethod
@@ -1901,7 +1922,7 @@ class Runtime(object):
             while True:
                 time.sleep(1000)
 
-    def _read_info(self) -> dict:
+    def _read_info(self) -> Dict[str, Union[str, List[str]]]:
         """Read the host machine information."""
         self.log.debug(f"Read Runtime information of Runtime {self.host}")
         return _utils.read_host_info(self.host)
