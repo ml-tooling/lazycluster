@@ -6,28 +6,29 @@ executed either standalone or by passing it over to a `Runtime` instance. Passwo
 hosts that should act as a `Runtime` to be able to conveniently manage those entities.
 
 """
+import atexit
+import logging
+import os
+import shutil
 import tempfile
 import time
+import warnings
+from multiprocessing import Manager, Process
+from typing import Any, Callable, Dict, Generator, List, Optional, Union
 
-from fabric import Connection
-from multiprocessing import Process, Manager
-from typing import Optional, List, Dict, Generator, Union
-import shutil
 import cloudpickle as pickle
-import atexit
+from fabric import Connection
+
+import lazycluster._utils as _utils
 from lazycluster import (
     InvalidRuntimeError,
     NoPortsLeftError,
+    PathCreationError,
     PortInUseError,
     TaskExecutionError,
-    PathCreationError,
 )
-import lazycluster._utils as _utils
+from lazycluster.exceptions import LazyclusterError
 from lazycluster.utils import ExecutionFileLogUtil
-
-import warnings
-import logging
-import os
 
 
 class RuntimeTask(object):
@@ -62,7 +63,7 @@ class RuntimeTask(object):
 
     def __init__(self, name: Optional[str] = None):
         """Initialization method.
-        
+
         Args:
             name: The name of the task. Defaults to None and consequently a unique identifier is generated via Python's
                   id() function.
@@ -70,29 +71,29 @@ class RuntimeTask(object):
 
         # Create the Logger
         self.log = logging.getLogger(__name__)
-        self._execution_log_file_path = None
+        self._execution_log_file_path: Optional[str] = None
 
         self.name = name
         if not self.name:
             self.name = str(id(self))
 
-        self._task_steps = []
-        self._execution_log = []
-        self._function_return_pkl_paths = (
-            []
-        )  # file paths to files with function's pickled return data
-        self._process = None
+        # todo Check if typing is a problem
+        self._task_steps: List[self._TaskStep] = []
+        self._execution_log: List[str] = []
+        # File paths to files with function's pickled return data:
+        self._function_return_pkl_paths: List[str] = []
+        self._process: Optional[Process] = None
 
-        self.omit_on_join = False
-
-        self._env_variables = {}  # will be passed on to the fabric connection
+        self.omit_on_join: bool = False
+        # Will be passed on to the fabric connection:
+        self._env_variables: Dict[str, str] = {}
 
         # Will be created if run_function is executed
-        self._temp_dir = None
+        self._temp_dir: Optional[str] = None
 
         # This indicates how many deep copies were created based on this task.
         # E.g. if this task was deep copied tiwce, then the index would be 2.
-        self._copy_index = 0
+        self._copy_index: int = 0
 
         # Cleanup will be done atexit since usage of destructor may lead to exceptions
         atexit.register(self.cleanup)
@@ -140,8 +141,7 @@ class RuntimeTask(object):
         return copied_task
 
     def cleanup(self):
-        """Remove temporary used resources, like temporary directories if created.
-        """
+        """Remove temporary used resources, like temporary directories if created."""
         self.log.debug(f"Start cleanup of task {self.name}.")
         if self._temp_dir:
             shutil.rmtree(self._temp_dir)
@@ -159,7 +159,7 @@ class RuntimeTask(object):
         return self._execution_log
 
     @property
-    def execution_log_file_path(self) -> str:
+    def execution_log_file_path(self) -> Optional[str]:
         """The execution log file path. This property is read-only and
         will be updated each time the `RuntimeTask` gets executed.
         """
@@ -168,15 +168,15 @@ class RuntimeTask(object):
     @property
     def function_returns(self) -> Generator[object, None, None]:
         """The return data produced by functions which were executed as a consequence of a `task.run_function()`
-        call.
+         call.
 
-       Internally, a function return is saved as a pickled file. This method unpickles each file one after
-       another and yields the data. Moreover, the return data will be yielded in the same order as the functions were
-       executed.
+        Internally, a function return is saved as a pickled file. This method unpickles each file one after
+        another and yields the data. Moreover, the return data will be yielded in the same order as the functions were
+        executed.
 
-        Yields:
-            Generator[object, None, None]: Generator object yielding the return data of the functions executed during
-                                           task execution.
+         Yields:
+             Generator[object, None, None]: Generator object yielding the return data of the functions executed during
+                                            task execution.
         """
         self.log.debug(
             f"Start generating function returns for RuntimeTask {self.name}."
@@ -201,15 +201,13 @@ class RuntimeTask(object):
                 yield pickle.load(file)
 
     @property
-    def process(self) -> Process:
-        """The process object in which the task were executed. None, if not yet or synchronously executed.
-        """
+    def process(self) -> Optional[Process]:
+        """The process object in which the task were executed. None, if not yet or synchronously executed."""
         return self._process
 
     @property
     def env_variables(self) -> Dict:
-        """Environment parameters used when executing a task.
-        """
+        """Environment parameters used when executing a task."""
         return self._env_variables
 
     @env_variables.setter
@@ -225,7 +223,7 @@ class RuntimeTask(object):
         self, local_path: str, remote_path: Optional[str] = None
     ) -> "RuntimeTask":
         """Create a task step for sending either a single file or a folder from localhost to another host.
-        
+
         Args:
             local_path: Path to file on local machine.
             remote_path: Path on the remote host. Defaults to the connection working directory. See
@@ -233,7 +231,7 @@ class RuntimeTask(object):
 
         Returns:
             RuntimeTask: self.
-        
+
         Raises:
             ValueError: If local_path is emtpy.
         """
@@ -280,7 +278,7 @@ class RuntimeTask(object):
         return self
 
     def run_command(self, command: str) -> "RuntimeTask":
-        """Create a task step for running a given shell command. 
+        """Create a task step for running a given shell command.
 
         Args:
             command: Shell command.
@@ -300,7 +298,9 @@ class RuntimeTask(object):
         )
         return self
 
-    def run_function(self, function: callable, **func_kwargs) -> "RuntimeTask":
+    def run_function(
+        self, function: Callable[..., Any], **func_kwargs
+    ) -> "RuntimeTask":
         """Create a task step for executing a given python function on a remote host. The function will be transferred
         to the remote host via ssh and cloudpickle. The return data can be requested via the property `function_returns`
 
@@ -314,7 +314,7 @@ class RuntimeTask(object):
 
         Returns:
             RuntimeTask: self.
-        
+
         Raises:
             ValueError: If function is empty.
         """
@@ -458,7 +458,7 @@ class RuntimeTask(object):
             directory. See the `Runtime` docs for further details.
             Moreover, beside the regular Python log or the `debug` option you can access the execution logs via
             task.`execution.log`. The log gets updated after each task step.
-        
+
         Args:
             connection: Fabric connection object managing the ssh connection to the remote host.
             debug : If `True`, stdout/stderr from the remote host will be printed to stdout. If, `False`
@@ -582,8 +582,7 @@ class RuntimeTask(object):
         )
 
     def print_log(self):
-        """Print the execution log. Each log entry will be printed separately. The log index will be prepended.
-        """
+        """Print the execution log. Each log entry will be printed separately. The log index will be prepended."""
         if not self.execution_log:
             print("The log of task " + self.name + " is empty!")
         else:
@@ -600,8 +599,7 @@ class RuntimeTask(object):
 
     @classmethod
     def _create_file_name(cls, function_name: Optional[str] = None):
-        """Creates a program unique function name.
-        """
+        """Creates a program unique function name."""
         if function_name:
             file_prefix = function_name
         else:
@@ -632,7 +630,7 @@ class RuntimeTask(object):
             result = connection.run(
                 task_step.command, warn=True, pty=True, env=self._env_variables
             )
-        else:
+        elif exec_file_log_util.file_path:
             with open(
                 exec_file_log_util.file_path, exec_file_log_util.get_write_mode()
             ) as log_file:
@@ -643,6 +641,8 @@ class RuntimeTask(object):
                     out_stream=log_file,
                     env=self._env_variables,
                 )
+        else:
+            raise LazyclusterError("ExecutionFileLogUtil.file_path is not defined")
 
         if not debug:
             self.log.debug(
@@ -657,7 +657,7 @@ class RuntimeTask(object):
                 task_step_index,
                 self,
                 connection.original_host,
-                exec_file_log_util.file_path,
+                str(exec_file_log_util.file_path),
                 result.stdout,
             )
 
@@ -680,7 +680,7 @@ class RuntimeTask(object):
             # Relative path -> in this case it will be interpreted relative to the working directory
             remote_path = os.path.join(working_dir, remote_path[2:])
             self.log.debug(
-                f"Remote path was relative path and changed to full path to the working directory."
+                "Remote path was relative path and changed to full path to the working directory."
             )
 
         # Update the path in the `_TaskStep` so that the actual used path is correctly stored
@@ -730,8 +730,7 @@ class RuntimeTask(object):
         )
 
     class _TaskStep:
-        """Represents an individual action, i.e. a `_TaskStep` within a `RuntimeTask`.
-        """
+        """Represents an individual action, i.e. a `_TaskStep` within a `RuntimeTask`."""
 
         TYPE_RUN_COMMAND = "command"
         TYPE_SEND_FILE = "send-file"
@@ -744,14 +743,15 @@ class RuntimeTask(object):
             local_path: Optional[str] = None,
             remote_path: Optional[str] = None,
             command: Optional[str] = None,
+            # TODO: Refactor so that we get rif of the typing issue
             function_steps: Optional[List["_TaskStep"]] = None,
-            function: Optional[callable] = None,
+            function: Optional[Callable[..., Any]] = None,
             func_kwargs: Optional[dict] = None,
         ):
             self.type = step_type
             # Related to send_ / get_file
-            self.local_path = local_path
-            self.remote_path = remote_path
+            self.local_path: Optional[str] = local_path
+            self.remote_path: Optional[str] = remote_path
             # Related to run_command
             self.command = command
             # Related to run_function
@@ -760,7 +760,7 @@ class RuntimeTask(object):
             self.function_steps = function_steps
 
         @classmethod
-        def create_get_file_instance(cls, remote_path: str, local_path: str):
+        def create_get_file_instance(cls, remote_path: str, local_path: Optional[str]):
             return cls(cls.TYPE_GET_FILE, local_path, remote_path)
 
         @classmethod
@@ -775,7 +775,10 @@ class RuntimeTask(object):
 
         @classmethod
         def create_run_function_instance(
-            cls, steps: list, function: callable, func_kwargs: Optional[dict] = None
+            cls,
+            steps: list,
+            function: Callable[..., Any],
+            func_kwargs: Optional[dict] = None,
         ):
             return cls(
                 cls.TYPE_RUN_FUNCTION,
@@ -801,7 +804,7 @@ class Runtime(object):
     `working_dir` then it won't be removed. Moreover, the working directory will also be set as environment variable on
     the Runtime. It is accessible via the env variable name stated in the constant `Runtime.WORKING_DIR_ENV_VAR_NAME`.
     This might be especially of interest when executing python functions remotely.
-    
+
     Note:
         [Passwordless SSH access](https://linuxize.com/post/how-to-setup-passwordless-ssh-login/) should be be setup in
         advance. Otherwise the connection kwargs of fabric must be used for setting up the ssh connection.
@@ -915,7 +918,7 @@ class Runtime(object):
 
     @working_dir.setter
     def working_dir(self, working_dir: str):
-        """ Setter of the working directory. This will also update the related env variable.
+        """Setter of the working directory. This will also update the related env variable.
 
         Note:
             The full path will be created on the remote host in case it does not exist.
@@ -1153,7 +1156,7 @@ class Runtime(object):
         self.log.debug(f"Start executing `is_valid_runtime()` on Runtime {self.host}")
 
         # Paramiko is only used by fabric and thus not needed in our project requirements
-        from paramiko.ssh_exception import SSHException, NoValidConnectionsError
+        from paramiko.ssh_exception import NoValidConnectionsError, SSHException
 
         try:
             # use a relatively high timeout to prevent errors when sshing with slow network connections
@@ -1399,14 +1402,12 @@ class Runtime(object):
             )
 
     def print_log(self):
-        """Print the execution logs of each `RuntimeTask` that was executed in the `Runtime`.
-        """
+        """Print the execution logs of each `RuntimeTask` that was executed in the `Runtime`."""
         for task in self._tasks:
             task.print_log()
 
     def clear_tasks(self):
-        """Clears all internal state related to `RuntimeTasks`.
-        """
+        """Clears all internal state related to `RuntimeTasks`."""
         self.log.info(
             f"Clear all RuntimeTasks and kill related processes on Runtime {self.host}"
         )
@@ -1422,7 +1423,7 @@ class Runtime(object):
     ) -> str:
         """Expose a port from localhost to the `Runtime` so that all traffic on the `runtime_port` is forwarded to the
         `local_port` on localhost.
-        
+
         Args:
             local_port: The port on the local machine.
             runtime_port: The port on the runtime. Defaults to `local_port`.
@@ -1499,10 +1500,10 @@ class Runtime(object):
 
     def get_process(self, key: str) -> Process:
         """Get an individual process by process key.
-        
+
         Args:
             key: The key identifying the process.
-            
+
         Returns:
             Process: The desired process.
 
@@ -1516,10 +1517,10 @@ class Runtime(object):
     def get_processes(self, only_alive: bool = False) -> Dict[str, Process]:
         """Get all managed processes or only the alive ones as dictionary with the process key as dict key. An
         individual process can be retrieved by key via `get_process()`.
-        
+
         Args:
             only_alive: True, if only alive processes shall be returned instead of all. Defaults to False.
-            
+
         Returns:
             Dict: Dictionary with process keys as dict keys and the respective processes as dict values.
 
@@ -1537,11 +1538,11 @@ class Runtime(object):
             return self._processes
 
     def stop_process(self, key: str):
-        """Stop a process by its key. 
+        """Stop a process by its key.
 
         Args:
             key: The key identifying the process.
-        
+
         Raises:
             ValueError: Unknown process key.
         """
@@ -1551,8 +1552,8 @@ class Runtime(object):
         self.log.debug(f"Process with key {key} stopped in Runtime {self.host}")
 
     def has_free_port(self, port: int) -> bool:
-        """Checks if the port is available on the runtime. 
-        
+        """Checks if the port is available on the runtime.
+
         Args:
             port: The port which will be checked.
 
@@ -1572,8 +1573,7 @@ class Runtime(object):
             return True if res.stdout else False
 
     def print_info(self):
-        """Print the Runtime info formatted as table.
-        """
+        """Print the Runtime info formatted as table."""
         info = self.info
         print(
             "\u001b[1mInformation of `"
@@ -1738,8 +1738,7 @@ class Runtime(object):
                 return False
 
     def join(self):
-        """Blocks until `RuntimeTasks` which were started via the `runtime.execute_task()` method terminated.
-        """
+        """Blocks until `RuntimeTasks` which were started via the `runtime.execute_task()` method terminated."""
         self.log.info(
             f"Joining all processes executing a RuntimeTask that were started via the Runtime {self.host}"
         )
@@ -1747,8 +1746,7 @@ class Runtime(object):
             task.join()
 
     def cleanup(self):
-        """Release all acquired resources and terminate all processes.
-        """
+        """Release all acquired resources and terminate all processes."""
         self.log.info(f"Start cleanup of Runtime {self.host}.")
         for key, process in self._processes.items():
             process.terminate()
@@ -1775,8 +1773,7 @@ class Runtime(object):
             task.cleanup()
 
     def echo(self, msg: str) -> str:
-        """Convenient method for echoing a string on the `Runtime` and returning the result.
-        """
+        """Convenient method for echoing a string on the `Runtime` and returning the result."""
         return self._fabric_connection.run(
             f"echo {msg}", env=self._env_variables, hide=True
         ).stdout
@@ -1788,7 +1785,7 @@ class Runtime(object):
     ) -> str:
         """Create a process key for processes exposing ports, i.e. keeping ssh tunnels open.
         This key will act as an identifier for internally generated processes.
-        
+
         Raises:
             ValueError: If direction has an invalid value.
         """
@@ -1841,8 +1838,7 @@ class Runtime(object):
         return "hash " + executable + ' 2>/dev/null && echo "true" || echo ""'
 
     def _has_executable_installed(self, executable_name: str) -> bool:
-        """Checks if an executable is installed on the runtime.
-        """
+        """Checks if an executable is installed on the runtime."""
         shell_cmd = self._create_executable_installed_shell_cmd(executable_name)
         return self._filter_command_checked(shell_cmd)
 
@@ -1906,7 +1902,6 @@ class Runtime(object):
                 time.sleep(1000)
 
     def _read_info(self) -> dict:
-        """Read the host machine information.
-        """
+        """Read the host machine information."""
         self.log.debug(f"Read Runtime information of Runtime {self.host}")
         return _utils.read_host_info(self.host)
