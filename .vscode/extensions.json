@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    // Collaboration
+    "eamodio.gitlens",
+    // Markdown
+    "DavidAnson.vscode-markdownlint",
+    "yzhang.markdown-all-in-one",
+    // Python Development
+    "VisualStudioExptTeam.vscodeintellicode",
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "njpwerner.autodocstring"
+  ]
+}
