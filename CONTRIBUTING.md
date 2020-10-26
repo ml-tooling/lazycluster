@@ -1,7 +1,7 @@
 <!-- markdownlint-disable MD024 -->
-# Contribute to Project Template
+# Contribute to Lazycluster
 
-Thanks for your interest in contributing to our project. This page will give you a quick overview of how things are organized and most importantly, how to get involved.
+Thanks for your interest in contributing to lazyluster. This page will give you a quick overview of how things are organized and most importantly, how to get involved.
 
 Everyone is welcome to contribute, and we value everybody's contribution. Code is thus not the only way to help the community. Answering questions, helping others, reaching out and improving the documentations are immensely valuable to the projects as well.
 
