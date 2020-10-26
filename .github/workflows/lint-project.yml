@@ -1,0 +1,31 @@
+name: lint-project
+
+on:
+  push:
+    branches-ignore: [master]
+    # Remove the line above to run when pushing to master
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    name: lint-project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          # Full git history is needed to get a proper list of changed files within `super-linter`
+          fetch-depth: 0
+      - name: lint-code-base
+        uses: github/super-linter@v3
+        env:
+          # only validate new or edited files
+          VALIDATE_ALL_CODEBASE: false
+          DEFAULT_BRANCH: main
+          FILTER_REGEX_EXCLUDE:  (.*\.vscode/.*)
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #- name: lint-python
+      #  uses: wemake-services/wemake-python-styleguide@0.14.1
+      #  with:
+      #    path: './python-lib'

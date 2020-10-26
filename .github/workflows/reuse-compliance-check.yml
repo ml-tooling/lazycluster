@@ -1,0 +1,14 @@
+name: reuse-compliance-check
+
+on:
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  reuse-check:
+    runs-on: ubuntu-latest
+    steps: 
+    - uses: actions/checkout@v2
+    - name: reuse-compliance-check
+      uses: fsfe/reuse-action@v1.1
