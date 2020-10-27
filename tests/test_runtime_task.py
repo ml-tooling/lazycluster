@@ -9,7 +9,7 @@ class TestRuntimeTask:
     def test_task_creation(self):
         task = RuntimeTask(TASK_NAME)
         assert task.name == TASK_NAME
-        assert task._execution_log_file_path == None
+        assert task._execution_log_file_path is None
         assert task._task_steps == []
         assert task._execution_log == []
         assert len(task._task_steps) == 0
