@@ -1,0 +1,27 @@
+name: "Run Lazycluster Build Container"
+description: "Execute the build logic for Lazycluster"
+inputs:
+  version:
+    description: "The build version"
+    required: false
+
+  make:
+    description: "Execute the build logic"
+    required: false
+
+  test:
+    description: "Execute tests"
+    required: false
+
+  force:
+    description: "Execute tests"
+    required: false
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  args:
+    - ${{ inputs.version }}
+    - ${{ inputs.make }}
+    - ${{ inputs.test }}
+    - ${{ inputs.force }}
