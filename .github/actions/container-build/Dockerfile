@@ -17,8 +17,16 @@ ENV LC_ALL="en_US.UTF-8" \
     TZ="Europe/Berlin" \
     DEBIAN_FRONTEND="noninteractive"
 
+# Install Python
+RUN \
+    apt-get update && apt-get install -y python3 python3-pip curl software-properties-common && \
+    ln -s /usr/bin/python3 /usr/bin/python && \
+    ln -s /usr/bin/pip3 /usr/bin/pip
+
+
 # Install Docker in Container
-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
+RUN \
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
     add-apt-repository \
     "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
     $(lsb_release -cs) \
@@ -26,15 +34,12 @@ RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
     apt-get update -y && \
     apt-get install -y docker-ce=5:19.03.13~3-0~ubuntu-focal
 
-# Install Python
-RUN \
-    apt-get update && apt-get install -y python3 python3-pip curl software-properties-common && \
-    ln -s /usr/bin/python3 /usr/bin/python && \
-    ln -s /usr/bin/pip3 /usr/bin/pip
+RUN \ 
+    pip install pytest
 
 # Install Universal-Build
-RUN \
-    pip install --upgrade git+https://github.com/ml-tooling/universal-build.git
+# RUN \
+#     pip install -e git+https://github.com/ml-tooling/universal-build.git
 
 
 COPY entrypoint.sh /entrypoint.sh

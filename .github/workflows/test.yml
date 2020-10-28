@@ -1,0 +1,18 @@
+on: workflow_dispatch
+name: "Test Lazycluster"
+jobs:
+  test-lazycluster:
+    runs-on: ubuntu-latest
+    env:
+      REF_TAG: ${{ github.ref }}
+    steps:
+      - uses: actions/checkout@master
+      - name: Create network
+        run: docker network create lab-core || true
+      - uses: ./.github/actions/container-build
+        with:
+          github-token: GITHUB_TOKEN ${{ secrets.GITHUB_TOKEN }}
+          version: --version=0.0.0
+          test: --test
+      - name: Remove network
+        run: docker network rm lab-core || true

@@ -1,100 +1,75 @@
-import os, sys
-import subprocess
-import argparse
+import os
+import sys
+from shutil import rmtree
+from typing import Dict, Union
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--name', help='python package name', default="lazycluster")
-parser.add_argument('--version', help='version of build (MAJOR.MINOR.PATCH-TAG)')
-parser.add_argument('--notests', help="deactivate integration tests", action='store_true')
-parser.add_argument('--deploy', help='deploy python package to pip', action='store_true')
+import pytest
+from universal_build import build_utils
 
-args, unknown = parser.parse_known_args()
-if unknown:
-    print("Unknown arguments " + str(unknown))
+DOCKER_NETWORK_NAME = "lazy-test-net"
+TEST_DIRECTORY_PATH = "./tests"
 
-
-# Wrapper to print out command
-def call(command):
-    print("Executing: " + command)
-    return subprocess.call(command, shell=True)
+PIP_INSTALL_LIB_CMD = "pip install --upgrade ."
 
 
-def update_version_file(version: str):
-    # Update version in __version__ to provided version
-    version_list = version.split('.')
+def main(args: Dict[str, Union[bool, str]]):
 
-    if len(version_list) != 3:
-        print("Version must be provides in the format --version=MAJOR.MINOR.PATCH-TAG")
-        sys.exit()
+    if args[build_utils.FLAG_MAKE]:
+        exit_code = _make()
+        if exit_code != 0:
+            build_utils.exit_process(exit_code)
 
-    version_str = "VERSION = ({major}, {minor}, {patch})  # must be the first line because of build.py \n" \
-        .format(major=version_list[0], minor=version_list[1], patch=version_list[2])
-
-    # Read lines of file
-    f = open("__version__.py", "r")
-    lines = f.readlines()
-    f.close()
-    # and remove it
-    os.remove("__version__.py")
-    # Create a new file and create new first line and append the rest again
-    f = open("__version__.py", "w+")
-    f.write(version_str)
-    for line in lines:
-        f.write(line + '\n')
-    f.close()
+    if args[build_utils.FLAG_TEST]:
+        exit_code = _test()
+        if exit_code != 0:
+            build_utils.exit_process(exit_code)
 
 
-# Get version
-if args.deploy and not args.version:
-    print("Please provide a version for deployment (--version=MAJOR.MINOR.PATCH-TAG)")
-    sys.exit()
-elif args.deploy:
-    # for deployment, use version as it is provided
-    args.version = str(args.version)
+def _test() -> int:
+    exit_code = build_utils.run(PIP_INSTALL_LIB_CMD).returncode
+    print(build_utils.run(PIP_INSTALL_LIB_CMD).stdout)
+    return (
+        exit_code if exit_code != 0 else int(pytest.main(["-x", TEST_DIRECTORY_PATH]))
+    )
 
-if args.version:
-    update_version_file(str(args.version))
 
-# Install develop version of packages
-call("pip uninstall -y lazycluster")
-call("pip install --ignore-installed --no-cache -U -e .")
+def _make() -> int:
+    try:
+        rmtree(os.path.join(os.path.abspath(os.path.dirname(__file__)), "dist"))
+    except OSError:
+        pass
+    pass
+    return build_utils.run(
+        f"{sys.executable} setup.py sdist bdist_wheel --universal"
+    ).returncode
 
-# Update documentation
-from lazycluster import generate_docs as gd
-generator = gd.MarkdownAPIGenerator('/lazycluster', 'https://github.com/ml-tooling/lazycluster.git')
-import lazycluster.runtimes
-markdown_str = generator.module2md(lazycluster.runtimes)
-gd.to_md_file(markdown_str, './docs/runtimes')
 
-import lazycluster.runtime_mgmt
-markdown_str = generator.module2md(lazycluster.runtime_mgmt)
-gd.to_md_file(markdown_str, './docs/runtime_mgmt')
+if __name__ == "__main__":
+    args = build_utils.get_sanitized_arguments()
 
-import lazycluster.exceptions
-markdown_str = generator.module2md(lazycluster.exceptions)
-gd.to_md_file(markdown_str, './docs/exceptions')
-
-import lazycluster.cluster.runtime_cluster
-markdown_str = generator.module2md(lazycluster.cluster.runtime_cluster)
-gd.to_md_file(markdown_str, './docs/cluster.runtime_cluster')
-
-import lazycluster.cluster.dask_cluster
-markdown_str = generator.module2md(lazycluster.cluster.dask_cluster)
-gd.to_md_file(markdown_str, './docs/cluster.dask_cluster')
-
-import lazycluster.cluster.hyperopt_cluster
-markdown_str = generator.module2md(lazycluster.cluster.hyperopt_cluster)
-gd.to_md_file(markdown_str, './docs/cluster.hyperopt_cluster')
-
-import lazycluster.cluster.exceptions
-markdown_str = generator.module2md(lazycluster.cluster.exceptions)
-gd.to_md_file(markdown_str, './docs/cluster.exceptions')
-
-import lazycluster.utils
-markdown_str = generator.module2md(lazycluster.utils)
-gd.to_md_file(markdown_str, './docs/utils')
-
-if args.deploy:
-    call("python3 -m pip install --user --upgrade setuptools wheel twine")
-    # Deploy to PyPi
-    call("python3 ./setup.py deploy")
+    if args[build_utils.FLAG_DOCKER]:
+        # Set the containerized flag to False because the container
+        # uses the same build.py as the entry point and would otherwise launch another builder container etc.
+        args[build_utils.FLAG_DOCKER] = False
+        container_build_name = "lazycluster-container-build"
+        build_utils.run(f"docker build -t {container_build_name} ./build")
+        build_utils.run("docker network create lab-core")
+        build_utils.run(
+            f"docker run \
+            -v {os.getcwd()}:/resources:cached \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            --network {DOCKER_NETWORK_NAME} \
+            {container_build_name}"
+            + build_utils.concat_command_line_arguments(args)
+        )
+    else:
+        if args[build_utils.FLAG_RELEASE]:
+            # Run main without release to see whether everthing can be built and all tests run through
+            arguments = dict(args)
+            arguments[build_utils.FLAG_RELEASE] = False
+            main(arguments)
+            # Run main again without building and testing the components again
+            arguments = {**arguments, "make": False, "test": False, "force": True}
+            main(arguments)
+        else:
+            main(args)
