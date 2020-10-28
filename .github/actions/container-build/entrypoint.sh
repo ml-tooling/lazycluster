@@ -4,7 +4,7 @@ printenv
 if [ -n "$GITHUB_TOKEN" ]; then
     echo "Github Token supplied"
     # Can be moved to the Dockerfile as soon as GitHub actions support passing build-args. See this discussion: https://github.community/t/feature-request-build-args-support-in-docker-container-actions/16846/9
-    pip install git+https://${GITHUB_TOKEN}@github.com/mltooling/universal-build.git
+    pip install git+https://${GITHUB_TOKEN}@github.com/ml-tooling/universal-build.git
 
     # Use the github token to authenticate the git interaction (see this Stackoverflow answer: https://stackoverflow.com/a/57229018/5379273)
     git config --global url."https://api:$GITHUB_TOKEN@github.com/".insteadOf "https://github.com/"
