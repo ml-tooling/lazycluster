@@ -9,15 +9,14 @@ from typing import Dict, Generator, List, Optional, Union
 
 from storm import Storm
 
-from lazycluster import (
+from lazycluster import _utils
+from lazycluster.exceptions import (
     InvalidRuntimeError,
     NoPortsLeftError,
     NoRuntimesDetectedError,
     PortInUseError,
-    Runtime,
-    RuntimeTask,
-    _utils,
 )
+from lazycluster.runtimes import Runtime, RuntimeTask
 
 
 class RuntimeGroup(object):
