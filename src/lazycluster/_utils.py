@@ -1,12 +1,13 @@
-from typing import List, Union
-
 import os
-import sys
 import platform
-import subprocess
 import socket
+import subprocess
+import sys
+from typing import Dict, List, Union
+
 import lazycluster.settings as settings
-from lazycluster.utils import Environment
+
+from .utils import Environment
 
 
 def get_remaining_ports(ports: List[int], last_used_port: int) -> List[int]:
@@ -113,15 +114,17 @@ def get_pip_install_cmd() -> str:
         return "pip install -q --upgrade " + settings.PIP_PROJECT_NAME
 
 
-def read_host_info(host: str) -> dict:
-    """ Read information of a remote host.
+def read_host_info(host: str) -> Dict[str, Union[str, List[str]]]:
+    """Read information of a remote host.
 
     Args:
         host: The host from which the info will be read.
     """
-    from lazycluster import RuntimeTask
-    from fabric import Connection
     import json
+
+    from fabric import Connection
+
+    from lazycluster import RuntimeTask
 
     task = RuntimeTask("get-host-info")
     task.run_command(get_pip_install_cmd())
@@ -145,7 +148,7 @@ def _get_cpu_count_on_localhost() -> float:
         import psutil
 
         cpu_count = psutil.cpu_count()
-    except:
+    except:  # noqa: E722
         # psutil is probably not installed
         cpu_count = os.cpu_count()
 
@@ -160,7 +163,7 @@ def _get_cpu_count_on_localhost() -> float:
             )
             if 0 < cpu_quota < cpu_count:
                 cpu_count = cpu_quota
-    except:
+    except:  # noqa: E722
         # Do nothing
         pass
 
@@ -179,7 +182,7 @@ def _get_memory_on_localhost() -> int:
                 if mem_limit and 0 < int(mem_limit) < int(memory):
                     # if mem limit from cgroup bigger than total memory -> use total memory
                     memory = int(mem_limit)
-    except:
+    except:  # noqa: E722
         # Do nothing
         pass
 
@@ -223,9 +226,9 @@ def _get_gpu_info_for_localhost() -> list:
                 if key == "Product Name":
                     count_gpu += 1
                     gpus.append(val)
-            except:
+            except:  # noqa: E722
                 continue
-    except:
+    except:  # noqa: E722
         gpus = []
 
     return gpus
