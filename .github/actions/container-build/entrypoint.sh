@@ -1,6 +1,6 @@
 #!/bin/bash
 # Pass the container run arguments to the build script
-
+printenv
 if [ -n "$GITHUB_TOKEN" ]; then
     echo "Github Token supplied"
     # Can be moved to the Dockerfile as soon as GitHub actions support passing build-args. See this discussion: https://github.community/t/feature-request-build-args-support-in-docker-container-actions/16846/9
