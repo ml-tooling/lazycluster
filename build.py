@@ -14,20 +14,19 @@ PIP_INSTALL_LIB_CMD = "pip install --upgrade ."
 
 def main(args: Dict[str, Union[bool, str]]):
 
-    if args[build_utils.FLAG_MAKE]:
-        exit_code = _make()
+    if args[build_utils.FLAG_TEST]:
+        exit_code = _test()
         if exit_code != 0:
             build_utils.exit_process(exit_code)
 
-    if args[build_utils.FLAG_TEST]:
-        exit_code = _test()
+    if args[build_utils.FLAG_MAKE]:
+        exit_code = _make()
         if exit_code != 0:
             build_utils.exit_process(exit_code)
 
 
 def _test() -> int:
     exit_code = build_utils.run(PIP_INSTALL_LIB_CMD).returncode
-    print(build_utils.run(PIP_INSTALL_LIB_CMD).stdout)
     return (
         exit_code if exit_code != 0 else int(pytest.main(["-x", TEST_DIRECTORY_PATH]))
     )
