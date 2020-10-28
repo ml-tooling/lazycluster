@@ -5,14 +5,14 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REF_TAG: ${{ github.ref }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@master
       - name: Create network
-        run: docker network create lab-core || true
+        run: docker network create lazy-net || true
       - uses: ./.github/actions/container-build
         with:
-          github-token: GITHUB_TOKEN ${{ secrets.GITHUB_TOKEN }}
           version: --version=0.0.0
           test: --test
       - name: Remove network
-        run: docker network rm lab-core || true
+        run: docker network rm lazy-net || true
