@@ -1,11 +1,10 @@
+import logging
 import os
 import time
-import logging
 
 
 class ExecutionFileLogUtil(object):
-    """Generic class used to write log files.
-    """
+    """Generic class used to write log files."""
 
     def __init__(self, runtime_host, taskname):
         """Initialization method.
@@ -41,8 +40,7 @@ class ExecutionFileLogUtil(object):
 
     @property
     def directory_path(self) -> str:
-        """Get the full path to the directory where this logfile gets written to.
-        """
+        """Get the full path to the directory where this logfile gets written to."""
         path = os.path.join(self._main_dir, f"{self.runtime_host}")
 
         if not os.path.exists(path):
@@ -56,8 +54,7 @@ class ExecutionFileLogUtil(object):
 
 
 class Environment(object):
-    """This class contains environment variables.
-    """
+    """This class contains environment variables."""
 
     main_directory = os.path.abspath("./lazycluster")
 
@@ -104,22 +101,20 @@ class Environment(object):
 
     @classmethod
     def use_lazycluster_dev_version(cls):
-        """This methods makes sure that the latest lazycluster developement version will be installed on the Runtimes. 
-        This means the latest commit in the develop branch will be installed on the Runtimes. 
+        """This methods makes sure that the latest lazycluster developement version will be installed on the Runtimes.
+        This means the latest commit in the develop branch will be installed on the Runtimes.
 
         Note:
-            Please make sure that you install the same version on the manager as well. 
+            Please make sure that you install the same version on the manager as well.
         """
         cls.use_dev_version = True
 
 
 class Timestamp(object):
-    """Custom Timestamp class with convenient methods.
-    """
+    """Custom Timestamp class with convenient methods."""
 
     def __init__(self):
-        """ Initializes the object with the current date/time.
-        """
+        """Initializes the object with the current date/time."""
         self._seconds_since_epoch = time.time()
 
         # Convert seconds since epoch to struct_time
@@ -155,11 +150,9 @@ class Timestamp(object):
         )
 
     def get_unformatted(self) -> str:
-        """Fixed length representation w/o delimiters in format: yyyymmddhhmmss.
-        """
+        """Fixed length representation w/o delimiters in format: yyyymmddhhmmss."""
         return self.year + self.month + self.day + self.hour + self.min + self.sec
 
     def get_formatted(self) -> str:
-        """Formatted fixed length representation with delimiters in format: yyyy-mm-dd hh:mm:ss.
-        """
+        """Formatted fixed length representation with delimiters in format: yyyy-mm-dd hh:mm:ss."""
         return f"{self.year}-{self.month}-{self.day} {self.hour}:{self.min}:{self.sec}"
