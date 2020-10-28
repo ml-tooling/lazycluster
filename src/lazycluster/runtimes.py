@@ -19,15 +19,15 @@ from typing import Any, Callable, Dict, Generator, List, Optional, Union
 import cloudpickle as pickle
 from fabric import Connection
 
-import lazycluster._utils as _utils
-from lazycluster import (
+from lazycluster import _utils
+from lazycluster.exceptions import (
     InvalidRuntimeError,
+    LazyclusterError,
     NoPortsLeftError,
     PathCreationError,
     PortInUseError,
     TaskExecutionError,
 )
-from lazycluster.exceptions import LazyclusterError
 from lazycluster.utils import ExecutionFileLogUtil
 
 
