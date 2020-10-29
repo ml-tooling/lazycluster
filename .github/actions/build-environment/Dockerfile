@@ -38,13 +38,12 @@ RUN \
     ln -s /usr/bin/python3 /usr/bin/python && \
     ln -s /usr/bin/pip3 /usr/bin/pip
 
-# Install Universal-Build
+# Install further python libs
 RUN \
-    pip install --upgrade git+https://github.com/ml-tooling/universal-build.git
-
-# Install 
-RUN \
-    pip install pytest
+    pip install --upgrade git+https://github.com/ml-tooling/universal-build.git \
+    pip install pytest \
+    pip install --upgrade twine \
+    pip install --upgrade wheel
 
 
 COPY entrypoint.sh /entrypoint.sh

@@ -8,8 +8,11 @@ inputs:
   working_directory:
     description: "Working directory from where the build command is run."
     required: false
-  pypi_password:
+  pypi_token:
     description: "Personal access token for PyPI account."
+    required: false
+  pypi_test_token:
+    description: "Personal access token for TestPyPI account."
     required: false
   container_registry_url:
     description: "URL used for container registry login."
@@ -20,9 +23,7 @@ inputs:
   container_registry_password:
     description: "Password used for container registry login."
     required: false
-  github_token:
-    description: "Personal access token for Github account."
-    required: false
+
 runs:
   using: "docker"
   image: "Dockerfile"
