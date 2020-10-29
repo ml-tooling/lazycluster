@@ -24,6 +24,11 @@ def main(args: Dict[str, Union[bool, str]]):
         if exit_code != 0:
             build_utils.exit_process(exit_code)
 
+    if args[build_utils.FLAG_RELEASE]:
+        exit_code = _release()
+        if exit_code != 0:
+            build_utils.exit_process(exit_code)
+
 
 def _test() -> int:
     exit_code = build_utils.run(PIP_INSTALL_LIB_CMD).returncode
@@ -33,14 +38,19 @@ def _test() -> int:
 
 
 def _make() -> int:
+    # Ensure there are no old builds
     try:
         rmtree(os.path.join(os.path.abspath(os.path.dirname(__file__)), "dist"))
     except OSError:
         pass
     pass
     return build_utils.run(
-        f"{sys.executable} setup.py sdist bdist_wheel --universal"
+        f"{sys.executable} setup.py sdist bdist_wheel clean --all"
     ).returncode
+
+
+def _release() -> int:
+    pass
 
 
 if __name__ == "__main__":
