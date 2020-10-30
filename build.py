@@ -15,10 +15,10 @@ ABOUT_FILE_PATH = "src/lazycluster/about.py"
 PYPI_USERNAME = "__token__"
 BUILD_DIST_ARCHIVES_CMD = f"{sys.executable} setup.py sdist bdist_wheel clean --all"
 UPLOAD_TO_TEST_PYPI_CMD = "twine upload --repository testpypi dist/*"
-UPLOAD_TO_PYPI_CMD = UPLOAD_TO_TEST_PYPI_CMD  # Todo: change to "twine upload dist/*"
+UPLOAD_TO_PYPI_CMD = "twine upload dist/*"
 
 FLAG_PYPI_TEST_TOKEN = "pypi_test_token"
-FLAG_PYPI_TOKEN = FLAG_PYPI_TEST_TOKEN  # Todo: Change to "pypi_token"
+FLAG_PYPI_TOKEN = "pypi_token"
 
 
 def main(args: Dict[str, Union[bool, str]]):
@@ -41,7 +41,6 @@ def main(args: Dict[str, Union[bool, str]]):
 
     if args[build_utils.FLAG_RELEASE]:
         assert isinstance(version, str)
-        assert build_utils.F
         exit_code = _release(
             version, str(args[FLAG_PYPI_TOKEN]), str(args[FLAG_PYPI_TEST_TOKEN])
         )
@@ -94,10 +93,10 @@ def _make() -> int:
 
 
 def _release(
-    version: str, pypi_token: str, testpypi_token: Optional[str] = None
+    version: str, pypi_token: Optional[str] = None, testpypi_token: Optional[str] = None
 ) -> int:
     if testpypi_token:
-        # First, publish on TestPyPi
+        # Publish on Test-PyPi
         upload_cmd = f"{UPLOAD_TO_TEST_PYPI_CMD} -u {PYPI_USERNAME} -p {testpypi_token}"
         exit_code = build_utils.run(upload_cmd).returncode
         if exit_code != 0:
@@ -108,9 +107,18 @@ def _release(
         if exit_code != 0:
             return exit_code
 
-    # Finally publish on pypi
-    exit_code = build_utils.run("twine upload dist/* ").returncode
-    return exit_code
+        if not pypi_token:
+            return 0
+
+    if pypi_token:
+        # Finally publish on pypi
+        exit_code = build_utils.run("twine upload dist/* ").returncode
+        return exit_code
+
+    build_utils.log(
+        "Release not possible - neither --pypi-token nor --pypi-test-token provied"
+    )
+    return 1
 
 
 def _get_test_pypi_install_cmd(version: str):
@@ -129,7 +137,6 @@ if __name__ == "__main__":
     )
 
     args = build_utils.get_sanitized_arguments(argument_parser=parser)
-    print(args)
 
     if args[build_utils.FLAG_RELEASE]:
         # Run main without release to see whether everthing can be built and all tests run through
