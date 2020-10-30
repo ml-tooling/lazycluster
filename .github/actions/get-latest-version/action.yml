@@ -1,0 +1,21 @@
+name: "get-latest-version"
+description: "Get the the latest version from git tags."
+author: "ML Tooling <team@mltooling.org>"
+
+inputs:
+  current_commit_only:
+    description: "Only retrieve version for current commit."
+    default: "false"
+    required: false
+
+outputs:
+  latest_version:
+    description: The latest version based on the .
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
+
+branding:
+  icon: "tag"
+  color: "blue"
