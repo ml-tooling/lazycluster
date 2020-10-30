@@ -6,21 +6,21 @@ on:
       build_args:
         description: "Arguments passed to build script."
         required: false
-      working_directory:
-        description: "Working directory from where the build command is run."
-        required: false
+  # Todo: on push
 
 env:
   BUILD_ARGS: ${{ secrets.BUILD_ARGS }}
-  WORKING_DIRECTORY: ${{ secrets.WORKING_DIRECTORY }}
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - name: set-input-build-args
+        if: ${{ github.event.inputs != null  &&  github.event.inputs.build_args != null}}
+        run: echo "::set-env name=BUILD_ARGS::${{ github.event.inputs.build_args }}"
       - uses: actions/checkout@v2
       - name: run-build-scripts
         uses: ./.github/actions/build-environment
         with:
-          build_args: --test --version=0.0.0
+          build_args: ${{ env.BUILD_ARGS }}
           working_directory: ${{ env.WORKING_DIRECTORY }}
