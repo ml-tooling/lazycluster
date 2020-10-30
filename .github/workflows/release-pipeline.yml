@@ -11,18 +11,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: get-latest-version
+      - name: "Get the latest version"
+        id: get-latest-version
         uses: ./.github/actions/get-latest-version
         with:
           current_commit_only: true
-      - name: run-tests
+      - name: "Execute the component build"
         uses: ./.github/actions/build-environment
         with:
-          build_args: --test --version=${{ env.LATEST_VERSION }}
+          build_args: --make --force --version=${{ steps.get-latest-version.outputs.latest_version }}
+      - name: "Run static code analysis"
+        uses: ./.github/actions/build-environment
+        with:
+          build_args: --check --force --version=${{ steps.get-latest-version.outputs.latest_version }}
+      - name: "Run tests"
+        uses: ./.github/actions/build-environment
+        with:
+          build_args: --test --force --version=${{ steps.get-latest-version.outputs.latest_version }}
       - name: release-components
         uses: ./.github/actions/build-environment
         with:
-          build_args: --release --build --force --version=${{ env.LATEST_VERSION }}
-          pypi_test_token: ${{ secrets.PYPI_TEST_TOKEN }}
+          build_args: --release --force --version=${{ steps.get-latest-version.outputs.latest_version }}
           pypi_token: ${{ secrets.PYPI_TOKEN }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pypi_test_token: ${{ secrets.PYPI_TEST_TOKEN }}
