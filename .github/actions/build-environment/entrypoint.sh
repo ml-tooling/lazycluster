@@ -41,6 +41,10 @@ if [ -n "$INPUT_PYPI_TEST_TOKEN" ]; then
     ADDITIONAL_BUILD_ARGS="$ADDITIONAL_BUILD_ARGS --pypi-test-token=$INPUT_PYPI_TEST_TOKEN"
 fi
 
+if [ -n "$INPUT_BUILD_ARGS" ] && [[ $INPUT_BUILD_ARGS == *"--test"* ]]; then
+    pip install -e .
+fi
+
 printenv
 pwd
-echo "python -u build.py $INPUT_BUILD_ARGS $ADDITIONAL_BUILD_ARGS"
+python -u build.py $INPUT_BUILD_ARGS $ADDITIONAL_BUILD_ARGS

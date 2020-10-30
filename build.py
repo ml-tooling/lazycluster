@@ -12,15 +12,13 @@ TEST_DIRECTORY_PATH = "tests"
 DISTRIBUTION_DIRECTORY_PATH = "dist"
 ABOUT_FILE_PATH = "src/lazycluster/about.py"
 
-LOCAL_INSTALL_CMD = "pip install -e ."
-
 PYPI_USERNAME = "__token__"
 BUILD_DIST_ARCHIVES_CMD = f"{sys.executable} setup.py sdist bdist_wheel clean --all"
 UPLOAD_TO_TEST_PYPI_CMD = "twine upload --repository testpypi dist/*"
 UPLOAD_TO_PYPI_CMD = UPLOAD_TO_TEST_PYPI_CMD  # Todo: change to "twine upload dist/*"
 
-FLAG_PYPI_TOKEN = "pypi_token"
 FLAG_PYPI_TEST_TOKEN = "pypi_test_token"
+FLAG_PYPI_TOKEN = FLAG_PYPI_TEST_TOKEN  # Todo: Change to "pypi_token"
 
 
 def main(args: Dict[str, Union[bool, str]]):
@@ -66,10 +64,6 @@ def _update_library_version(version: str):
 
 
 def _test() -> int:
-    # Install lazycluster
-    exit_code = build_utils.run(LOCAL_INSTALL_CMD).returncode
-    if exit_code != 0:
-        return exit_code
     # Execute all tests
     exit_code = int(pytest.main(["-x", TEST_DIRECTORY_PATH]))
     return exit_code
