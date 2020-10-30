@@ -82,7 +82,7 @@ def _make() -> int:
         pass
 
     # Build the distribution archives
-    exit_code = build_utils.run(BUILD_DIST_ARCHIVES_CMD)
+    exit_code = build_utils.run(BUILD_DIST_ARCHIVES_CMD).returncode
     if exit_code != 0:
         return exit_code
 
