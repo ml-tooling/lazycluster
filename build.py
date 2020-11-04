@@ -4,10 +4,10 @@ import sys
 from shutil import rmtree
 from typing import Dict, Optional, Union
 
+import docker
 import pytest
 from universal_build import build_utils
 
-DOCKER_NETWORK_NAME = "lazy-test-net"
 TEST_DIRECTORY_PATH = "tests"
 DISTRIBUTION_DIRECTORY_PATH = "dist"
 ABOUT_FILE_PATH = "src/lazycluster/about.py"
@@ -63,9 +63,40 @@ def _update_library_version(version: str):
 
 
 def _test() -> int:
-    # Execute all tests
-    exit_code = int(pytest.main(["-x", TEST_DIRECTORY_PATH]))
-    return exit_code
+    # Execute all unit tests
+    exit_code = int(pytest.main(["-x", os.path.join(TEST_DIRECTORY_PATH, "unit")]))
+    _integration_test()
+    return 0
+
+
+def _integration_test() -> int:
+    docker_client = docker.from_env()
+
+    # Todo: Handle directory
+    # ! Note: When using act the CWD is /github/workspace but the mount takes place on the host system where the folder does not exist
+    # ? Does copying the sources in the container solve the problem
+
+    result = docker_client.containers.run(
+        "mltooling/ml-workspace-minimal:0.9.1",
+        name="lazy-runtime-manager",
+        volumes={
+            # os.getcwd(): {"bind": "/src/", "mode": "rw"},/Users/jan/Projects/lazycluster-ml-tooling
+            "/Users/jan/Projects/lazycluster-ml-tooling": {
+                "bind": "/src/",
+                "mode": "rw",
+            },
+            "/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"},
+        },
+        entrypoint=[
+            "/bin/bash",
+            os.path.join("/src/", TEST_DIRECTORY_PATH, "integration/entrypoint.sh"),
+        ],
+        remove=True,
+    )
+
+    print(result)
+
+    return 0
 
 
 def _make() -> int:
