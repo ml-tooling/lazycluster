@@ -2,10 +2,11 @@ import argparse
 import os
 import sys
 from shutil import rmtree
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Tuple, Union
 
 import docker
 import pytest
+from docker.client import DockerClient
 from universal_build import build_utils
 
 TEST_DIRECTORY_PATH = "tests"
@@ -64,39 +65,63 @@ def _update_library_version(version: str):
 
 def _test() -> int:
     # Execute all unit tests
-    exit_code = int(pytest.main(["-x", os.path.join(TEST_DIRECTORY_PATH, "unit")]))
-    _integration_test()
-    return 0
+    unit_test_exit_code = int(
+        pytest.main(["-x", os.path.join(TEST_DIRECTORY_PATH, "unit")])
+    )
+    return unit_test_exit_code if unit_test_exit_code != 0 else _integration_test()
 
 
 def _integration_test() -> int:
+    # Todo: Set return code
+
     docker_client = docker.from_env()
 
-    # Todo: Handle directory
-    # ! Note: When using act the CWD is /github/workspace but the mount takes place on the host system where the folder does not exist
-    # ? Does copying the sources in the container solve the problem
+    source_path, dest_path = _get_repo_mount_paths(docker_client)
 
-    result = docker_client.containers.run(
+    container = docker_client.containers.run(
         "mltooling/ml-workspace-minimal:0.9.1",
         name="lazy-runtime-manager",
         volumes={
-            # os.getcwd(): {"bind": "/src/", "mode": "rw"},/Users/jan/Projects/lazycluster-ml-tooling
-            "/Users/jan/Projects/lazycluster-ml-tooling": {
-                "bind": "/src/",
-                "mode": "rw",
-            },
+            source_path: {"bind": dest_path, "mode": "rw"},
             "/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"},
         },
         entrypoint=[
             "/bin/bash",
-            os.path.join("/src/", TEST_DIRECTORY_PATH, "integration/entrypoint.sh"),
+            os.path.join(
+                "/github/workspace", TEST_DIRECTORY_PATH, "integration/entrypoint.sh"
+            ),
         ],
-        remove=True,
+        detach=True,
     )
+    for output in container.logs(stream=True):
+        build_utils.log(str(output))
 
-    print(result)
+    result = container.wait()
+    container.remove()
+    return result["StatusCode"]
 
-    return 0
+
+def _get_repo_mount_paths(client: DockerClient) -> Tuple[str, str]:
+    """Get the src (mount path or docker volume name) and the destination path
+    dependent on the actual execution environment (e.g. Act, Github Actions, local).
+
+    Returns:
+        Tuple[str, str]: Source /  Destination
+    """
+    # Try to get the docker container id of the current host
+    completed_proc = build_utils.run("cat /proc/1/cpuset", disable_stdout_logging=True)
+    if completed_proc.returncode != 0:
+        # => Not in container
+        return (os.getcwd(), "/github/workspace")
+    container_id = os.path.basename(completed_proc.stdout.rstrip("\n"))
+    print("Container ID" + str(container_id))
+    try:
+        # Todo: Handle github and other containers
+        # Act uses names the container in the same way as the volume
+        client.containers.get(container_id)
+        return ("act-test-pipeline-test", "/github")
+    except docker.errors.NotFound:
+        return (os.getcwd(), "/github/workspace")
 
 
 def _make() -> int:

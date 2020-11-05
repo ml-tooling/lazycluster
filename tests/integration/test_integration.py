@@ -8,7 +8,6 @@ import docker
 import pexpect
 import requests
 from docker.client import DockerClient
-from universal_build import build_utils
 
 from .config import (
     DOCKER_NETWORK_NAME,
@@ -136,6 +135,7 @@ def _setup_ssh_connection_to_runtime(runtime_name: str):
     child.expect("Do you want to add this connection as mountable SFTP storage .*")
     child.sendline("no")
     child.close()
+    _remove_file_if_exists(setup_script_path)
 
 
 def _wait_until_started(workspace_name, workspace_port):
@@ -172,6 +172,6 @@ class TestRuntime:
                 stdout=PIPE,
                 stderr=PIPE,
             )
-            assert completed_process.stderr == b""
+            assert completed_process.stderr == b"", "The stderr is not emtpy"
             stdout = completed_process.stdout.decode("UTF-8").replace("\n", "")
-            assert stdout == runtime_name
+            assert stdout == runtime_name, "Stdout is not equal to the runtime_name"

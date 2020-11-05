@@ -43,7 +43,8 @@ RUN \
     pip install --upgrade git+https://github.com/ml-tooling/universal-build.git \
     pip install pytest \
     pip install --upgrade twine \
-    pip install --upgrade wheel
+    pip install --upgrade wheel \
+    pip install docker
 
 
 COPY entrypoint.sh /entrypoint.sh

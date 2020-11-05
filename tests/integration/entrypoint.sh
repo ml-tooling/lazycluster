@@ -1,11 +1,13 @@
 #!/bin/bash
 
-pip install -e .
+ cd /github/workspace
 
-pip install pytest
+ pip install -e .
 
-pip install docker
+ pip install pytest
 
-pip install pexpect
+ pip install docker
 
-pytest -s /src/tests/integration/
+ pip install pexpect
+
+ pytest -s ./tests/integration/
