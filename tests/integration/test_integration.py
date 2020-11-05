@@ -81,10 +81,6 @@ def _get_current_container_id() -> str:
         stderr=PIPE,
         encoding="UTF-8",
     ).stdout.rstrip("\n")
-    return build_utils.run(
-        "awk -F/ '{ print $NF }' /proc/1/cpuset",
-        exit_on_error=True,
-    ).stdout.rstrip("\n")
 
 
 def _start_runtime_container(name: str, network_name: str, client: DockerClient):
