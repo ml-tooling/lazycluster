@@ -75,6 +75,8 @@ def _integration_test() -> int:
 
     source_path, dest_path = _get_repo_mount_paths()
 
+    print(f"source: {source_path} - dest: {dest_path}")
+
     container = docker_client.containers.run(
         "mltooling/ml-workspace-minimal:0.9.1",
         name="lazy-runtime-manager",
@@ -107,11 +109,19 @@ def _get_repo_mount_paths() -> Tuple[str, str]:
     """
     # Try to get the docker container id of the current host
     container_mount = os.getenv("INPUT_CONTAINER_MOUNT")
-    return (
-        (os.getcwd(), "/github/workspace")
-        if not container_mount
-        else (container_mount, "/github")
-    )
+
+    # When running locally wihtout container
+    if not container_mount:
+        return (os.getcwd(), "/workspace/github")
+
+    # When running in act
+    if container_mount.startswith("/"):
+        return (container_mount, "/github/workspace")
+
+    # When running in a container using a named volume which contains
+    # the git repo (e.g. on Github Actions)
+    else:
+        return (container_mount, "/github")
 
 
 def _make() -> int:
