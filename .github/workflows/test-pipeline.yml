@@ -1,15 +1,9 @@
 name: test-pipeline
 
-on:
-  workflow_dispatch:
-    inputs:
-      build_args:
-        description: "Arguments passed to build script."
-        required: false
-  # Todo: on push
+on: [workflow_dispatch, push, pull_request]
 
 env:
-  BUILD_ARGS: ${{ secrets.BUILD_ARGS }}
+  BUILD_ARGS: "--test"
 
 jobs:
   test:
@@ -23,4 +17,3 @@ jobs:
         uses: ./.github/actions/build-environment
         with:
           build_args: ${{ env.BUILD_ARGS }}
-          working_directory: ${{ env.WORKING_DIRECTORY }}
