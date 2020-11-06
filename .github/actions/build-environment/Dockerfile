@@ -76,6 +76,7 @@ RUN apt-get update \
         black==20.8b1 \
         pydocstyle==5.* \
         isort==5.* \
+        docker==4.* \
     # Clean up
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -102,8 +103,6 @@ RUN pip install \
 # Install Universal-Build
 # hadolint ignore=DL3013
 RUN pip install git+https://github.com/ml-tooling/universal-build.git
-
-RUN pip install docker
 
 COPY entrypoint.sh /entrypoint.sh
 
