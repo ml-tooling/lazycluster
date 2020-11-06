@@ -11,8 +11,8 @@ inputs:
   pypi_token:
     description: "Personal access token for PyPI account."
     required: false
-  pypi_test_token:
-    description: "Personal access token for TestPyPI account."
+  pypi_repository:
+    description: "PyPI repository for publishing artifacts."
     required: false
   container_registry_url:
     description: "URL used for container registry login."
