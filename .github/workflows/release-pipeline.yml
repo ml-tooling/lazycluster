@@ -1,30 +1,26 @@
-name: "Release Pipeline"
-on:
-  workflow_dispatch:
-  # Todo: Restrict
-  push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+$"
+name: release-pipeline
+
+on: [workflow_dispatch]
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: "Get the latest version"
+      - name: get-latest-version
         id: get-latest-version
         uses: ./.github/actions/get-latest-version
         with:
           current_commit_only: true
-      - name: "Execute the component build"
+      - name: run-component-builds
         uses: ./.github/actions/build-environment
         with:
           build_args: --make --force --version=${{ steps.get-latest-version.outputs.latest_version }}
-      - name: "Run static code analysis"
+      - name: run-linting-and-style-checks
         uses: ./.github/actions/build-environment
         with:
           build_args: --check --force --version=${{ steps.get-latest-version.outputs.latest_version }}
-      - name: "Run tests"
+      - name: run-component-tests
         uses: ./.github/actions/build-environment
         with:
           build_args: --test --force --version=${{ steps.get-latest-version.outputs.latest_version }}
@@ -33,4 +29,21 @@ jobs:
         with:
           build_args: --release --force --version=${{ steps.get-latest-version.outputs.latest_version }}
           pypi_token: ${{ secrets.PYPI_TOKEN }}
-          pypi_test_token: ${{ secrets.PYPI_TEST_TOKEN }}
+          pypi_repository: ${{ secrets.PYPI_REPOSITORY }}
+  create-release-draft:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: get-latest-version
+        id: get-latest-version
+        uses: ./.github/actions/get-latest-version
+        with:
+          current_commit_only: false
+      - name: create-release-draft
+        uses: release-drafter/release-drafter@v5
+        with:
+          version: ${{ steps.get-latest-version.outputs.latest_version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # optional: upload release assets via actions/upload-release-asset@v1
