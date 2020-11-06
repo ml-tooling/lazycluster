@@ -2,23 +2,14 @@ import argparse
 import os
 import sys
 from shutil import rmtree
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, Tuple, Union
 
 import docker
 import pytest
 from universal_build import build_utils
 
 TEST_DIRECTORY_PATH = "tests"
-DISTRIBUTION_DIRECTORY_PATH = "dist"
 ABOUT_FILE_PATH = "src/lazycluster/about.py"
-
-PYPI_USERNAME = "__token__"
-BUILD_DIST_ARCHIVES_CMD = f"{sys.executable} setup.py sdist bdist_wheel clean --all"
-UPLOAD_TO_TEST_PYPI_CMD = "twine upload --repository testpypi dist/*"
-UPLOAD_TO_PYPI_CMD = "twine upload dist/*"
-
-FLAG_PYPI_TEST_TOKEN = "pypi_test_token"
-FLAG_PYPI_TOKEN = "pypi_token"
 
 
 def main(args: Dict[str, Union[bool, str]]):
@@ -34,6 +25,11 @@ def main(args: Dict[str, Union[bool, str]]):
         if exit_code != 0:
             build_utils.exit_process(exit_code)
 
+    if args[build_utils.FLAG_CHECK]:
+        exit_code = _check()
+        if exit_code != 0:
+            build_utils.exit_process(exit_code)
+
     if args[build_utils.FLAG_TEST]:
         exit_code = _test()
         if exit_code != 0:
@@ -42,7 +38,7 @@ def main(args: Dict[str, Union[bool, str]]):
     if args[build_utils.FLAG_RELEASE]:
         assert isinstance(version, str)
         exit_code = _release(
-            version, str(args[FLAG_PYPI_TOKEN]), str(args[FLAG_PYPI_TEST_TOKEN])
+            version, str(args["pypi_token"]), str(args["pypi_repository"])
         )
         if exit_code != 0:
             build_utils.exit_process(exit_code)
@@ -74,8 +70,6 @@ def _integration_test() -> int:
     docker_client = docker.from_env()
 
     source_path, dest_path = _get_repo_mount_paths()
-
-    print(f"source: {source_path} - dest: {dest_path}")
 
     container = docker_client.containers.run(
         "mltooling/ml-workspace-minimal:0.9.1",
@@ -126,59 +120,49 @@ def _get_repo_mount_paths() -> Tuple[str, str]:
 
 def _make() -> int:
     # Todo: Generate documentation
+    distribution_path_dir = "dist"
     # Ensure there are no old builds
     try:
         rmtree(
             os.path.join(
-                os.path.abspath(os.path.dirname(__file__)), DISTRIBUTION_DIRECTORY_PATH
+                os.path.abspath(os.path.dirname(__file__)), distribution_path_dir
             )
         )
     except OSError:
         pass
 
     # Build the distribution archives
-    exit_code = build_utils.run(BUILD_DIST_ARCHIVES_CMD).returncode
+    exit_code = build_utils.run(
+        f"{sys.executable} setup.py sdist bdist_wheel clean --all"
+    ).returncode
     if exit_code != 0:
         return exit_code
 
     # Check the archives with twine
-    exit_code = build_utils.run(
-        f"twine check {DISTRIBUTION_DIRECTORY_PATH}/*"
-    ).returncode
+    exit_code = build_utils.run(f"twine check {distribution_path_dir}/*").returncode
     return exit_code
 
 
+def _check() -> int:
+    # Todo: Implement
+    return 0
+
+
 def _release(
-    version: str, pypi_token: Optional[str] = None, testpypi_token: Optional[str] = None
+    version: str,
+    pypi_token: str,
+    pypi_repository: str = "testpypi",
 ) -> int:
-    if testpypi_token:
-        # Publish on Test-PyPi
-        upload_cmd = f"{UPLOAD_TO_TEST_PYPI_CMD} -u {PYPI_USERNAME} -p {testpypi_token}"
-        exit_code = build_utils.run(upload_cmd).returncode
-        if exit_code != 0:
-            return exit_code
+    if not pypi_token:
+        build_utils.log(
+            "Release not possible - neither --pypi-token nor --pypi-test-token provied"
+        )
+        return 1
+    pypi_token = "" if not pypi_token else f"-u __token__ -p {pypi_token}"
+    upload_cmd = f"twine upload --repository {pypi_repository} dist/* {pypi_token}"
 
-        # Check if installation from testpypi is succesful
-        exit_code = build_utils.run(_get_test_pypi_install_cmd(version)).returncode
-        if exit_code != 0:
-            return exit_code
-
-        if not pypi_token:
-            return 0
-
-    if pypi_token:
-        # Finally publish on pypi
-        exit_code = build_utils.run("twine upload dist/* ").returncode
-        return exit_code
-
-    build_utils.log(
-        "Release not possible - neither --pypi-token nor --pypi-test-token provied"
-    )
-    return 1
-
-
-def _get_test_pypi_install_cmd(version: str):
-    return f"pip install  --index-url https://test.pypi.org/simple/ lazycluster={version} --force-reinstall"
+    exit_code = build_utils.run(upload_cmd).returncode
+    return exit_code
 
 
 if __name__ == "__main__":
@@ -194,19 +178,14 @@ if __name__ == "__main__":
 
     args = build_utils.get_sanitized_arguments(argument_parser=parser)
 
-    if args[build_utils.FLAG_RELEASE]:
-        # Run main without release to see whether everthing can be built and all tests run through
-        arguments = dict(args)
-        arguments[build_utils.FLAG_RELEASE] = False
-        main(arguments)
-        # Run main with release again without building and testing the components again
-        arguments[build_utils.FLAG_RELEASE] = True
-        arguments = {
-            **arguments,
-            build_utils.FLAG_MAKE: False,
-            build_utils.FLAG_TEST: False,
-            build_utils.FLAG_FORCE: True,
-        }
-        main(arguments)
-    else:
-        main(args)
+    if __name__ == "__main__":
+        # Check for valid arguments
+        args = build_utils.get_sanitized_arguments()
+
+        if args[build_utils.FLAG_RELEASE] and not args[build_utils.FLAG_FORCE]:
+            # Run main without release to see whether everthing can be built and all tests run through
+            main({**args, "release": False})
+            # Run main again with only executing release with force flag
+            main({**args, "make": False, "test": False, "check": False, "force": True})
+        else:
+            main(args)
