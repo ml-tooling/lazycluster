@@ -2,14 +2,23 @@ name: lint-project
 
 on:
   push:
-    branches-ignore: [main]
-    # Remove the line above to run when pushing to master
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
-  lint-project:
-    name: lint-project
+  run-component-checks:
+    name: run-component-checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: run-component-checks
+        uses: ./.github/actions/build-environment
+        with:
+          build_args: --check
+  run-superlinter:
+    name: run-superlinter
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -22,10 +31,25 @@ jobs:
         env:
           # only validate new or edited files
           VALIDATE_ALL_CODEBASE: false
+          VALIDATE_DOCKERFILE: true
+          VALIDATE_DOCKERFILE_HADOLINT: true
+          VALIDATE_EDITORCONFIG: true
+          VALIDATE_HTML: true
+          VALIDATE_JAVA: true
+          VALIDATE_JSON: true
+          VALIDATE_KUBERNETES_KUBEVAL: true
+          VALIDATE_MARKDOWN: true
+          VALIDATE_OPENAPI: true
+          VALIDATE_PROTOBUF: true
+          VALIDATE_PYTHON: true
+          VALIDATE_PYTHON_BLACK: true
+          VALIDATE_PYTHON_FLAKE8: true
+          VALIDATE_PYTHON_ISORT: true
+          VALIDATE_SHELL_SHFMT: true
+          VALIDATE_XML: true
+          VALIDATE_SQL: true
+          VALIDATE_YAML: true
           DEFAULT_BRANCH: main
           FILTER_REGEX_EXCLUDE: (.*\.vscode/.*)
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #- name: lint-python
-      #  uses: wemake-services/wemake-python-styleguide@0.14.1
-      #  with:
-      #    path: './python-lib'
+          ACTIONS_RUNNER_DEBUG: false
