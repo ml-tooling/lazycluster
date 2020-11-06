@@ -53,7 +53,7 @@ def _update_library_version(version: str):
     # Update the version by overwriting the existing content
     f = open("__version__.py", "w+")
     for line in lines:
-        line = line if "__version__" not in line else f"__version__ = {version}"
+        line = line if "__version__" not in line else f'__version__ = "{version}"'
         f.write(line + "\n")
     f.close()
 
