@@ -6,7 +6,6 @@ from typing import Dict, Optional, Tuple, Union
 
 import docker
 import pytest
-from docker.client import DockerClient
 from universal_build import build_utils
 
 TEST_DIRECTORY_PATH = "tests"
@@ -72,11 +71,9 @@ def _test() -> int:
 
 
 def _integration_test() -> int:
-    # Todo: Set return code
-
     docker_client = docker.from_env()
 
-    source_path, dest_path = _get_repo_mount_paths(docker_client)
+    source_path, dest_path = _get_repo_mount_paths()
 
     container = docker_client.containers.run(
         "mltooling/ml-workspace-minimal:0.9.1",
@@ -101,7 +98,7 @@ def _integration_test() -> int:
     return result["StatusCode"]
 
 
-def _get_repo_mount_paths(client: DockerClient) -> Tuple[str, str]:
+def _get_repo_mount_paths() -> Tuple[str, str]:
     """Get the src (mount path or docker volume name) and the destination path
     dependent on the actual execution environment (e.g. Act, Github Actions, local).
 
@@ -109,19 +106,12 @@ def _get_repo_mount_paths(client: DockerClient) -> Tuple[str, str]:
         Tuple[str, str]: Source /  Destination
     """
     # Try to get the docker container id of the current host
-    completed_proc = build_utils.run("cat /proc/1/cpuset", disable_stdout_logging=True)
-    if completed_proc.returncode != 0:
-        # => Not in container
-        return (os.getcwd(), "/github/workspace")
-    container_id = os.path.basename(completed_proc.stdout.rstrip("\n"))
-    print("Container ID" + str(container_id))
-    try:
-        # Todo: Handle github and other containers
-        # Act uses names the container in the same way as the volume
-        client.containers.get(container_id)
-        return ("act-test-pipeline-test", "/github")
-    except docker.errors.NotFound:
-        return (os.getcwd(), "/github/workspace")
+    container_mount = os.getenv("INPUT_CONTAINER_MOUNT")
+    return (
+        (os.getcwd(), "/github/workspace")
+        if not container_mount
+        else (container_mount, "/github")
+    )
 
 
 def _make() -> int:
