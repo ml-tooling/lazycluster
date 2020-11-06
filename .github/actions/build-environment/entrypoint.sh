@@ -54,7 +54,7 @@ fi
 # Print command
 set -x
 
-pip install /github/workspace
+pip install -e /github/workspace
 
 # Execute build script
 python -u build.py $BUILD_ARGS
