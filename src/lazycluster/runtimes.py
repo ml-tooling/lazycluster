@@ -743,7 +743,7 @@ class RuntimeTask(object):
             local_path: Optional[str] = None,
             remote_path: Optional[str] = None,
             command: Optional[str] = None,
-            # TODO: Refactor so that we get rif of the typing issue
+            # TODO: Refactor so that we get rid of the typing issue
             function_steps: Optional[List["_TaskStep"]] = None,
             function: Optional[Callable[..., Any]] = None,
             func_kwargs: Optional[dict] = None,
