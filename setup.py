@@ -29,11 +29,42 @@ REQUIRES_PYTHON = ">=3.6"
 VERSION = None  # Only set version if you like to overwrite the version in src/_about.py
 
 # Please define the requirements within the requirements.txt
+# Please define the devlopment requirements within the requirements_dev.txt
 
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------
 # Except, perhaps the License and Trove Classifiers!
 # If you do change the License, remember to change the Trove Classifier for that!
+
+PWD = os.path.abspath(os.path.dirname(__file__))
+
+
+def load_requirements(path_dir=PWD, file_name="requirements.txt", comment_char="#"):
+    """Read requirements file and return packages and git repos separately."""
+    requirements = []
+    dependency_links = []
+    with open(os.path.join(path_dir, file_name), "r", encoding="utf-8") as file:
+        lines = [ln.strip() for ln in file.readlines()]
+    for ln in lines:
+        if not ln:
+            continue
+        if comment_char in ln:
+            ln = ln[: ln.index(comment_char)].strip()
+        if ln.startswith("git+"):
+            dependency_links.append(ln.replace("git+", ""))
+        else:
+            requirements.append(ln)
+    return requirements, dependency_links
+
+
+# Read the requirements.txt and use it for the setup.py requirements
+requirements, dependency_links = load_requirements()
+if dependency_links:
+    print(
+        "Cannot install some dependencies. "
+        "Dependency links are currently not supported: " + str(dependency_links)
+    )
+dev_requirements, _ = load_requirements(file_name="requirements_dev.txt")
 
 # Check if version is right
 if sys.version_info[:1] == 3 and sys.version_info[:2] < (3, 6):
@@ -47,10 +78,6 @@ here = os.path.abspath(os.path.dirname(__file__))
 with io.open(os.path.join(here, "README.md"), encoding="utf-8") as f:
     long_description = "\n" + f.read()
 
-# Read the requirements.txt and use it as the setup.py requirements
-with io.open(os.path.join(here, "requirements.txt"), encoding="utf-8") as f:
-    requirements = [line.rstrip() for line in f.readlines()]
-
 # Load the package's __version__.py module as a dictionary.
 about = {}  # type: dict
 if not VERSION:
@@ -58,6 +85,7 @@ if not VERSION:
         exec(f.read(), about)
 else:
     about["__version__"] = VERSION
+
 
 # Where the magic happens:
 setup(
@@ -108,6 +136,10 @@ setup(
     keywords=[
         # eg: 'keyword1', 'keyword2', 'keyword3',
     ],
-    extras_require={},
+    extras_require={
+        # extras can be installed via: pip install package[dev]
+        "dev": [dev_requirements],
+        "test": [dev_requirements],
+    },
     setup_requires=[],
 )
