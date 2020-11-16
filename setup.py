@@ -26,9 +26,7 @@ EMAIL = "team@mltooling.org"
 AUTHOR = "ML Tooling Team"
 LICENSE = "Apache License 2.0"
 REQUIRES_PYTHON = ">=3.6"
-VERSION = (
-    None  # Only set version if you like to overwrite the version in __version__.py
-)
+VERSION = None  # Only set version if you like to overwrite the version in src/_about.py
 
 # Please define the requirements within the requirements.txt
 
@@ -56,7 +54,7 @@ with io.open(os.path.join(here, "requirements.txt"), encoding="utf-8") as f:
 # Load the package's __version__.py module as a dictionary.
 about = {}  # type: dict
 if not VERSION:
-    with open(os.path.join(here, os.path.join("src", MAIN_PACKAGE), "about.py")) as f:  # type: ignore
+    with open(os.path.join(here, os.path.join("src", MAIN_PACKAGE), "_about.py")) as f:  # type: ignore
         exec(f.read(), about)
 else:
     about["__version__"] = VERSION

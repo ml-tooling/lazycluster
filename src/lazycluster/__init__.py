@@ -1,6 +1,6 @@
-from lazycluster import about
+from lazycluster import _about
 
-__version__ = about.__version__
+__version__ = _about.__version__
 
 from lazycluster.exceptions import *
 from lazycluster.runtime_mgmt import RuntimeGroup, RuntimeManager
