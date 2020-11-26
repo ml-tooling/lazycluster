@@ -1,21 +1,20 @@
 """Module for conveniently managing a Hyperopt cluster. https://github.com/hyperopt/hyperopt
 """
 
-import time
-from typing import List, Union, Optional
 import os
+import time
+from typing import List, Optional, Union
 
-from lazycluster import RuntimeTask, Runtime, RuntimeGroup
-from lazycluster.cluster import MasterWorkerCluster, MasterLauncher, WorkerLauncher
-from lazycluster import _utils
+from lazycluster import Runtime, RuntimeGroup, RuntimeTask, _utils
+from lazycluster.cluster import MasterLauncher, MasterWorkerCluster, WorkerLauncher
 from lazycluster.cluster.exceptions import MasterStartError
 from lazycluster.exceptions import PortInUseError
 from lazycluster.utils import Environment
 
 
-class LocalMongoLauncher(MasterLauncher):
-    """Concrete implementation of the `MasterLauncher` interface. See its documentation to get a list of the inherited
-    methods and attributes.
+class MongoLauncher(MasterLauncher):
+    """Abstract implementation of the `MasterLauncher` interface used to implement a concrete launch strategy for
+    mongodb instance used in hyperopt.
 
     This class implements the logic for starting a MongoDB instance on localhost. Hence, we simply treat the MongoDB
     instance as master node.
@@ -28,7 +27,16 @@ class LocalMongoLauncher(MasterLauncher):
             runtime_group: The group where the workers will be started.
         """
         super().__init__(runtime_group)
-        self.dbpath = None
+        self.dbpath: Optional[str] = None
+
+
+class LocalMongoLauncher(MongoLauncher):
+    """Concrete implementation of the `MasterLauncher` interface. See its documentation to get a list of the inherited
+    methods and attributes.
+
+    This class implements the logic for starting a MongoDB instance on localhost. Hence, we simply treat the MongoDB
+    instance as master node.
+    """
 
     def start(
         self, ports: Union[List[int], int], timeout: int = 0, debug: bool = False
@@ -61,19 +69,23 @@ class LocalMongoLauncher(MasterLauncher):
         if debug:
             self.log.debug("The debug flag has no effect in LocalMongoLauncher.")
 
-        if not isinstance(ports, list):
-            if _utils.localhost_has_free_port(ports) and self._group.has_free_port(
-                ports, exclude_hosts=Runtime.LOCALHOST
+        _ports: Union[List[int], int] = (
+            ports.copy() if isinstance(ports, list) else ports
+        )
+
+        if not isinstance(_ports, list):
+            if _utils.localhost_has_free_port(_ports) and self._group.has_free_port(
+                _ports, exclude_hosts=Runtime.LOCALHOST
             ):
-                self._port = master_port = ports
+                self._port = master_port = _ports
             else:
-                raise PortInUseError(ports, self._group)
+                raise PortInUseError(_ports, self._group)
 
         else:
             self._port = master_port = self._group.get_free_port(
-                ports
+                _ports
             )  # Raises NoPortsLeftError
-            ports = _utils.get_remaining_ports(ports, master_port)
+            _ports = _utils.get_remaining_ports(_ports, master_port)
 
         self.log.debug(
             f"Starting MongoDB on localhost on port {str(master_port)} with dbpath `{self.dbpath}` and "
@@ -105,16 +117,16 @@ class LocalMongoLauncher(MasterLauncher):
 
         # Sets up ssh tunnel for scheduler such that all communication is routed over the
         # local machine and all entities can talk to each the scheduler on localhost.
-        self.log.info(f"Expose the MongoDB port in the RuntimeGroup.")
+        self.log.info("Expose the MongoDB port in the RuntimeGroup.")
         self._group.expose_port_to_runtimes(self._port)
 
-        return ports
+        return _ports if isinstance(_ports, list) else []
 
     def get_mongod_start_cmd(self) -> str:
         """Get the shell command for starting mongod as a deamon process.
 
-            Returns:
-                str: The shell command.
+        Returns:
+            str: The shell command.
         """
         return (
             f"mongod --fork --logpath={self.dbpath}/{HyperoptCluster.MONGO_LOG_FILENAME} --dbpath={self.dbpath} "
@@ -124,14 +136,13 @@ class LocalMongoLauncher(MasterLauncher):
     def get_mongod_stop_cmd(self) -> str:
         """Get the shell command for stopping the currently running mongod process.
 
-            Returns:
-                str: The shell command.
+        Returns:
+            str: The shell command.
         """
         return f"mongod --shutdown --dbpath={self.dbpath}"
 
-    def cleanup(self):
-        """Release all resources.
-        """
+    def cleanup(self) -> None:
+        """Release all resources."""
         self.log.info("Stop the MongoDB ...")
         self.log.debug("Cleaning up the LocalMasterLauncher ...")
         return_code = os.system(self.get_mongod_stop_cmd())
@@ -192,7 +203,6 @@ class RoundRobinLauncher(WorkerLauncher):
         Returns:
             List[int]: The updated port list after starting the workers, i.e. the used ones were removed.
         """
-        self._ports = ports
         hosts = self._group.hosts
         runtimes = self._group.runtimes
 
@@ -213,13 +223,12 @@ class RoundRobinLauncher(WorkerLauncher):
 
             self._launch_single_worker(host, worker_index, master_port, debug)
 
-        return self._ports
+        return ports if isinstance(ports, list) else []
 
     def _launch_single_worker(
-        self, host: str, worker_index: int, master_port: int, debug
-    ):
-        """Launch a single worker instance in a `Runtime` in the `RuntimeGroup`.
-        """
+        self, host: str, worker_index: int, master_port: int, debug: bool
+    ) -> None:
+        """Launch a single worker instance in a `Runtime` in the `RuntimeGroup`."""
         # 2. Start the worker on this port
         task = RuntimeTask("launch-hyperopt-worker-" + str(worker_index))
         task.run_command(
@@ -232,7 +241,7 @@ class RoundRobinLauncher(WorkerLauncher):
         cls, master_port: int, dbname: str, poll_interval: float = 0.1
     ) -> str:
         """Get the shell command for starting a worker instance.
- 
+
         Returns:
              str: The launch command.
         """
@@ -241,9 +250,8 @@ class RoundRobinLauncher(WorkerLauncher):
             f"--poll-interval={str(poll_interval)}"
         )
 
-    def cleanup(self):
-        """Release all resources.
-        """
+    def cleanup(self) -> None:
+        """Release all resources."""
         self.log.info("Cleanup the RoundRobinLauncher ...")
         super().cleanup()
 
@@ -270,7 +278,7 @@ class HyperoptCluster(MasterWorkerCluster):
     def __init__(
         self,
         runtime_group: RuntimeGroup,
-        master_launcher: Optional[MasterLauncher] = None,
+        mongo_launcher: Optional[MongoLauncher] = None,
         worker_launcher: Optional[WorkerLauncher] = None,
         dbpath: Optional[str] = None,
         dbname: str = "hyperopt",
@@ -280,9 +288,9 @@ class HyperoptCluster(MasterWorkerCluster):
 
         Args:
             runtime_group: The `RuntimeGroup` contains all `Runtimes` which can be used for starting the entities.
-            master_launcher: Optionally, an instance implementing the `MasterLauncher` interface can be given, which
-                             implements the strategy for launching the master instances in the cluster. If None, then
-                             `LocalMasterLauncher` is used.
+            mongo_launcher: Optionally, an instance implementing the `MasterLauncher` interface can be given, which
+                            implements the strategy for launching the master instances in the cluster. If None, then
+                            `LocalMasterLauncher` is used.
             worker_launcher: Optionally, an instance implementing the `WorkerLauncher` interface can be given, which
                              implements the strategy for launching the worker instances. If None, then
                              `RoundRobinLauncher` is used.
@@ -297,20 +305,21 @@ class HyperoptCluster(MasterWorkerCluster):
         """
         super().__init__(runtime_group)
 
-        self._master_launcher = (
-            master_launcher if master_launcher else LocalMongoLauncher(runtime_group)
-        )
+        self._master_launcher = mongo_launcher or LocalMongoLauncher(runtime_group)
 
-        if not dbpath:
+        if dbpath:
             self._master_launcher.dbpath = os.path.join(
                 Environment.main_directory, "mongodb"
             )
+            assert self._master_launcher.dbpath
             try:
                 os.makedirs(self._master_launcher.dbpath)  # Raises PermissionError
             except FileExistsError:
-                pass  # All good because the dir already exists
+                # All good because the dir already exists
+                pass
         else:
             self._master_launcher.dbpath = dbpath
+
         self._dbname = dbname
 
         self._worker_launcher = (
@@ -356,14 +365,13 @@ class HyperoptCluster(MasterWorkerCluster):
         return f"mongo://localhost:{self.master_port}/{self.dbname}"
 
     @property
-    def dbname(self):
-        """The name of the MongoDB database to be used for experiments.
-        """
+    def dbname(self) -> str:
+        """The name of the MongoDB database to be used for experiments."""
         return self._dbname
 
     def start_master(
         self, master_port: Optional[int] = None, timeout: int = 3, debug: bool = False
-    ):
+    ) -> None:
         """Start the master instance.
 
         Note:
@@ -387,8 +395,7 @@ class HyperoptCluster(MasterWorkerCluster):
         super().start_master(master_port, timeout)
         self._group.add_env_variables({self.ENV_NAME_MONGO_URL: self.mongo_trial_url})
 
-    def cleanup(self):
-        """Release all resources.
-        """
+    def cleanup(self) -> None:
+        """Release all resources."""
         self.log.info("Shutting down the HyperoptCluster...")
         super().cleanup()
