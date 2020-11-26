@@ -27,43 +27,48 @@ class RuntimeGroup(object):
     (e.g. HyperoptCluster) implementations rely on `RuntimeGroups` for example.
 
     Examples:
-            Execute a `RuntimeTask` in a `RuntimeGroup`
-            ```python
-            # Create instances
-            group = RuntimeGroup([Runtime('host-1'), Runtime('host-2')])
-            # group = RuntimeGroup(hosts=['host-1', 'host-2'])
-            my_task = RuntimeTask('group-demo').run_command('echo Hello Group!')
+    Execute a `RuntimeTask` in a `RuntimeGroup`
 
-            # Execute a RuntimeTask in a single Runtime
-            single_task = group.execute_task(my_task)
-            print(single_task.execution_log[0])
+    ```python
+    # Create instances
+    group = RuntimeGroup([Runtime('host-1'), Runtime('host-2')])
+    # group = RuntimeGroup(hosts=['host-1', 'host-2'])
+    my_task = RuntimeTask('group-demo').run_command('echo Hello Group!')
 
-            # Execute a RuntimeTask in the whole RuntimeGroup
-            task_list = group.execute_task(my_task, broadcast=True)
+    # Execute a RuntimeTask in a single Runtime
+    single_task = group.execute_task(my_task)
+    print(single_task.execution_log[0])
 
-            # Execute a RuntimeTask on a single Runtime contained in the RuntimeGroup
-            task = group.execute_task(my_task)
-            ```
-            A DB is running on localhost on port `local_port` and the DB is only accessible
-            from localhost. But you also want to access the service on the other `Runtimes` on port
-            `runtime_port`. Then you can use this method to expose the service which is running on the
-            local machine to the remote machines.
-            ```python
-            # Expose a port to all Runtimes contained in the Runtime. If a port list is given the next free port is
-            # chosen and returned.
-            group_port = group.expose_port_to_runtimes(local_port=60000, runtime_port=list(range(60000,60010)))
-            print('Local port 60000 is now exposed to port ' + str(group_port) + ' in the RuntimeGroup!')
-            ```
-            A DB is running on a remote host on port `runtime_port` and the DB is only accessible from the remote
-            machine itself. But you also want to access the service to other `Runtimes` in the group. Then you can use
-            this method to expose the service which is running on one `Runtime` to the whole group.
-            ```python
-            # Expose a port from a Runtime to all other ones in the RuntimeGroup. If a port list is given the next
-            # free port is chosen and returned.
-            group_port = group.expose_port_from_runtime_to_group(host='host-1', runtime_port=60000,
-                                                                 group_port=list(range(60000,60010)))
-            print('Port 60000 of `host-1` is now exposed to port ' + str(group_port) + ' in the RuntimeGroup!')
-            ```
+    # Execute a RuntimeTask in the whole RuntimeGroup
+    task_list = group.execute_task(my_task, broadcast=True)
+
+    # Execute a RuntimeTask on a single Runtime contained in the RuntimeGroup
+    task = group.execute_task(my_task)
+    ```
+
+    A DB is running on localhost on port `local_port` and the DB is only accessible
+    from localhost. But you also want to access the service on the other `Runtimes` on port
+    `runtime_port`. Then you can use this method to expose the service which is running on the
+    local machine to the remote machines.
+
+    ```python
+    # Expose a port to all Runtimes contained in the Runtime. If a port list is given the next free port is
+    # chosen and returned.
+    group_port = group.expose_port_to_runtimes(local_port=60000, runtime_port=list(range(60000,60010)))
+    print('Local port 60000 is now exposed to port ' + str(group_port) + ' in the RuntimeGroup!')
+    ```
+
+    A DB is running on a remote host on port `runtime_port` and the DB is only accessible from the remote
+    machine itself. But you also want to access the service to other `Runtimes` in the group. Then you can use
+    this method to expose the service which is running on one `Runtime` to the whole group.
+
+    ```python
+    # Expose a port from a Runtime to all other ones in the RuntimeGroup. If a port list is given the next
+    # free port is chosen and returned.
+    group_port = group.expose_port_from_runtime_to_group(host='host-1', runtime_port=60000,
+                                                            group_port=list(range(60000,60010)))
+    print('Port 60000 of `host-1` is now exposed to port ' + str(group_port) + ' in the RuntimeGroup!')
+    ```
     """
 
     _INTERNAL_PORT_MIN = 5800
@@ -110,10 +115,10 @@ class RuntimeGroup(object):
 
         self.log.debug("RuntimeGroup initialized.")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "%s(%r)" % (self.__class__, self.__dict__)
 
-    def __str__(self):
+    def __str__(self) -> str:
         hosts_str = ""
         for runtime in self.runtimes:
             if not hosts_str:
@@ -179,7 +184,7 @@ class RuntimeGroup(object):
             for return_data in task.function_returns:
                 yield return_data
 
-    def set_env_variables(self, env_variables: Dict):
+    def set_env_variables(self, env_variables: Dict) -> None:
         """Set environment variables used when executing a task.
 
         Note:
@@ -191,7 +196,7 @@ class RuntimeGroup(object):
         for runtime in self._runtimes.values():
             runtime.env_variables = env_variables
 
-    def add_env_variables(self, env_variables: Dict):
+    def add_env_variables(self, env_variables: Dict) -> None:
         """Update the environment variables of all contained Runtimes. If a variable already
         exists it gets updated and if not it will be added.
 
@@ -204,7 +209,7 @@ class RuntimeGroup(object):
         for runtime in self._runtimes.values():
             runtime.add_env_variables(env_variables)
 
-    def print_hosts(self):
+    def print_hosts(self) -> None:
         """Print the hosts of the group."""
         if not self.hosts:
             print("The group is empty!")
@@ -213,7 +218,7 @@ class RuntimeGroup(object):
         for hostname in self.hosts:
             print(hostname)
 
-    def print_runtime_info(self):
+    def print_runtime_info(self) -> None:
         """Print information of contained `Runtimes`."""
         # Ensure that all runtime info are read asynchronously before printing.
         # Otherwise each runtime will read its information synchronously.
@@ -223,7 +228,7 @@ class RuntimeGroup(object):
             runtime.print_info()
             print("\n")
 
-    def fill_runtime_info_buffers_async(self):
+    def fill_runtime_info_buffers_async(self) -> None:
         """Trigger the reading of runtime information asynchronously and buffer the result.
 
         Note:
@@ -253,11 +258,15 @@ class RuntimeGroup(object):
                 index += 1
                 runtime_info = result.get()
                 self.log.debug(f'Result for host {runtime_info["host"]} retrieved')
+                if not runtime_info["host"] or not isinstance(
+                    runtime_info["host"], str
+                ):
+                    continue
                 self.get_runtime(runtime_info["host"])._info = runtime_info
 
     def add_runtime(
         self, host: Optional[str] = None, runtime: Optional[Runtime] = None
-    ):
+    ) -> None:
         """Add a `Runtime` to the group either by host or as a `Runtime` object.
 
         Args:
@@ -290,7 +299,7 @@ class RuntimeGroup(object):
         self._runtimes[rt.host] = rt
         self.log.info(rt.host + " added as " + rt.class_name + " to the group.")
 
-    def remove_runtime(self, host: str):
+    def remove_runtime(self, host: str) -> None:
         """Remove a runtime from the group by host.
 
         Args:
@@ -569,7 +578,7 @@ class RuntimeGroup(object):
 
         return tasks
 
-    def join(self):
+    def join(self) -> None:
         """Blocks until `RuntimeTasks` which were started via the `group.execute_task()` method terminated."""
         self.log.info(
             "Joining all processes executing a RuntimeTask that were started via the RuntimeGroup"
@@ -577,7 +586,7 @@ class RuntimeGroup(object):
         for task in self._tasks:
             task.join()
 
-    def print_log(self):
+    def print_log(self) -> None:
         """Print the execution logs of the contained `Runtimes` that were executed in the group."""
         for runtime in self._runtimes.values():
             print(f"Execution Log of Runtime {runtime.host}:")
@@ -664,7 +673,7 @@ class RuntimeGroup(object):
         """
         return True if host in self.hosts else False
 
-    def clear_tasks(self):
+    def clear_tasks(self) -> None:
         """Clears all internal state related to `RuntimeTasks`."""
         self.log.info(
             "Clear all RuntimeTasks and kill related processes in the RuntimeGroup."
@@ -754,7 +763,7 @@ class RuntimeGroup(object):
 
         return runtimes
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Release all acquired resources and terminate all processes by calling the cleanup method on all contained
         `Runtimes`.
         """
@@ -781,7 +790,7 @@ class RuntimeManager(object):
     automatically detected instances and possibly based on further filters such as GPU availability.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialization method.
 
         Raises:
@@ -831,10 +840,10 @@ class RuntimeManager(object):
 
         self.log.debug("RuntimeManager initialized.")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "%s(%r)" % (self.__class__, self.__dict__)
 
-    def __str__(self):
+    def __str__(self) -> str:
         runtimes_str = ""
         for runtime in self._group.runtimes:
             runtimes_str += ", " + str(runtime)
@@ -913,7 +922,7 @@ class RuntimeManager(object):
                     final_runtimes.append(runtime)
 
         else:
-            final_runtimes = runtimes_dict.values()
+            final_runtimes = list(runtimes_dict.values())
 
         if working_dir:
             for runtime in final_runtimes:
@@ -930,7 +939,7 @@ class RuntimeManager(object):
         )
         return group
 
-    def print_runtime_info(self):
+    def print_runtime_info(self) -> None:
         """Print detailed information of detected `Runtimes` and moreover the names of inactive hosts.
 
         Note:
@@ -948,7 +957,7 @@ class RuntimeManager(object):
         self.print_inactive_hosts()
         print("\n")
 
-    def print_hosts(self):
+    def print_hosts(self) -> None:
         """Print detected hosts incl. the inactive ones.
 
         Note:
@@ -966,7 +975,7 @@ class RuntimeManager(object):
         self.print_inactive_hosts()
         print("\n")
 
-    def print_inactive_hosts(self):
+    def print_inactive_hosts(self) -> None:
         """Print the inactive hosts.
 
         Note:
