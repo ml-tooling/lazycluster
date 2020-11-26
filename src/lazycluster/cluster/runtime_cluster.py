@@ -2,18 +2,17 @@
 
 Note: The design of the launcher classes follows the strategy pattern.
 """
-from typing import List, Optional, Dict, Union
-
 import atexit
 import logging
-
 from subprocess import Popen
+from typing import Dict, List, Optional, Union
+
+from lazycluster.exceptions import LazyclusterError
 from lazycluster.runtime_mgmt import RuntimeGroup
 
 
 class MasterLauncher(object):
-    """Abstract class for implementing the strategy for launching the master instance of the cluster.
-    """
+    """Abstract class for implementing the strategy for launching the master instance of the cluster."""
 
     def __init__(self, runtime_group: RuntimeGroup):
         """Initialization method.
@@ -25,26 +24,26 @@ class MasterLauncher(object):
         self.log = logging.getLogger(__name__)
 
         self._group = runtime_group
-        self._port = None  # Needs to be set in self.start()
+        self._port: Union[int, None] = None  # Needs to be set in self.start()
         self._process: Optional[Popen] = None  # Needs to be set in self.start()
 
         self.log.debug("MasterLauncher initialized.")
 
     @property
-    def port(self) -> int:
+    def port(self) -> Optional[int]:
         """The port where the master instance is started on. Will be None if not yet started.
 
         Returns:
-            int: The master port.
+            Optional[int]: The master port.
         """
         return self._port
 
     @property
-    def process(self) -> Popen:
+    def process(self) -> Optional[Popen]:
         """The process object where the master instance was started in.
 
         Returns:
-             Popen: The process object.
+             Optional[Popen]: The process object or None if not yet started.
         """
         return self._process
 
@@ -81,12 +80,11 @@ class MasterLauncher(object):
 
         raise NotImplementedError
 
-    def cleanup(self):
-        """Release all resources.
-        """
+    def cleanup(self) -> None:
+        """Release all resources."""
         self.log.debug("Cleaning up MasterLauncher ...")
         if self._process:
-            self.process.terminate()
+            self._process.terminate()
 
 
 class WorkerLauncher(object):
@@ -116,7 +114,7 @@ class WorkerLauncher(object):
 
         self.log.debug("Worker launcher initialized")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "%s(%r)" % (self.__class__, self.__dict__)
 
     @property
@@ -157,7 +155,7 @@ class WorkerLauncher(object):
 
         raise NotImplementedError
 
-    def setup_worker_ssh_tunnels(self):
+    def setup_worker_ssh_tunnels(self) -> None:
         """Set up ssh tunnel for workers such that all communication is routed over the
         local machine and all entities can talk to each other on localhost.
 
@@ -177,9 +175,8 @@ class WorkerLauncher(object):
                     host, worker_port
                 )  # Raises all errors
 
-    def cleanup(self):
-        """Release all resources.
-        """
+    def cleanup(self) -> None:
+        """Release all resources."""
         self.log.debug("Cleaning up WorkerLauncher ...")
         self.log.debug("No WorkerLauncher resources to be released")
 
@@ -192,7 +189,7 @@ class RuntimeCluster(object):
     `MasterWorkerCluster`).
     """
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "%s(%r)" % (self.__class__, self.__dict__)
 
 
@@ -264,17 +261,17 @@ class MasterWorkerCluster(RuntimeCluster):
 
         self.log.debug("MasterWorkerCluster initialized.")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return type(self).__name__ + " with " + str(self._group)
 
     @property
-    def master_port(self) -> int:
+    def master_port(self) -> Optional[int]:
         """The port where the master instance was started. None, if not yet started.
 
         Returns:
-            int: The master port.
+            Optional[int]: The master port.
         """
-        return self._master_launcher.port
+        return self._master_launcher.port if self._master_launcher else None
 
     @property
     def runtime_group(self) -> RuntimeGroup:
@@ -290,7 +287,7 @@ class MasterWorkerCluster(RuntimeCluster):
         worker_count: Optional[int] = None,
         master_port: Optional[int] = None,
         debug: bool = False,
-    ):
+    ) -> None:
         """Convenient method for launching the cluster.
 
         Internally, `self.start_master()` and `self.start_workers()` will be called.
@@ -311,7 +308,7 @@ class MasterWorkerCluster(RuntimeCluster):
 
     def start_master(
         self, master_port: Optional[int] = None, timeout: int = 3, debug: bool = False
-    ):
+    ) -> None:
         """Start the master instance.
 
         Note:
@@ -332,10 +329,13 @@ class MasterWorkerCluster(RuntimeCluster):
             NoPortsLeftError: If there are no free ports left in the port list for instantiating the master.
             MasterStartError: If master was not started after the specified `timeout`.
         """
+        if not self._master_launcher:
+            raise LazyclusterError("Master Launcher does not exist.")
+
         # 1. Determine a port or port list
         overwrite_port_list = False
         if master_port:
-            ports = master_port
+            ports: Union[int, List[int]] = master_port
         elif self._group.has_free_port(self.DEFAULT_MASTER_PORT):
             ports = self.DEFAULT_MASTER_PORT
         else:
@@ -363,7 +363,7 @@ class MasterWorkerCluster(RuntimeCluster):
 
         self.log.info(f"Master instance started on port {str(self.master_port)}.")
 
-    def start_workers(self, count: Optional[int] = None, debug: bool = False):
+    def start_workers(self, count: Optional[int] = None, debug: bool = False) -> None:
         """Start the worker instances.
 
         Note:
@@ -380,8 +380,14 @@ class MasterWorkerCluster(RuntimeCluster):
          Raises:
             NoPortsLeftError: If there are no free ports left in the port list for instantiating new worker entities.
         """
+
+        if not self._worker_launcher:
+            raise LazyclusterError("Worker launcher does not exist")
+
         if not count:
             count = self._group.runtime_count
+
+        assert self.master_port
 
         self._ports = self._worker_launcher.start(
             count, self.master_port, self._ports, debug
@@ -394,7 +400,7 @@ class MasterWorkerCluster(RuntimeCluster):
 
         self.log.info("Worker instances started.")
 
-    def print_log(self):
+    def print_log(self) -> None:
         """Print the execution log.
 
         Note:
@@ -403,10 +409,11 @@ class MasterWorkerCluster(RuntimeCluster):
         """
         self.runtime_group.print_log()
 
-    def cleanup(self):
-        """Release all resources.
-        """
+    def cleanup(self) -> None:
+        """Release all resources."""
         self.log.info("Shutting down the MasterWorkerCluster ...")
-        self._worker_launcher.cleanup()
-        self._master_launcher.cleanup()
+        if self._worker_launcher:
+            self._worker_launcher.cleanup()
+        if self._master_launcher:
+            self._master_launcher.cleanup()
         self._group.cleanup()
