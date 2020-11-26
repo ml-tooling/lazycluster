@@ -1,9 +1,6 @@
 """Exception module."""
 
-from typing import Optional
-
-import lazycluster.runtime_mgmt as runtime_mgmt
-import lazycluster.runtimes as runtimes
+from typing import Any, Optional
 
 
 class LazyclusterError(Exception):
@@ -33,7 +30,7 @@ class TaskExecutionError(LazyclusterError):
     def __init__(
         self,
         task_step_index: int,
-        task: "runtimes.RuntimeTask",
+        task: Any,  # Needs to be any due to a circular dependency
         host: str,
         execution_log_file_path: str,
         output: str,
@@ -86,8 +83,8 @@ class PortInUseError(LazyclusterError):
     def __init__(
         self,
         port: int,
-        group: Optional["runtime_mgmt.RuntimeGroup"] = None,
-        runtime: Optional["runtimes.Runtime"] = None,
+        group: Optional[Any] = None,  # Needs to be any due to a circular dependency
+        runtime: Optional[Any] = None,  # Needs to be any due to a circular dependency
     ):
         """Constructor method.
 
