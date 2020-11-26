@@ -2,37 +2,38 @@
 
 from typing import Optional
 
+import lazycluster.runtime_mgmt as runtime_mgmt
+import lazycluster.runtimes as runtimes
+
 
 class LazyclusterError(Exception):
-    """Basic exception class for `lazycluster` library errors.
-    """
+    """Basic exception class for `lazycluster` library errors."""
 
     def __init__(self, msg: str, predecessor_excp: Optional[Exception] = None):
         """Constructor method.
 
-         Args:
-             msg: The error message.
-             predecessor_excp: Optionally, a predecessor exception can be passed on.
-         """
+        Args:
+            msg: The error message.
+            predecessor_excp: Optionally, a predecessor exception can be passed on.
+        """
         self.msg = msg
         self.predecessor_excp = predecessor_excp
 
         super().__init__(str(self))
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.predecessor_excp:
             return self.msg + " Predecessor Exception: " + str(self.predecessor_excp)
         return self.msg
 
 
 class TaskExecutionError(LazyclusterError):
-    """This error relates to exceptions occured during RuntimeTask execution.
-    """
+    """This error relates to exceptions occured during RuntimeTask execution."""
 
     def __init__(
         self,
         task_step_index: int,
-        task: "RuntimeTask",
+        task: "runtimes.RuntimeTask",
         host: str,
         execution_log_file_path: str,
         output: str,
@@ -59,8 +60,7 @@ class TaskExecutionError(LazyclusterError):
 
 
 class InvalidRuntimeError(LazyclusterError):
-    """Error indicating that a `Runtime` can not be instantiated properly.
-    """
+    """Error indicating that a `Runtime` can not be instantiated properly."""
 
     def __init__(self, host: str):
         """Constructor method.
@@ -74,22 +74,20 @@ class InvalidRuntimeError(LazyclusterError):
 
 
 class NoRuntimesDetectedError(LazyclusterError):
-    """Error indicating that no `Runtime` could be detcted automatically by a `RuntimeManager` for example.
-    """
+    """Error indicating that no `Runtime` could be detcted automatically by a `RuntimeManager` for example."""
 
     def __init__(self, predecessor_excp: Optional[Exception] = None):
         super().__init__("No Runtimes automatically detected.", predecessor_excp)
 
 
 class PortInUseError(LazyclusterError):
-    """Error indicating that a port is already in use in a `RuntimeGroup` or on the local machine.
-    """
+    """Error indicating that a port is already in use in a `RuntimeGroup` or on the local machine."""
 
     def __init__(
         self,
         port: int,
-        group: Optional["RuntimeGroup"] = None,
-        runtime: Optional["Runtime"] = None,
+        group: Optional["runtime_mgmt.RuntimeGroup"] = None,
+        runtime: Optional["runtimes.Runtime"] = None,
     ):
         """Constructor method.
 
@@ -124,19 +122,16 @@ class PortInUseError(LazyclusterError):
 
 
 class NoPortsLeftError(LazyclusterError):
-    """Error indicating that there are no more ports left from the given port list.
-    """
+    """Error indicating that there are no more ports left from the given port list."""
 
-    def __init__(self):
-        """Constructor method.
-        """
+    def __init__(self) -> None:
+        """Constructor method."""
         msg = "No free port could be determined. No more ports left in port list."
         super().__init__(msg)
 
 
 class PathCreationError(LazyclusterError):
-    """Error indicating that a given path could not be created.
-    """
+    """Error indicating that a given path could not be created."""
 
     def __init__(self, path: str, host: Optional[str] = None):
         """Constructor method.
