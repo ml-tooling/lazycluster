@@ -608,6 +608,9 @@ class RuntimeGroup(object):
         Raises:
             NoPortsLeftError: If the port list is empty and no free port was found yet.
         """
+        if not ports:
+            raise NoPortsLeftError()
+
         localhost_not_in_group = (
             True if Runtime.LOCALHOST not in self._runtimes else False
         )

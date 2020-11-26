@@ -10,7 +10,7 @@ from dask.distributed import Client
 from lazycluster import Runtime, RuntimeGroup, RuntimeTask, _utils
 from lazycluster.cluster import MasterLauncher, MasterWorkerCluster, WorkerLauncher
 from lazycluster.cluster.exceptions import MasterStartError
-from lazycluster.exceptions import PortInUseError
+from lazycluster.exceptions import NoPortsLeftError, PortInUseError
 
 
 class LocalMasterLauncher(MasterLauncher):
@@ -179,6 +179,8 @@ class RoundRobinLauncher(WorkerLauncher):
         Raises:
             NoPortsLeftError
         """
+        if not self._ports:
+            raise NoPortsLeftError()
         # 1. Get a free port based on the port list
         worker_port = self._group.get_free_port(self._ports)  # Raises NoPortsLeftError
         if self._ports:
