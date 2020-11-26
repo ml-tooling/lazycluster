@@ -1,14 +1,13 @@
 import logging
-import sys
 import os
+import sys
+from typing import List, Optional
 
 import click
-
-from typing import Optional, List
 import storm.__main__ as storm
-
 from click_spinner import spinner
-from lazycluster import RuntimeManager, NoRuntimesDetectedError
+
+from lazycluster import NoRuntimesDetectedError, RuntimeManager
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +15,7 @@ log = logging.getLogger(__name__)
 @click.group()
 @click.version_option()
 @click.option("--debug/--no-debug", "-d", default=False)
-def cli(debug: bool):
+def cli(debug: bool) -> None:
     # log to sys out
     log_level = logging.DEBUG if debug else logging.CRITICAL
     logging.basicConfig(
@@ -48,7 +47,7 @@ def add_runtime(
     id_file: Optional[str] = None,
     options: List = [],
     config: Optional[str] = None,
-):
+) -> None:
     storm.add(name, connection_uri, id_file, options, config)
 
 
@@ -57,13 +56,13 @@ def add_runtime(
 @click.option(
     "--config", "-c", required=False, type=click.STRING, help="The ssh config file"
 )
-def delete_runtimes(name: str, config: Optional[str] = None):
+def delete_runtimes(name: str, config: Optional[str] = None) -> None:
     # Delete the related ssh config
     storm.delete(name, config)
 
     # Delete configured remote kernel if present
     try:
-        import remote_ikernel
+        import remote_ikernel  # noqa: F401
 
         kernel_name = "rik_ssh_" + name.replace("-", "_") + "_py36"
 
@@ -81,7 +80,7 @@ def delete_runtimes(name: str, config: Optional[str] = None):
 @click.option(
     "--long", "-l", is_flag=True, help="Print detailed information about the Runtimes"
 )
-def list_runtime(long: bool):
+def list_runtime(long: bool) -> None:
     with spinner():
 
         try:
@@ -103,7 +102,7 @@ def list_runtime(long: bool):
 
 
 @cli.command("start-dask")
-def start_dask_cluster():
+def start_dask_cluster() -> None:
     from lazycluster.cluster.dask_cluster import DaskCluster
 
     cluster = DaskCluster(RuntimeManager().create_group())

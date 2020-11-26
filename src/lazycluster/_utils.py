@@ -74,7 +74,7 @@ def get_localhost_info() -> dict:
     return info
 
 
-def print_localhost_info():
+def print_localhost_info() -> None:
     """Prints the dictionary retrieved by `get_localhost_info()`."""
     from json import dumps
 

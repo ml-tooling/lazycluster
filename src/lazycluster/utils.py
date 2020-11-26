@@ -6,7 +6,7 @@ import time
 class ExecutionFileLogUtil(object):
     """Generic class used to write log files."""
 
-    def __init__(self, runtime_host, taskname):
+    def __init__(self, runtime_host: str, taskname: str) -> None:
         """Initialization method.
 
         Note:
@@ -63,7 +63,7 @@ class Environment(object):
     use_dev_version = False
 
     @classmethod
-    def set_main_directory(cls, dir: str):
+    def set_main_directory(cls, dir: str) -> None:
         """Setter for the library's main directory on the manager.
 
         Note:
@@ -75,7 +75,7 @@ class Environment(object):
         cls.main_directory = os.path.abspath(dir)
 
     @classmethod
-    def set_third_party_log_level(cls, log_level: int):
+    def set_third_party_log_level(cls, log_level: int) -> None:
         """Setter for `third_party_log_level` to control the standard python logging behavior of used libraries.
 
         Affected libraries: paramiko
@@ -100,7 +100,7 @@ class Environment(object):
             )
 
     @classmethod
-    def use_lazycluster_dev_version(cls):
+    def use_lazycluster_dev_version(cls) -> None:
         """This methods makes sure that the latest lazycluster developement version will be installed on the Runtimes.
         This means the latest commit in the develop branch will be installed on the Runtimes.
 
@@ -113,7 +113,7 @@ class Environment(object):
 class Timestamp(object):
     """Custom Timestamp class with convenient methods."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes the object with the current date/time."""
         self._seconds_since_epoch = time.time()
 
