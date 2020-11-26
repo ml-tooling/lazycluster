@@ -1,11 +1,10 @@
-"""Module for conveniently managing a DASK cluster. http://distributed.dask.org
-"""
+"""Module for conveniently managing a [DASK](http://distributed.dask.org) cluster."""
 
 import time
 from subprocess import Popen
 from typing import List, Optional, Union
 
-from dask.distributed import Client
+from distributed import Client
 
 from lazycluster import Runtime, RuntimeGroup, RuntimeTask, _utils
 from lazycluster.cluster import MasterLauncher, MasterWorkerCluster, WorkerLauncher
@@ -14,8 +13,7 @@ from lazycluster.exceptions import NoPortsLeftError, PortInUseError
 
 
 class LocalMasterLauncher(MasterLauncher):
-    """Concrete implementation of the `MasterLauncher` interface. See its documentation to get a list of the
-    inherited methods and attributes.
+    """Concrete implementation of the `MasterLauncher` interface. See its documentation to get a list of the inherited methods and attributes.
 
     This class implements the logic for starting a the DASK master instance (i.e. scheduler in DASK terms) on localhost.
     """
@@ -98,9 +96,7 @@ class LocalMasterLauncher(MasterLauncher):
 
 
 class RoundRobinLauncher(WorkerLauncher):
-    """WorkerLauncher implementation for launching DASK workers in a round robin manner. See its documentation to get
-    a list of the inherited methods and attributes.
-    """
+    """WorkerLauncher implementation for launching DASK workers in a round robin manner. See its documentation to get a list of the inherited methods and attributes."""
 
     def __init__(self, runtime_group: RuntimeGroup):
         """Initialization method.
