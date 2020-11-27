@@ -12,7 +12,7 @@
     <a href="https://github.com/ml-tooling/lazycluster/blob/master/LICENSE" title="ML Hub License"><img src="https://img.shields.io/badge/License-Apache%202.0-green.svg"></a>
     <a href="https://gitter.im/ml-tooling/lazycluster" title="Chat on Gitter"><img src="https://badges.gitter.im/ml-tooling/lazycluster.svg"></a>
     <a href="https://twitter.com/mltooling" title="ML Tooling on Twitter"><img src="https://img.shields.io/twitter/follow/mltooling.svg?style=social"></a>
-    <a href="https://github.com/ml-tooling/lazycluster/workflows/test-pipeline" title="Lazycluster Test Pipeline"><img src="https://github.com/ml-tooling/lazycluster/workflows/test-pipeline/badge.svg"></a>
+    <a href="3" title="Lazycluster Test Pipeline"><img src="https://github.com/ml-tooling/lazycluster/workflows/build-pipeline/badge.svg"></a>
 </p>
 
 <p align="center">
