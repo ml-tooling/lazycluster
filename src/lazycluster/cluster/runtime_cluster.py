@@ -119,8 +119,7 @@ class WorkerLauncher(object):
 
     @property
     def ports_per_host(self) -> Dict[str, List[int]]:
-        """Dictionary with the host as key and a port list as value. The list contains all ports where a worker instance
-        is reachable on the respective host.
+        """Dictionary with the host as key and a port list as value. The list contains all ports where a worker instance is reachable on the respective host.
 
         Returns:
             Dict[str, List[int]]: The ports per host as a dictionary.
@@ -156,8 +155,7 @@ class WorkerLauncher(object):
         raise NotImplementedError
 
     def setup_worker_ssh_tunnels(self) -> None:
-        """Set up ssh tunnel for workers such that all communication is routed over the
-        local machine and all entities can talk to each other on localhost.
+        """Set up ssh tunnel for workers such that all communication is routed over the local machine and all entities can talk to each other on localhost.
 
         Note:
             This method needs to be called if the communication between the worker instances is necessary, e.g. in case
@@ -377,7 +375,8 @@ class MasterWorkerCluster(RuntimeCluster):
             debug: If `True`, stdout/stderr from the runtime will be printed to stdout of localhost. If, `False` then
                    the stdout/stderr will be added to python logger with level debug after each `RuntimeTask` step. Defaults to
                    `False`.
-         Raises:
+
+        Raises:
             NoPortsLeftError: If there are no free ports left in the port list for instantiating new worker entities.
         """
 

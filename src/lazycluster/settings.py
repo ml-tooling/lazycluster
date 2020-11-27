@@ -1,4 +1,4 @@
-"""Contains setting parameters for the library. """
+"""Contains setting parameters for the library."""
 
 PIP_PROJECT_NAME = "lazycluster"
 GITHUB_URL = "https://github.com/ml-tooling/lazycluster.git"

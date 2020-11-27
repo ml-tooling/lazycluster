@@ -32,15 +32,17 @@ from lazycluster.utils import ExecutionFileLogUtil
 
 
 class RuntimeTask(object):
-    """This class provides the functionality for executing a sequence of elementary operations over ssh. The [fabric](http://docs.fabfile.org/en/2.5/api/connection.html)
-    library is used for handling ssh connections. A `RuntimeTask` can be composed from four different operations which
-    we call steps, namely adding a step for running a shell command via `run_command()`, sending a file to a host via
-    `send_file()`, retrieving a file from a host via `get_file()` or adding a step for executing a python function on a
-    host via `run_function()`. The current restriction for running functions is that these functions need to be
+    """This class provides the functionality for executing a sequence of elementary operations over ssh.
+
+    The [fabric](http://docs.fabfile.org/en/2.5/api/connection.html) library is used for handling ssh connections.
+    A `RuntimeTask` can be composed from four different operations which we call steps, namely adding a step
+    for running a shell command via `run_command()`, sending a file to a host via `send_file()`, retrieving
+    a file from a host via `get_file()` or adding a step for executing a python function on a host via
+    `run_function()`. The current restriction for running functions is that these functions need to be
     serializable via cloudpickle. To actually execute a `RuntimeTask`, i.e. the sequence of task steps, either a call
     to `execute()` is necessary or a handover to the `execute_task()` method of the `Runtime` class is necessary.
-    Usually, a `RuntimeTask` or `RuntimeGroup` will be executed in a `Runtime` or in a `RuntimeGroup`. See its documentation for further
-    details.
+    Usually, a `RuntimeTask` or `RuntimeGroup` will be executed in a `Runtime` or in a `RuntimeGroup`.
+    See its documentation for further details.
 
     Examples:
     ```python
@@ -107,13 +109,15 @@ class RuntimeTask(object):
         return type(self).__name__ + ": " + str(self.name)
 
     def __deepcopy__(self, memo: Optional[dict] = None) -> "RuntimeTask":
-        """This functions implements the deep copy logic so that all relevant data is copied or recreated with similar
-        values.
+        """This functions implements the deep copy logic so that all relevant data is copied or recreated with similar values.
 
         Note:
             A custom implementation is necessary here since especially in run_function we automatically generate  pickle
             file paths. When broadcasting a task we need to copy the task since it holds state such as logs and paths.
             In order to circumvent the overwriting of such files, we need to ensure that new paths must be created.
+
+        Returns:
+            RuntimeTask: Deepcopy of the `RuntimeTask` itself.
         """
         # Increment the task index and append the index to the end of the task name
         # -> simplifies debugging
@@ -152,31 +156,36 @@ class RuntimeTask(object):
 
     @property
     def execution_log(self) -> List[str]:
-        """The execution log as list. The list is empty as long as a task was not yet executed. Each log entry
+        """The execution log as list.
+
+        The list is empty as long as a task was not yet executed. Each log entry
         corresponds to a single task step and the log index starts at `0`. If th execution of an individual step does not
         produce and outut the list entry will be empty.
+
+        Returns:
+            List[str]: List with logs of the `RuntimeTask` execution.
         """
         return self._execution_log
 
     @property
     def execution_log_file_path(self) -> Optional[str]:
-        """The execution log file path. This property is read-only and
-        will be updated each time the `RuntimeTask` gets executed.
+        """The execution log file path. This property is read-only and will be updated each time the `RuntimeTask` gets executed.
+
+        Returns:
+            Optional[str]: The path of the execution log.
         """
         return self._execution_log_file_path
 
     @property
     def function_returns(self) -> Generator[object, None, None]:
-        """The return data produced by functions which were executed as a consequence of a `task.run_function()`
-         call.
+        """The return data produced by functions which were executed as a consequence of a `task.run_function()` call.
 
         Internally, a function return is saved as a pickled file. This method unpickles each file one after
         another and yields the data. Moreover, the return data will be yielded in the same order as the functions were
         executed.
 
-         Yields:
-             Generator[object, None, None]: Generator object yielding the return data of the functions executed during
-                                            task execution.
+        Yields:
+            Generator[object, None, None]: Generator object yielding the return data of the functions executed during task execution.
         """
         self.log.debug(
             f"Start generating function returns for RuntimeTask {self.name}."
@@ -301,8 +310,10 @@ class RuntimeTask(object):
     def run_function(
         self, function: Callable[..., Any], **func_kwargs: Any
     ) -> "RuntimeTask":
-        """Create a task step for executing a given python function on a remote host. The function will be transferred
-        to the remote host via ssh and cloudpickle. The return data can be requested via the property `function_returns`
+        """Create a task step for executing a given python function on a remote host.
+
+        The function will be transferred to the remote host via ssh and cloudpickle.
+        The return data can be requested via the property `function_returns`.
 
         Note:
             Hence, the function must be serializable via cloudpickle and all dependencies must be available in its
@@ -463,6 +474,7 @@ class RuntimeTask(object):
             connection: Fabric connection object managing the ssh connection to the remote host.
             debug : If `True`, stdout/stderr from the remote host will be printed to stdout. If, `False`
                     then the stdout/stderr will be written to an execution log file. Defaults to `False`.
+
         Raises:
             ValueError: If cxn is broken and connection can not be established.
             TaskExecutionError: If an executed task step can't be executed successfully.
@@ -804,7 +816,9 @@ class RuntimeTask(object):
 
 
 class Runtime(object):
-    """A `Runtime` is the logical representation of a remote host. Typically, the host is another server or a virtual
+    """A `Runtime` is the logical representation of a remote host.
+
+    Typically, the host is another server or a virtual
     machine / container on another server. This python class provides several methods for utilizing remote resources
     such as the port exposure from / to a `Runtime` as well as the execution of `RuntimeTasks`. A `Runtime` has a
     working directory. Usually, the execution of a `RuntimeTask` is conducted relatively to this directory if no other
@@ -969,9 +983,12 @@ class Runtime(object):
 
     @property
     def function_returns(self) -> Generator[object, None, None]:
-        """The return data produced by Python functions which were executed as a consequence of
-           `task.run_function()`. The call will be passed on to the `function_returns` property of the `RuntimeTask`.
-           The order is determined by the order in which the `RuntimeTasks` were executed in the `Runtime`.
+        """Return data of remote executed functions.
+
+        The return data produced by Python functions which were executed as a consequence
+        of `task.run_function()`. The call will be passed on to the `function_returns`
+        property of the `RuntimeTask`. The order is determined by the order in which the
+        `RuntimeTasks` were executed in the `Runtime`.
 
         Yields:
             Generator[object, None, None]: Generator object yielding the return data of the functions executed during
@@ -1017,12 +1034,16 @@ class Runtime(object):
 
     @property
     def cpu_cores(self) -> int:
-        """Information about the available CPUs. If you are in a container
-        the CPU quota will be given if set. Otherwise, the number of physical CPUs
+        """Information about the available CPUs.
+
+        If you are in a container the CPU quota will be given if set. Otherwise, the number of physical CPUs
         on the host machine is given.
 
+        Raises:
+            LazyclusterError: Data could not be read succesfully.
+
         Returns:
-            str: CPU quota.
+            int: Number of CPU cores
         """
         if not self._info:
             self._info = self._read_info()
@@ -1091,7 +1112,11 @@ class Runtime(object):
 
     @property
     def class_name(self) -> str:
-        """The class name  as string. """
+        """Getter for the class name as string.
+
+        Returns:
+            str: Class name.
+        """
         return self.__class__.__name__
 
     @property
@@ -1114,7 +1139,9 @@ class Runtime(object):
 
     @property
     def env_variables(self) -> Dict[str, str]:
-        """The environment variables for the Runtime. These variables are accessible on the Runtime and can be used
+        """The environment variables for the Runtime.
+
+        These variables are accessible on the Runtime and can be used
         when executing Python functions or shell commands.
 
         Note:
@@ -1149,11 +1176,14 @@ class Runtime(object):
 
     @classmethod
     def is_runtime_task_process(cls, process_key: str) -> bool:
-        """Checks if the process which belongs to a given `process_key` was started to execute a `RuntimeTask` based on
+        """Check if the process manages the `RuntimeTask` execution.
+
+        Checks if the process which belongs to a given `process_key` was started to execute a `RuntimeTask` based on
         an internal naming scheme of the process keys.
 
         Args:
             process_key: The generated process identifier.
+
         Returns:
             bool: True, if process was started to execute a `RuntimeTask`
         """
@@ -1162,11 +1192,14 @@ class Runtime(object):
 
     @classmethod
     def is_port_exposure_process(cls, process_key: str) -> bool:
-        """Check if the process which belongs to the given `process_key` is used for exposing a port, i.e. keeping
+        """Check if the process manages a port exposure.
+
+        Check if the process which belongs to the given `process_key` is used for exposing a port, i.e. keeping
         an ssh tunnel alive.
 
         Args:
             process_key (str): The generated process identifier.
+
         Returns:
             bool: True, if process is used for port exposure.
         """
@@ -1454,7 +1487,9 @@ class Runtime(object):
     def expose_port_to_runtime(
         self, local_port: int, runtime_port: Optional[int] = None
     ) -> str:
-        """Expose a port from localhost to the `Runtime` so that all traffic on the `runtime_port` is forwarded to the
+        """Espose a port to a `Runtime`.
+
+        Expose a port from localhost to the `Runtime` so that all traffic on the `runtime_port` is forwarded to the
         `local_port` on localhost.
 
         Args:
@@ -1494,7 +1529,9 @@ class Runtime(object):
     def expose_port_from_runtime(
         self, runtime_port: int, local_port: Optional[int] = None
     ) -> str:
-        """Expose a port from a `Runtime` to localhost so that all traffic to the `local_port` is forwarded to the
+        """Expose a port from a `Runtime`.
+
+        Expose a port from a `Runtime` to localhost so that all traffic to the `local_port` is forwarded to the
         `runtime_port` of the `Runtime`. This corresponds to local port forwarding in ssh tunneling terms.
 
         Args:
@@ -1548,14 +1585,15 @@ class Runtime(object):
         return self._processes[key]
 
     def get_processes(self, only_alive: bool = False) -> Dict[str, Process]:
-        """Get all managed processes or only the alive ones as dictionary with the process key as dict key. An
-        individual process can be retrieved by key via `get_process()`.
+        """Get all managed processes or only the alive ones as dictionary with the process key as dict key.
+
+        An individual process can be retrieved by key via `get_process()`.
 
         Args:
             only_alive: True, if only alive processes shall be returned instead of all. Defaults to False.
 
         Returns:
-            Dict: Dictionary with process keys as dict keys and the respective processes as dict values.
+            Dict[str, Process]: Dictionary with process keys as dict keys and the respective processes as dict values.
 
         """
         if only_alive:
@@ -1817,10 +1855,19 @@ class Runtime(object):
         self, direction: str, local_port: int, runtime_port: int
     ) -> str:
         """Create a process key for processes exposing ports, i.e. keeping ssh tunnels open.
+
         This key will act as an identifier for internally generated processes.
+
+        Args:
+            direction (str): [description]
+            local_port (int): [description]
+            runtime_port (int): [description]
 
         Raises:
             ValueError: If direction has an invalid value.
+
+        Returns:
+            str: Generated key.
         """
         if not local_port:
             local_port = runtime_port
@@ -1855,8 +1902,16 @@ class Runtime(object):
             )
 
     def _create_process_key_for_task_execution(self, task: RuntimeTask) -> str:
-        """Create a process key for processes started to execute a `RuntimeTasks` asynchronously
+        """Generate keys used to identify subprocesses.
+
+        Create a process key for processes started to execute a `RuntimeTasks` asynchronously
         This key will act as an identifier for internally generated processes.
+
+        Args:
+            task (RuntimeTask): The task that will be scanned for processes.
+
+        Returns:
+            str: Generated key.
         """
         return (
             self.host
@@ -1911,8 +1966,14 @@ class Runtime(object):
     def _forward_local_port_to_runtime(
         self, local_port: int, runtime_port: Optional[int] = None
     ) -> None:
-        """Creates ssh connection to the runtime and creates then a ssh tunnel
+        """Setup port forwarding.
+
+        Creates ssh connection to the runtime and creates then a ssh tunnel
         from `localhost`:`local_port to `runtime`:`runtime_port`.
+
+        Args:
+            local_port (int): The local port to be forwarded.
+            runtime_port (Optional[int], optional): The target port on the `Runimte`. Defaults to None.
         """
         if not runtime_port:
             runtime_port = local_port
@@ -1924,8 +1985,14 @@ class Runtime(object):
     def _forward_runtime_port_to_local(
         self, runtime_port: int, local_port: Optional[int] = None
     ) -> None:
-        """Creates ssh connection to the runtime and then creates a ssh tunnel
+        """Setup port forwarding.
+
+        Creates ssh connection to the runtime and then creates a ssh tunnel
         from `runtime`:`runtime_port` to `localhost`:`local_port`.
+
+        Args:
+            runtime_port (int): The port on the `runtime`.
+            local_port (Optional[int], optional): The target port on localhost. Defaults to None.
         """
         if not local_port:
             local_port = runtime_port

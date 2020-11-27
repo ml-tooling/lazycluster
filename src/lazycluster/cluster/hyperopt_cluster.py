@@ -1,5 +1,4 @@
-"""Module for conveniently managing a Hyperopt cluster. https://github.com/hyperopt/hyperopt
-"""
+"""Module for conveniently managing a [Hyperopt](https://github.com/hyperopt/hyperopt) cluster."""
 
 import os
 import time
@@ -13,8 +12,7 @@ from lazycluster.utils import Environment
 
 
 class MongoLauncher(MasterLauncher):
-    """Abstract implementation of the `MasterLauncher` interface used to implement a concrete launch strategy for
-    mongodb instance used in hyperopt.
+    """Abstract implementation of the `MasterLauncher` interface used to implement a concrete launch strategy for mongodb instance used in hyperopt.
 
     This class implements the logic for starting a MongoDB instance on localhost. Hence, we simply treat the MongoDB
     instance as master node.
@@ -31,8 +29,7 @@ class MongoLauncher(MasterLauncher):
 
 
 class LocalMongoLauncher(MongoLauncher):
-    """Concrete implementation of the `MasterLauncher` interface. See its documentation to get a list of the inherited
-    methods and attributes.
+    """Concrete implementation of the `MasterLauncher` interface. See its documentation to get a list of the inherited methods and attributes.
 
     This class implements the logic for starting a MongoDB instance on localhost. Hence, we simply treat the MongoDB
     instance as master node.
@@ -154,8 +151,9 @@ class LocalMongoLauncher(MongoLauncher):
 
 
 class RoundRobinLauncher(WorkerLauncher):
-    """Concrete WorkerLauncher implementation for launching hyperopt workers in a round robin manner. See its
-    documentation to get a list of the inherited methods and attributes.
+    """Concrete WorkerLauncher implementation for launching hyperopt workers in a round robin manner.
+
+    See the `WorkerLauncher` documentation to get a list of the inherited methods and attributes.
     """
 
     def __init__(self, runtime_group: RuntimeGroup, dbname: str, poll_interval: float):

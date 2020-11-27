@@ -85,13 +85,13 @@ class PortInUseError(LazyclusterError):
         port: int,
         group: Optional[Any] = None,  # Needs to be any due to a circular dependency
         runtime: Optional[Any] = None,  # Needs to be any due to a circular dependency
-    ):
-        """Constructor method.
+    ) -> None:
+        """Constructor.
 
         Args:
-            port (int): The port in use.
-            group (Optional[RuntimeGroup]): The group object where the port is in use.
-            runtime (Optional[Runtime]: The runtime object where the port is in use.
+            port (int): [description]
+            group (Optional[Any], optional): [description]. Defaults to None.
+            runtime (Optional[Any], optional): [description]. Defaults to None.
         """
         self.port = port
         self.group = group

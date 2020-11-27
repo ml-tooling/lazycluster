@@ -17,6 +17,7 @@ def get_remaining_ports(ports: List[int], last_used_port: int) -> List[int]:
         ports (List[int]): The port list to be updated.
         last_used_port (int): The last port that was actually used. All ports up this one and including this one will
                               be removed.
+
     Returns:
         List with remaining ports
     """
@@ -32,7 +33,9 @@ def get_remaining_ports(ports: List[int], last_used_port: int) -> List[int]:
 
 
 def create_list_from_parameter_value(value: Union[object, List[object], None]) -> list:
-    """Many methods can either take a single value, a list or None as input. Usually we want to iterate all given
+    """Encapsulates a given object in a list.
+
+    Many methods can either take a single value, a list or None as input. Usually we want to iterate all given
     values. Therefore, this method ensures that a list is always returned.
 
     Args:
@@ -83,7 +86,7 @@ def print_localhost_info() -> None:
 
 
 def command_exists_on_localhost(command: str) -> bool:
-    """Check if a command exists on localhost"""
+    """Check if a command exists on localhost."""
     cmd_ext = "hash " + command + ' 2>/dev/null && echo "True" || echo ""'
     return True if os.popen(cmd_ext).read() else False
 
@@ -93,6 +96,7 @@ def localhost_has_free_port(port: int) -> bool:
 
     Args:
         port (int): The port which will be checked.
+
     Returns:
         bool: True if port is free, else False.
     """

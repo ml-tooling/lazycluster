@@ -20,11 +20,14 @@ from lazycluster.runtimes import Runtime, RuntimeTask
 
 
 class RuntimeGroup(object):
-    """A `RuntimeGroup` is the representation of logically related `Runtimes` and provides convenient methods for
-    managing those related `Runtimes`. Most methods are wrappers around their counterparts in the `Runtime` class.
-    Typical usage examples are exposing a port (i.e. a service such as a DB) in the `RuntimeGroup`, transfer files, or
-    execute  a `RuntimeTask` on the contained `Runtimes`. Additionally, all concrete RuntimeCluster
-    (e.g. HyperoptCluster) implementations rely on `RuntimeGroups` for example.
+    """A `RuntimeGroup` is the representation of logically related `Runtimes`.
+
+    The group provides convenient methods for managing those related `Runtimes`.
+    Most methods are wrappers around their counterparts in the `Runtime` class.
+    Typical usage examples are exposing a port (i.e. a service such as a DB) in
+    the `RuntimeGroup`, transfer files, or execute  a `RuntimeTask` on the contained
+    `Runtimes`. Additionally, all concrete RuntimeCluster (e.g. HyperoptCluster)
+    implementations rely on `RuntimeGroups` for example.
 
     Examples:
     Execute a `RuntimeTask` in a `RuntimeGroup`
@@ -168,8 +171,11 @@ class RuntimeGroup(object):
 
     @property
     def function_returns(self) -> Generator[object, None, None]:
-        """Function return data. Blocks thread until a `RuntimeTasks` finished executing and gives back the return data
-        of the remotely executed python functions. The data is returned in the same order as the Tasks were started.
+        """Getter for function return data from a remote function execution.
+
+        Blocks thread until a `RuntimeTasks` finished executing and gives back
+        the return data of the remotely executed python functions. The data is
+        returned in the same order as the Tasks were started.
 
         Note:
             Only function returns from `RuntimeTasks` that were started via the `RuntimeGroup` will be returned. If a
@@ -197,8 +203,9 @@ class RuntimeGroup(object):
             runtime.env_variables = env_variables
 
     def add_env_variables(self, env_variables: Dict) -> None:
-        """Update the environment variables of all contained Runtimes. If a variable already
-        exists it gets updated and if not it will be added.
+        """Update the environment variables of all contained Runtimes.
+
+        If a variable already exists it gets updated and if not it will be added.
 
         Note:
             This is a convenient wrapper and internally calls Runtime.add_env_variables().
@@ -318,10 +325,11 @@ class RuntimeGroup(object):
         runtime_port: Union[int, List[int], None] = None,
         exclude_hosts: Union[str, List[str], None] = None,
     ) -> int:
-        """Expose a port from localhost to all Runtimes beside the excluded ones so that all traffic on the
-        `runtime_port` is forwarded to the `local_port` on the local machine. This corresponds to remote
-        port forwarding in ssh tunneling terms. Additionally, all relevant runtimes will be checked if the port is
-        actually free.
+        """Expose a port from localhost to all Runtimes beside the excluded ones.
+
+        All traffic on the `runtime_port` is forwarded to the `local_port` on the local machine.
+        This corresponds to remote port forwarding in ssh tunneling terms.
+        Additionally, all relevant runtimes will be checked if the port is actually free.
 
         Args:
             local_port: The port on the local machine.
@@ -387,8 +395,9 @@ class RuntimeGroup(object):
         runtime_port: int,
         group_port: Union[int, List[int], None] = None,
     ) -> int:
-        """Expose a port from a `Runtime` to all other `Runtimes` in the `RuntimeGroup` so that all traffic to the
-        `group_port` is forwarded to the `runtime_port` of the runtime.
+        """Expose a port from a `Runtime` to all other `Runtimes` in the `RuntimeGroup`.
+
+        All traffic to the `group_port` is forwarded to the `runtime_port` of the runtime.
 
         Args:
             host: The host of the `Runtime`.
@@ -637,8 +646,9 @@ class RuntimeGroup(object):
     def has_free_port(
         self, port: int, exclude_hosts: Union[List[str], str, None] = None
     ) -> bool:
-        """Check if a given port is free on `Runtimes` contained in the group. The check can be restricted to a
-        specific subset of contained `Runtimes` by excluding some hosts.
+        """Check if a given port is free on `Runtimes` contained in the group.
+
+        The check can be restricted to a specific subset of contained `Runtimes` by excluding some hosts.
 
         Args:
             port: The port to be checked in the group.
@@ -693,8 +703,9 @@ class RuntimeGroup(object):
             runtime.clear_tasks()
 
     def get_runtime(self, host: Optional[str] = None) -> Runtime:
-        """Returns a runtime identified by the `host` or 'the least busy one' will be returned if not host is given,
-        i.e. the one with the fewest alive processes executing a `RuntimeTask`.
+        """Get a contained `Runtime`.
+
+        A runtime identified by the `host` or 'the least busy one' will be returned if not host is given, i.e. the one with the fewest alive processes executing a `RuntimeTask`.
 
         Note:
             The current behavior of the 'least busy runtime' is intended to be changed to a smarter approach as soon as
@@ -728,6 +739,7 @@ class RuntimeGroup(object):
                                                                  returned. Defaults to None, i.e. not restricted.
             exclude_hosts: If supplied, all `Runtimes` beside the here specified ones will be returned. Defaults to an
                            empty list, i.e. not restricted.
+
         Raises:
             ValueError: If include_hosts and exclude_hosts is provided or if a host from `include_host` is not contained
                         in the group.
@@ -767,9 +779,7 @@ class RuntimeGroup(object):
         return runtimes
 
     def cleanup(self) -> None:
-        """Release all acquired resources and terminate all processes by calling the cleanup method on all contained
-        `Runtimes`.
-        """
+        """Release all acquired resources and terminate all processes by calling the cleanup method on all contained `Runtimes`."""
         self.log.info("Start cleanup of RuntimeGroup.")
         for runtime in self.get_runtimes().values():
             runtime.cleanup()
@@ -788,9 +798,11 @@ class RuntimeGroup(object):
 
 
 class RuntimeManager(object):
-    """The `RuntimeManager` can be used for a simplified resource management, since it aims to automatically detect
-    valid `Runtimes` based on the ssh configuration. It can be used to create a `RuntimeGroup` based on the
-    automatically detected instances and possibly based on further filters such as GPU availability.
+    """The `RuntimeManager` can be used for a simplified resource management.
+
+    It aims to automatically detect valid `Runtimes` based on the ssh configuration.
+    It can be used to create a `RuntimeGroup` based on the automatically detected
+    instances and possibly based on further filters such as GPU availability.
     """
 
     def __init__(self) -> None:

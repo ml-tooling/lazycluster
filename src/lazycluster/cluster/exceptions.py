@@ -9,7 +9,7 @@ from lazycluster.exceptions import LazyclusterError
 
 
 class MasterStartError(LazyclusterError):
-    """Error indicating that the cluster master instance could not be started successfully. """
+    """Error indicating that the cluster master instance could not be started successfully."""
 
     def __init__(self, host: str, port: int, cause: str):
         """Initialization method.
