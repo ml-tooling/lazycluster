@@ -1472,6 +1472,25 @@ class Runtime(object):
         for task in self._tasks:
             task.print_log()
 
+    def execution_log(self, task_name: str) -> List[str]:
+        """Get the execution log of a `RuntimeTask` which was executed in the Runtime.
+
+        Args:
+            task_name (str): The name of the `RuntimeTask`
+
+        Raises:
+            ValueError: The RuntimeTask `task_name` was not executed on the Runtime
+
+        Returns:
+            List[str]: Execution log
+        """
+        for task in self._tasks:
+            if task.name == task_name:
+                return task.execution_log
+        raise ValueError(
+            f"The RuntimeTask {task_name} was not executed on Runtime {self.host}"
+        )
+
     def clear_tasks(self) -> None:
         """Clears all internal state related to `RuntimeTasks`."""
         self.log.info(
@@ -1845,9 +1864,9 @@ class Runtime(object):
 
     def echo(self, msg: str) -> str:
         """Convenient method for echoing a string on the `Runtime` and returning the result."""
-        return self._fabric_connection.run(
-            f"echo {msg}", env=self._env_variables, hide=True
-        ).stdout
+        cxn = self._fabric_connection
+        with cxn.cd(self.working_dir):
+            return cxn.run(f"echo {msg}", env=self._env_variables, hide=True).stdout
 
     # - Private methods -#
 
