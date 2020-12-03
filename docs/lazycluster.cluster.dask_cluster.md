@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/dask_cluster.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/cluster/dask_cluster.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `lazycluster.cluster.dask_cluster`
 Module for conveniently managing a [DASK](http://distributed.dask.org) cluster. 
@@ -9,7 +9,7 @@ Module for conveniently managing a [DASK](http://distributed.dask.org) cluster.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/dask_cluster.py#L15"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/cluster/dask_cluster.py#L15"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `LocalMasterLauncher`
 Concrete implementation of the `MasterLauncher` interface. See its documentation to get a list of the inherited methods and attributes. 
@@ -45,7 +45,7 @@ The process object where the master instance was started in.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/dask_cluster.py#L92"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/cluster/dask_cluster.py#L92"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `cleanup`
 
@@ -57,7 +57,7 @@ Release all resources.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/dask_cluster.py#L21"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/cluster/dask_cluster.py#L21"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `start`
 
@@ -101,12 +101,12 @@ Launch a master instance.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/dask_cluster.py#L98"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/cluster/dask_cluster.py#L98"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `RoundRobinLauncher`
 WorkerLauncher implementation for launching DASK workers in a round robin manner. See its documentation to get a list of the inherited methods and attributes. 
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/dask_cluster.py#L101"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/cluster/dask_cluster.py#L101"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -139,7 +139,7 @@ Dictionary with the host as key and a port list as value. The list contains all 
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/dask_cluster.py#L211"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/cluster/dask_cluster.py#L211"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `cleanup`
 
@@ -151,7 +151,7 @@ Release all resources.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/dask_cluster.py#L112"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/cluster/dask_cluster.py#L112"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `start`
 
@@ -190,7 +190,7 @@ Launches the worker instances in the `RuntimeGroup`.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/dask_cluster.py#L217"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/cluster/dask_cluster.py#L217"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `DaskCluster`
 Convenient class for launching a Dask cluster in a `RuntimeGroup`. 
@@ -199,7 +199,7 @@ DaskCluster inherits from MasterWorkerCluster. See its documentation to get a li
 
 The number of DASK workers defaults to the number of `Runtimes` in the used `RuntimeGroup`. This number can be adjusted so that more or less workers than available `Runtimes` can be used. Per default the desired number of workers is started in a round robin way as implemented in `RoundRobinLauncher`. Consequently, this leads to an equal distribution of DASK workers in the `RuntimeGroup`. You can provide a custom implementation inheriting from the `WorkerLauncher` class in order to execute a different strategy how workers should be started. The DASK master (i.e. scheduler) will always be started on localhost as implemented in `LocalMasterLauncher`. This behavior can also be changed by providing a custom implementation inheriting from the `MasterLauncher`. 
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/dask_cluster.py#L235"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/cluster/dask_cluster.py#L235"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -252,7 +252,7 @@ The RuntimeGroup.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/dask_cluster.py#L279"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/cluster/dask_cluster.py#L279"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `cleanup`
 
@@ -264,7 +264,7 @@ Release all resources.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/dask_cluster.py#L266"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/cluster/dask_cluster.py#L266"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_client`
 

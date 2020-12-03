@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `lazycluster.runtimes`
 Runtimes module. 
@@ -11,7 +11,7 @@ This module comprises classes for executing so called `RuntimeTasks` in `Runtime
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L34"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L34"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `RuntimeTask`
 This class provides the functionality for executing a sequence of elementary operations over ssh. 
@@ -38,7 +38,7 @@ task.print_log()
 log = task.execution_log
 ``` 
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L66"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L66"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -111,7 +111,7 @@ The process object in which the task were executed. None, if not yet or synchron
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L147"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L147"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `cleanup`
 
@@ -123,7 +123,7 @@ Remove temporary used resources, like temporary directories if created.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L461"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L461"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `execute`
 
@@ -155,7 +155,7 @@ Execute the task on a remote host using a fabric connection.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L259"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L259"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_file`
 
@@ -187,7 +187,7 @@ Create a task step for getting either a single file or a folder from another hos
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L572"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L572"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `join`
 
@@ -205,7 +205,7 @@ Block the execution until the `RuntimeTask` finished its asynchronous execution.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L597"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L597"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `print_log`
 
@@ -217,7 +217,7 @@ Print the execution log. Each log entry will be printed separately. The log inde
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L289"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L289"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `run_command`
 
@@ -247,7 +247,7 @@ Create a task step for running a given shell command.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L310"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L310"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `run_function`
 
@@ -285,7 +285,7 @@ The function will be transferred to the remote host via ssh and cloudpickle. The
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L231"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L231"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `send_file`
 
@@ -317,7 +317,7 @@ Create a task step for sending either a single file or a folder from localhost t
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L818"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L818"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `Runtime`
 A `Runtime` is the logical representation of a remote host. 
@@ -345,7 +345,7 @@ A Runtime has a working directory (property: `working_dir`) which is a temporary
      Runtime('host-1').expose_port_from_runtime(8787)
     ``` 
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L861"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L861"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -595,7 +595,7 @@ The path of the working directory that was set during object initialization.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1169"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1169"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `add_env_variables`
 
@@ -613,7 +613,7 @@ Update the environment variables. If a variable already exists it gets updated a
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1669"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1688"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `check_filter`
 
@@ -659,7 +659,7 @@ Checks the `Runtime` object for certain filter criteria.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1819"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1838"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `cleanup`
 
@@ -671,7 +671,7 @@ Release all acquired resources and terminate all processes.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1475"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1494"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `clear_tasks`
 
@@ -683,7 +683,7 @@ Clears all internal state related to `RuntimeTasks`.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1760"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1779"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `create_dir`
 
@@ -707,7 +707,7 @@ Create a directory. All folders in the path will be created if not existing.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1745"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1764"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `create_tempdir`
 
@@ -725,7 +725,7 @@ Create a temporary directory and return its name/path.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1780"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1799"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `delete_dir`
 
@@ -749,7 +749,7 @@ Delete a directory recursively. If at least one contained file could not be remo
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1846"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1865"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `echo`
 
@@ -761,7 +761,7 @@ Convenient method for echoing a string on the `Runtime` and returning the result
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1421"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1421"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `execute_function`
 
@@ -805,7 +805,7 @@ Execute a Python function on the Runtime.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1297"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1297"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `execute_task`
 
@@ -842,7 +842,37 @@ Execute a given `RuntimeTask` in the `Runtime`.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1529"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1475"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+### <kbd>method</kbd> `execution_log`
+
+```python
+execution_log(task_name: str) → List[str]
+```
+
+Get the execution log of a `RuntimeTask` which was executed in the Runtime. 
+
+
+
+**Args:**
+ 
+ - <b>`task_name`</b> (str):  The name of the `RuntimeTask` 
+
+
+
+**Raises:**
+ 
+ - <b>`ValueError`</b>:  The RuntimeTask `task_name` was not executed on the Runtime 
+
+
+
+**Returns:**
+ 
+ - <b>`List[str]`</b>:  Execution log 
+
+---
+
+<a href="../src/lazycluster/runtimes.py#L1548"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `expose_port_from_runtime`
 
@@ -872,7 +902,7 @@ Expose a port from a `Runtime` to localhost so that all traffic to the `local_po
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1487"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1506"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `expose_port_to_runtime`
 
@@ -902,7 +932,7 @@ Expose a port from localhost to the `Runtime` so that all traffic on the `runtim
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1386"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1386"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_file`
 
@@ -943,7 +973,7 @@ Get either a single file or a folder from the Runtime to the manager.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1279"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1279"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_free_port`
 
@@ -973,7 +1003,7 @@ Returns the first port from the list which is currently not in use in the `Runti
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1571"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1590"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_process`
 
@@ -1003,7 +1033,7 @@ Get an individual process by process key.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1587"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1606"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_processes`
 
@@ -1029,7 +1059,7 @@ An individual process can be retrieved by key via `get_process()`.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1625"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1644"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `has_free_port`
 
@@ -1053,7 +1083,7 @@ Checks if the port is available on the runtime.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1193"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1193"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>classmethod</kbd> `is_port_exposure_process`
 
@@ -1079,7 +1109,7 @@ Check if the process which belongs to the given `process_key` is used for exposi
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1177"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1177"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>classmethod</kbd> `is_runtime_task_process`
 
@@ -1105,7 +1135,7 @@ Checks if the process which belongs to a given `process_key` was started to exec
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1214"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1214"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `is_valid_runtime`
 
@@ -1123,7 +1153,7 @@ Checks if a given host is a valid `Runtime`.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1811"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1830"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `join`
 
@@ -1135,7 +1165,7 @@ Blocks until `RuntimeTasks` which were started via the `runtime.execute_task()` 
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1646"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1665"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `print_info`
 
@@ -1147,7 +1177,7 @@ Print the Runtime info formatted as table.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1470"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1470"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `print_log`
 
@@ -1159,7 +1189,7 @@ Print the execution logs of each `RuntimeTask` that was executed in the `Runtime
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1350"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1350"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `send_file`
 
@@ -1202,7 +1232,7 @@ Send either a single file or a folder from the manager to the Runtime.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtimes.py#L1611"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtimes.py#L1630"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `stop_process`
 

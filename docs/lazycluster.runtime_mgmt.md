@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `lazycluster.runtime_mgmt`
 Runtime management module. This module contains convenient classes for working with `Runtimes` and `RuntimeTasks`. 
@@ -9,7 +9,7 @@ Runtime management module. This module contains convenient classes for working w
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L22"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L22"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `RuntimeGroup`
 A `RuntimeGroup` is the representation of logically related `Runtimes`. 
@@ -57,7 +57,7 @@ group_port = group.expose_port_from_runtime_to_group(host='host-1', runtime_port
 print('Port 60000 of `host-1` is now exposed to port ' + str(group_port) + ' in the RuntimeGroup!')
 ``` 
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L81"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L81"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -158,7 +158,7 @@ Processes from all contained `Runtimes` which were started to execute a `Runtime
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L205"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L205"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `add_env_variables`
 
@@ -183,7 +183,7 @@ If a variable already exists it gets updated and if not it will be added.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L274"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L274"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `add_runtime`
 
@@ -211,7 +211,7 @@ Add a `Runtime` to the group either by host or as a `Runtime` object.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L781"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L781"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `cleanup`
 
@@ -223,7 +223,7 @@ Release all acquired resources and terminate all processes by calling the cleanu
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L689"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L689"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `clear_tasks`
 
@@ -235,7 +235,7 @@ Clears all internal state related to `RuntimeTasks`.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L678"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L678"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `contains_runtime`
 
@@ -259,7 +259,7 @@ Check if the group contains a `Runtime` identified by host.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L472"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L472"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `execute_task`
 
@@ -307,7 +307,7 @@ Execute a `RuntimeTask` in the whole group or in a single `Runtime`.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L392"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L392"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `expose_port_from_runtime_to_group`
 
@@ -347,7 +347,7 @@ All traffic to the `group_port` is forwarded to the `runtime_port` of the runtim
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L322"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L322"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `expose_port_to_runtimes`
 
@@ -386,7 +386,7 @@ All traffic on the `runtime_port` is forwarded to the `local_port` on the local 
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L238"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L238"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `fill_runtime_info_buffers_async`
 
@@ -404,7 +404,7 @@ Trigger the reading of runtime information asynchronously and buffer the result.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L604"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L604"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_free_port`
 
@@ -435,7 +435,7 @@ Return the first port from the list which is currently not in use in the whole g
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L705"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L705"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_runtime`
 
@@ -472,7 +472,7 @@ A runtime identified by the `host` or 'the least busy one' will be returned if n
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L730"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L730"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_runtimes`
 
@@ -500,7 +500,7 @@ Convenient methods for getting relevant `Runtimes` contained in the group.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L646"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L646"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `has_free_port`
 
@@ -533,7 +533,7 @@ The check can be restricted to a specific subset of contained `Runtimes` by excl
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L590"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L590"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `join`
 
@@ -545,7 +545,7 @@ Blocks until `RuntimeTasks` which were started via the `group.execute_task()` me
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L219"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L219"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `print_hosts`
 
@@ -557,7 +557,7 @@ Print the hosts of the group.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L598"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L598"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `print_log`
 
@@ -569,7 +569,7 @@ Print the execution logs of the contained `Runtimes` that were executed in the g
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L228"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L228"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `print_runtime_info`
 
@@ -581,7 +581,7 @@ Print information of contained `Runtimes`.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L309"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L309"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `remove_runtime`
 
@@ -599,7 +599,7 @@ Remove a runtime from the group by host.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L549"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L549"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `send_file`
 
@@ -642,7 +642,7 @@ Send either a single file or a folder from the manager to all `Runtimes` of the 
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L193"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L193"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `set_env_variables`
 
@@ -666,14 +666,14 @@ Set environment variables used when executing a task.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L800"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L800"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `RuntimeManager`
 The `RuntimeManager` can be used for a simplified resource management. 
 
 It aims to automatically detect valid `Runtimes` based on the ssh configuration. It can be used to create a `RuntimeGroup` based on the automatically detected instances and possibly based on further filters such as GPU availability. 
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L808"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L808"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -694,7 +694,7 @@ Initialization method.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L867"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L867"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `create_group`
 
@@ -746,7 +746,7 @@ Create a runtime group with either all detected `Runtimes` or with a subset ther
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L975"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L975"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `print_hosts`
 
@@ -764,7 +764,7 @@ Print detected hosts incl. the inactive ones.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L993"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L993"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `print_inactive_hosts`
 
@@ -782,7 +782,7 @@ Print the inactive hosts.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/runtime_mgmt.py#L957"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/runtime_mgmt.py#L957"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `print_runtime_info`
 

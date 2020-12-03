@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/exceptions.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/cluster/exceptions.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `lazycluster.cluster.exceptions`
 Exception module for cluster classes. 
@@ -15,12 +15,12 @@ Exception module for cluster classes.
 
 ---
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/exceptions.py#L11"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/cluster/exceptions.py#L11"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `MasterStartError`
 Error indicating that the cluster master instance could not be started successfully. 
 
-<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/exceptions.py#L14"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/lazycluster/cluster/exceptions.py#L14"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
