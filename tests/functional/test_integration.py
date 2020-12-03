@@ -8,9 +8,9 @@ from typing import Union
 
 import docker
 import requests
-from docker.client import DockerClient
+import storm.__main__ as storm
 
-from lazycluster import Runtime
+from lazycluster import Runtime, RuntimeGroup, RuntimeManager, RuntimeTask
 
 from .config import RUNTIME_DOCKER_IMAGE, RUNTIME_NAMES, WORKSPACE_PORT
 
@@ -27,6 +27,13 @@ def setup_module(module: ModuleType) -> None:
 
     for runtime_name in RUNTIME_NAMES:
         _setup_ssh_connection_to_runtime(runtime_name)
+
+
+def teardown_module(module: ModuleType) -> None:
+    """teardown any state that was previously setup with a setup_module
+    method.
+    """
+    _remove_runtimes()
 
 
 class TestRuntime:
@@ -47,17 +54,40 @@ class TestRuntime:
 
         Runtime(RUNTIME_NAMES[0])
 
-    # def test_echo(self):
-    #     rt = Runtime(RUNTIME_NAMES[len(RUNTIME_NAMES - 1)])
-    #     msg = "Hello Runtime"
-    #     assert rt.echo(msg) == msg
+    def test_echo(self) -> None:
+        runtime_name = RUNTIME_NAMES[len(RUNTIME_NAMES) - 1]
+        rt = Runtime(runtime_name)
+        msg = f"Hello Runtime {runtime_name}"
+        assert rt.echo(msg).rstrip("\n") == msg
+
+    def test_working(self) -> None:
+        runtime_name = RUNTIME_NAMES[0]
+        exp_working_dir = "/etc"
+        rt = Runtime(runtime_name, working_dir=exp_working_dir)
+        act_working_dir = rt.echo("${PWD}").rstrip("\n")
+        assert exp_working_dir == act_working_dir
+
+        task = RuntimeTask("get-working-dir").run_command("echo ${PWD}")
+        rt.execute_task(task, execute_async=False)
+        assert exp_working_dir == rt.execution_log(task.name)[0].rstrip("\n").rstrip(
+            "\r"
+        )
 
 
-def teardown_module(module: ModuleType) -> None:
-    """teardown any state that was previously setup with a setup_module
-    method.
-    """
-    _remove_runtimes()
+class TestRuntimeGroup:
+    def test_creation(self) -> None:
+        runtime_group = RuntimeGroup(hosts=RUNTIME_NAMES)
+        for runtime_name in RUNTIME_NAMES:
+            assert runtime_name in runtime_group._runtimes
+            assert isinstance(runtime_group._runtimes[runtime_name], Runtime)
+
+
+class TestRuntimeManager:
+    def test_create_group(self) -> None:
+        runtime_group = RuntimeManager().create_group()
+        for runtime_name in RUNTIME_NAMES:
+            assert runtime_name in runtime_group._runtimes
+            assert isinstance(runtime_group._runtimes[runtime_name], Runtime)
 
 
 # -------------------------------------------------------------------------
@@ -72,6 +102,9 @@ def _remove_runtimes() -> None:
         except docker.errors.NotFound:
             # TODO: handle create a docker container if not running as containerized test
             print(f"Conatiner {runtime_name} not found")
+        # Delete ssh config as well, because the ssh setup fails
+        # when testing against multiple python versions
+        storm.delete(runtime_name)
 
 
 def _get_current_container_id() -> str:
@@ -84,7 +117,7 @@ def _get_current_container_id() -> str:
     ).stdout.rstrip("\n")
 
 
-def _start_runtime_container(name: str, client: DockerClient) -> None:
+def _start_runtime_container(name: str, client: docker.DockerClient) -> None:
     try:
         container = client.containers.run(
             RUNTIME_DOCKER_IMAGE,
