@@ -116,7 +116,7 @@ Start a [Dask](https://distributed.dask.org/en/latest/) cluster.
 
 ```python
 from lazycluster import RuntimeManager
-from lazycluster.cluster import DaskCluster
+from lazycluster.cluster.dask_cluster import DaskCluster
 
 # Automatically generate a group based on the ssh configuration
 runtime_manager = RuntimeManager()
@@ -299,7 +299,7 @@ Please make sure that you have Dask installed on the [manager](#manager). This c
 
 ```python
 from lazycluster import RuntimeManager
-from lazycluster.cluster import DaskCluster
+from lazycluster.cluster.dask_cluster import DaskCluster
 
 # 1st: Create a RuntimeGroup, e.g. by letting the RuntimeManager detect
 #      available hosts (i.e. Runtimes) and create the group for you.
@@ -381,7 +381,7 @@ For a detailed documentation of customizing options and default values check out
 
 ```python
 from lazycluster import RuntimeManager
-from lazycluster.cluster import HyperoptCluster
+from lazycluster.cluster.hyperopt_cluster import HyperoptCluster
 
 # 1st: Create a RuntimeGroup, e.g. by letting the RuntimeManager detect
 #      available hosts (i.e. Runtimes) and create the group for you.
