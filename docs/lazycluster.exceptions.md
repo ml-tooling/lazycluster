@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="../src/lazycluster/exceptions.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/exceptions.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `lazycluster.exceptions`
 Exception module. 
@@ -9,12 +9,12 @@ Exception module.
 
 ---
 
-<a href="../src/lazycluster/exceptions.py#L6"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/exceptions.py#L6"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `LazyclusterError`
 Basic exception class for `lazycluster` library errors. 
 
-<a href="../src/lazycluster/exceptions.py#L9"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/exceptions.py#L9"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -37,12 +37,12 @@ Constructor method.
 
 ---
 
-<a href="../src/lazycluster/exceptions.py#L27"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/exceptions.py#L27"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `TaskExecutionError`
 This error relates to exceptions occured during RuntimeTask execution. 
 
-<a href="../src/lazycluster/exceptions.py#L30"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/exceptions.py#L30"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -76,12 +76,12 @@ Initialization method.
 
 ---
 
-<a href="../src/lazycluster/exceptions.py#L59"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/exceptions.py#L59"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `InvalidRuntimeError`
 Error indicating that a `Runtime` can not be instantiated properly. 
 
-<a href="../src/lazycluster/exceptions.py#L62"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/exceptions.py#L62"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -103,12 +103,12 @@ Constructor method.
 
 ---
 
-<a href="../src/lazycluster/exceptions.py#L73"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/exceptions.py#L73"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `NoRuntimesDetectedError`
 Error indicating that no `Runtime` could be detcted automatically by a `RuntimeManager` for example. 
 
-<a href="../src/lazycluster/exceptions.py#L76"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/exceptions.py#L76"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -126,12 +126,12 @@ __init__(predecessor_excp: Optional[Exception] = None)
 
 ---
 
-<a href="../src/lazycluster/exceptions.py#L80"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/exceptions.py#L80"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `PortInUseError`
 Error indicating that a port is already in use in a `RuntimeGroup` or on the local machine. 
 
-<a href="../src/lazycluster/exceptions.py#L83"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/exceptions.py#L83"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -159,12 +159,12 @@ Constructor.
 
 ---
 
-<a href="../src/lazycluster/exceptions.py#L121"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/exceptions.py#L121"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `NoPortsLeftError`
 Error indicating that there are no more ports left from the given port list. 
 
-<a href="../src/lazycluster/exceptions.py#L124"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/exceptions.py#L124"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -180,12 +180,12 @@ Constructor method.
 
 ---
 
-<a href="../src/lazycluster/exceptions.py#L130"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/exceptions.py#L130"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `PathCreationError`
 Error indicating that a given path could not be created. 
 
-<a href="../src/lazycluster/exceptions.py#L133"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/exceptions.py#L133"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
