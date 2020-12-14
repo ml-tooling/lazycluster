@@ -1,5 +1,5 @@
 ---
-name: "\U0001F4DA Documentation"
+name: "\U0001F4DD Documentation"
 about: Is there a mistake in the docs, is anything unclear or do you have a suggestion?
 title: ''
 labels: documentation
