@@ -50,7 +50,7 @@ class LocalMasterLauncher(MasterLauncher):
         )
 
         if debug:
-            self.log.debug("The debug flag has no effect in LocalMongoLauncher.")
+            self.log.debug("The debug flag has no effect in LocalMasterLauncher.")
 
         if not isinstance(_ports, list):
             if _utils.localhost_has_free_port(_ports) and self._group.has_free_port(

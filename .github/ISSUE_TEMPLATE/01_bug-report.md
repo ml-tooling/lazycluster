@@ -32,9 +32,8 @@ Before opening a new issue, please make sure that we do not have any duplicates 
 
 **Technical details:**
 
-- Library version <!-- run `import lazycluster; print(lazycluster.__version__)` -->: 
-- Python version<!-- run `import sys; print(sys.version)` on your machine -->:  
-- SSH version <!-- run `ssh -V` on your machine -->: 
+- Host Machine OS (Windows/Linux/Mac):
+- Browser (Chrome/Firefox/Safari):
 
 **Possible Fix:**
 

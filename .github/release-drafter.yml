@@ -38,7 +38,10 @@ replacers:
   - search: '/(?:and)?(,)?(\s)*@github-actions(?:\[bot\])?,?/g'
     replace: ""
 template: |
-  [![PyPi Release](https://img.shields.io/pypi/v/lazycluster/$RESOLVED_VERSION?color=blue)](https://pypi.org/project/universal-build/$RESOLVED_VERSION)
+  [![PyPi Release](https://img.shields.io/pypi/v/universal-build/$RESOLVED_VERSION?color=blue)](https://pypi.org/project/universal-build/$RESOLVED_VERSION) [![DockerHub Release](https://img.shields.io/docker/v/mltooling/build-environment/$RESOLVED_VERSION?label=docker%20version&color=blue)](https://hub.docker.com/repository/docker/mltooling/build-environment) [![DockerHub Image Size](https://img.shields.io/docker/image-size/mltooling/build-environment/$RESOLVED_VERSION?label=docker%20image%20size&color=blue)](https://hub.docker.com/repository/docker/mltooling/build-environment)
+
   $CHANGES
+
   ## 👥 Contributors
+
   Thanks to $CONTRIBUTORS for the contributions.
