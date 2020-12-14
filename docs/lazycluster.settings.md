@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="../src/lazycluster/settings.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/settings.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `lazycluster.settings`
 Contains setting parameters for the library. 

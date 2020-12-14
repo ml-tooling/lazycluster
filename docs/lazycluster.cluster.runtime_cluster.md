@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="../src/lazycluster/cluster/runtime_cluster.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/runtime_cluster.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `lazycluster.cluster.runtime_cluster`
 Module comprising the abstract RuntimeCluster class with its related `launcher strategy` classes. 
@@ -11,12 +11,12 @@ Note: The design of the launcher classes follows the strategy pattern.
 
 ---
 
-<a href="../src/lazycluster/cluster/runtime_cluster.py#L14"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/runtime_cluster.py#L14"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `MasterLauncher`
 Abstract class for implementing the strategy for launching the master instance of the cluster. 
 
-<a href="../src/lazycluster/cluster/runtime_cluster.py#L17"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/runtime_cluster.py#L17"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -61,7 +61,7 @@ The process object where the master instance was started in.
 
 ---
 
-<a href="../src/lazycluster/cluster/runtime_cluster.py#L83"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/runtime_cluster.py#L83"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `cleanup`
 
@@ -73,7 +73,7 @@ Release all resources.
 
 ---
 
-<a href="../src/lazycluster/cluster/runtime_cluster.py#L50"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/runtime_cluster.py#L50"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `start`
 
@@ -117,7 +117,7 @@ Launch a master instance.
 
 ---
 
-<a href="../src/lazycluster/cluster/runtime_cluster.py#L90"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/runtime_cluster.py#L90"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `WorkerLauncher`
 Abstract class for implementing the strategy for launching worker instances within a RuntimeGroup. 
@@ -126,7 +126,7 @@ In order to implement a new concrete `WorkerLauncher` subclass you need to imple
 
 Moreover, the `setup_worker_ssh_tunnels()` method can be used to setup ssh tunnels so that all entities can talk to each other. 
 
-<a href="../src/lazycluster/cluster/runtime_cluster.py#L101"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/runtime_cluster.py#L101"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -159,7 +159,7 @@ Dictionary with the host as key and a port list as value. The list contains all 
 
 ---
 
-<a href="../src/lazycluster/cluster/runtime_cluster.py#L176"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/runtime_cluster.py#L176"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `cleanup`
 
@@ -171,7 +171,7 @@ Release all resources.
 
 ---
 
-<a href="../src/lazycluster/cluster/runtime_cluster.py#L157"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/runtime_cluster.py#L157"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `setup_worker_ssh_tunnels`
 
@@ -196,7 +196,7 @@ Set up ssh tunnel for workers such that all communication is routed over the loc
 
 ---
 
-<a href="../src/lazycluster/cluster/runtime_cluster.py#L129"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/runtime_cluster.py#L129"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `start`
 
@@ -235,7 +235,7 @@ Launches the worker instances in the `RuntimeGroup`.
 
 ---
 
-<a href="../src/lazycluster/cluster/runtime_cluster.py#L182"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/runtime_cluster.py#L182"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `RuntimeCluster`
 Abstract cluster class. 
@@ -248,7 +248,7 @@ All further cluster implementations should inherit from this class either direct
 
 ---
 
-<a href="../src/lazycluster/cluster/runtime_cluster.py#L194"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/runtime_cluster.py#L194"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `MasterWorkerCluster`
 Class for clusters following a master-worker architecture. 
@@ -275,7 +275,7 @@ Usually you want to inherit from this class and do not want to use it directly. 
      cluster.start()
     ``` 
 
-<a href="../src/lazycluster/cluster/runtime_cluster.py#L224"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/runtime_cluster.py#L224"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -328,7 +328,7 @@ The RuntimeGroup.
 
 ---
 
-<a href="../src/lazycluster/cluster/runtime_cluster.py#L411"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/runtime_cluster.py#L411"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `cleanup`
 
@@ -340,7 +340,7 @@ Release all resources.
 
 ---
 
-<a href="../src/lazycluster/cluster/runtime_cluster.py#L402"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/runtime_cluster.py#L402"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `print_log`
 
@@ -358,7 +358,7 @@ Print the execution log.
 
 ---
 
-<a href="../src/lazycluster/cluster/runtime_cluster.py#L283"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/runtime_cluster.py#L283"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `start`
 
@@ -384,7 +384,7 @@ Internally, `self.start_master()` and `self.start_workers()` will be called.
 
 ---
 
-<a href="../src/lazycluster/cluster/runtime_cluster.py#L307"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/runtime_cluster.py#L307"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `start_master`
 
@@ -421,7 +421,7 @@ Start the master instance.
 
 ---
 
-<a href="../src/lazycluster/cluster/runtime_cluster.py#L364"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/runtime_cluster.py#L364"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `start_workers`
 

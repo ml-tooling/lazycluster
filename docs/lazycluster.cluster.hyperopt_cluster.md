@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="../src/lazycluster/cluster/hyperopt_cluster.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/hyperopt_cluster.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `lazycluster.cluster.hyperopt_cluster`
 Module for conveniently managing a [Hyperopt](https://github.com/hyperopt/hyperopt) cluster. 
@@ -9,14 +9,14 @@ Module for conveniently managing a [Hyperopt](https://github.com/hyperopt/hypero
 
 ---
 
-<a href="../src/lazycluster/cluster/hyperopt_cluster.py#L14"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/hyperopt_cluster.py#L14"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `MongoLauncher`
 Abstract implementation of the `MasterLauncher` interface used to implement a concrete launch strategy for mongodb instance used in hyperopt. 
 
 This class implements the logic for starting a MongoDB instance on localhost. Hence, we simply treat the MongoDB instance as master node. 
 
-<a href="../src/lazycluster/cluster/hyperopt_cluster.py#L21"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/hyperopt_cluster.py#L21"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -62,14 +62,14 @@ The process object where the master instance was started in.
 
 ---
 
-<a href="../src/lazycluster/cluster/hyperopt_cluster.py#L31"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/hyperopt_cluster.py#L31"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `LocalMongoLauncher`
 Concrete implementation of the `MasterLauncher` interface. See its documentation to get a list of the inherited methods and attributes. 
 
 This class implements the logic for starting a MongoDB instance on localhost. Hence, we simply treat the MongoDB instance as master node. 
 
-<a href="../src/lazycluster/cluster/hyperopt_cluster.py#L21"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/hyperopt_cluster.py#L21"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -114,7 +114,7 @@ The process object where the master instance was started in.
 
 ---
 
-<a href="../src/lazycluster/cluster/hyperopt_cluster.py#L141"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/hyperopt_cluster.py#L141"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `cleanup`
 
@@ -126,7 +126,7 @@ Release all resources.
 
 ---
 
-<a href="../src/lazycluster/cluster/hyperopt_cluster.py#L122"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/hyperopt_cluster.py#L122"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_mongod_start_cmd`
 
@@ -144,7 +144,7 @@ Get the shell command for starting mongod as a deamon process.
 
 ---
 
-<a href="../src/lazycluster/cluster/hyperopt_cluster.py#L133"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/hyperopt_cluster.py#L133"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_mongod_stop_cmd`
 
@@ -162,7 +162,7 @@ Get the shell command for stopping the currently running mongod process.
 
 ---
 
-<a href="../src/lazycluster/cluster/hyperopt_cluster.py#L38"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/hyperopt_cluster.py#L38"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `start`
 
@@ -206,14 +206,14 @@ Launch a master instance.
 
 ---
 
-<a href="../src/lazycluster/cluster/hyperopt_cluster.py#L153"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/hyperopt_cluster.py#L153"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `RoundRobinLauncher`
 Concrete WorkerLauncher implementation for launching hyperopt workers in a round robin manner. 
 
 See the `WorkerLauncher` documentation to get a list of the inherited methods and attributes. 
 
-<a href="../src/lazycluster/cluster/hyperopt_cluster.py#L159"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/hyperopt_cluster.py#L159"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -251,7 +251,7 @@ Dictionary with the host as key and a port list as value. The list contains all 
 
 ---
 
-<a href="../src/lazycluster/cluster/hyperopt_cluster.py#L251"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/hyperopt_cluster.py#L251"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `cleanup`
 
@@ -263,7 +263,7 @@ Release all resources.
 
 ---
 
-<a href="../src/lazycluster/cluster/hyperopt_cluster.py#L183"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/hyperopt_cluster.py#L183"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `start`
 
@@ -296,7 +296,7 @@ Launches the worker instances in the `RuntimeGroup`.
 
 ---
 
-<a href="../src/lazycluster/cluster/hyperopt_cluster.py#L257"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/hyperopt_cluster.py#L257"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `HyperoptCluster`
 Convenient class for launching a Hyperopt cluster in a `RuntimeGroup`. 
@@ -305,7 +305,7 @@ HyperoptCluster inherits from MasterWorkerCluster. See its documentation to get 
 
 The number of hyperopt workers defaults to the number of `Runtimes` in the used `RuntimeGroup`. This number can be adjusted so that more or less workers than available `Runtimes` can be used. Per default the desired number of workers is started in a round robin way as implemented in `RoundRobinLauncher`. Consequently, this leads to an equal distribution of hyperopt workers in the `RuntimeGroup`. You can provide a custom implementation inheriting from the `WorkerLauncher` class in order to execute a different strategy how workers should be started. The master instance (i.e. the mongoDB) will always be started on localhost as implemented in `LocalMasterLauncher`. This behavior can also be changed by providing a custom implementation inheriting from the `MasterLauncher`. 
 
-<a href="../src/lazycluster/cluster/hyperopt_cluster.py#L276"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/hyperopt_cluster.py#L276"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -408,7 +408,7 @@ The RuntimeGroup.
 
 ---
 
-<a href="../src/lazycluster/cluster/hyperopt_cluster.py#L396"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/hyperopt_cluster.py#L396"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `cleanup`
 
@@ -420,7 +420,7 @@ Release all resources.
 
 ---
 
-<a href="../src/lazycluster/cluster/hyperopt_cluster.py#L370"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/cluster/hyperopt_cluster.py#L370"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `start_master`
 

@@ -1,6 +1,6 @@
 <!-- markdownlint-disable -->
 
-<a href="../src/lazycluster/utils.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/utils.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 # <kbd>module</kbd> `lazycluster.utils`
 
@@ -11,12 +11,12 @@
 
 ---
 
-<a href="../src/lazycluster/utils.py#L6"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/utils.py#L6"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `ExecutionFileLogUtil`
 Generic class used to write log files. 
 
-<a href="../src/lazycluster/utils.py#L9"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/utils.py#L9"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -61,7 +61,7 @@ Get the full path to the log file.
 
 ---
 
-<a href="../src/lazycluster/utils.py#L51"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/utils.py#L51"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_write_mode`
 
@@ -76,7 +76,7 @@ get_write_mode() → str
 
 ---
 
-<a href="../src/lazycluster/utils.py#L56"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/utils.py#L56"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `Environment`
 This class contains environment variables. 
@@ -86,7 +86,7 @@ This class contains environment variables.
 
 ---
 
-<a href="../src/lazycluster/utils.py#L65"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/utils.py#L65"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>classmethod</kbd> `set_main_directory`
 
@@ -109,7 +109,7 @@ Setter for the library's main directory on the manager.
 
 ---
 
-<a href="../src/lazycluster/utils.py#L77"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/utils.py#L77"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>classmethod</kbd> `set_third_party_log_level`
 
@@ -134,7 +134,7 @@ Affected libraries: paramiko
 
 ---
 
-<a href="../src/lazycluster/utils.py#L102"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/utils.py#L102"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>classmethod</kbd> `use_lazycluster_dev_version`
 
@@ -155,12 +155,12 @@ This means the latest commit in the develop branch will be installed on the Runt
 
 ---
 
-<a href="../src/lazycluster/utils.py#L115"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/utils.py#L115"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `Timestamp`
 Custom Timestamp class with convenient methods. 
 
-<a href="../src/lazycluster/utils.py#L118"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/utils.py#L118"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 
@@ -175,7 +175,7 @@ Initializes the object with the current date/time.
 
 ---
 
-<a href="../src/lazycluster/utils.py#L158"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/utils.py#L158"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_formatted`
 
@@ -187,7 +187,7 @@ Formatted fixed length representation with delimiters in format: yyyy-mm-dd hh:m
 
 ---
 
-<a href="../src/lazycluster/utils.py#L154"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="https://github.com/ml-tooling/lazycluster/blob/main/src/lazycluster/utils.py#L154"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `get_unformatted`
 
