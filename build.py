@@ -80,5 +80,5 @@ def main(args: Dict[str, Union[bool, str]]) -> None:
 
 
 if __name__ == "__main__":
-    args = build_utils.parse_arguments()
+    args = build_python.parse_arguments()
     main(args)
