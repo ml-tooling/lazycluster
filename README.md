@@ -314,7 +314,7 @@ cluster = DaskCluster(runtime_group)
 cluster.start()
 
 # => Now, all cluster entities should be started and you can simply use
-#    it as documented in the hyperopt documentation.
+#    it as documented in the Dask distributed documentation.
 ```
 
 Test the cluster setup
